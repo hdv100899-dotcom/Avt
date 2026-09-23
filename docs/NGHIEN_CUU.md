@@ -101,7 +101,7 @@ Kết luận: ở Việt Nam, ảnh “hôm nay” chỉ có sau khoảng **15:3
   - Chọn **khung nhìn**: vùng mục tiêu, ×2, ×4, 10, 20 hoặc 40 km. Viền vàng đánh dấu ô mục tiêu.
   - **So sánh hai ngày** bằng thanh trượt.
   - Tải JPG hoặc GeoTIFF ở độ phân giải gốc 10 m theo khung nhìn.
-  - Tải band L1C gốc (JP2 cả ô) và band L2A cắt vùng (GeoTIFF uint16).
+  - Tick chọn nhiều ảnh (nhiều ngày, nhiều mục tiêu) rồi bấm **Tải TCI**: TCI L1C gốc cả ô (JP2) hoặc TCI cắt theo khung nhìn. Theo yêu cầu người dùng, bỏ hộp liệt kê 14 band vì chỉ dùng TCI.
   - Tải cả ô gốc (ký SAS lúc bấm).
   - Bản đồ Leaflet (nền Esri/OSM) có lớp **toàn bộ cảnh 110 km**; có thể bấm lên bản đồ để thêm mục tiêu.
   - Thông tin cảnh: giờ VN, vệ tinh, quỹ đạo, ô MGRS, mây trong vùng và mây cả ô, độ phủ. Có liên kết tới “Ảnh rõ gần nhất”.

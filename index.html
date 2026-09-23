@@ -86,7 +86,7 @@ a { color: var(--accent); }
 .list-head input, .list-head select { flex: 1; min-width: 120px; padding: 6px 8px; border: 1px solid var(--border-strong); border-radius: 8px; background: var(--panel); }
 .tlist { max-height: calc(100vh - 250px); overflow-y: auto; }
 @media (max-width: 960px) { .tlist { max-height: 50vh; } }
-.trow { display: grid; grid-template-columns: 56px 1fr auto; gap: 10px; padding: 8px 10px; border-bottom: 1px solid var(--border); cursor: pointer; align-items: center; }
+.trow { display: grid; grid-template-columns: 18px 56px 1fr auto; gap: 10px; padding: 8px 10px; border-bottom: 1px solid var(--border); cursor: pointer; align-items: center; }
 .trow:hover { background: var(--panel-2); }
 .trow.sel { background: var(--accent-soft); }
 .thumb { width: 56px; height: 56px; border-radius: 6px; background: var(--idle-soft); object-fit: cover; display: block; }
@@ -124,6 +124,12 @@ a { color: var(--accent); }
 .kv { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; font-size: 13px; }
 .kv dt { color: var(--muted); } .kv dd { margin: 0; font-weight: 600; }
 .timeline { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; }
+.acq.picked { background: var(--accent-soft); }
+.acq { position: relative; }
+.acq .pick { position: absolute; top: 6px; left: 6px; z-index: 2; width: 18px; height: 18px; margin: 0; cursor: pointer; }
+input.pick { width: 18px; height: 18px; margin: 0; cursor: pointer; accent-color: var(--accent); }
+#pickbar { position: sticky; top: 64px; z-index: 900; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; box-shadow: var(--shadow); }
+#pickbar select { padding: 6px 8px; border: 1px solid var(--border-strong); border-radius: 8px; background: var(--panel); }
 .acq { flex: none; width: 104px; border: 1px solid var(--border); border-radius: 8px; padding: 4px; cursor: pointer; background: var(--panel); text-align: left; }
 .acq.sel { border-color: var(--accent); outline: 2px solid var(--accent); }
 .acq.cmp { border-color: var(--warn); outline: 2px dashed var(--warn); }
@@ -195,6 +201,7 @@ dialog::backdrop { background: rgba(0,0,0,.5); }
 <div class="page" id="view-monitor">
   <div class="summary" id="summary"></div>
   <div id="banner"></div>
+  <div id="pickbar" class="banner hidden"></div>
   <div class="split">
     <div class="card">
       <div class="list-head">
@@ -292,12 +299,11 @@ dialog::backdrop { background: rgba(0,0,0,.5); }
     <ul>
       <li><b>JPG (10 m gốc)</b>: ảnh theo khung nhìn, đúng 10 m/pixel, không thu nhỏ.</li>
       <li><b>GeoTIFF (10 m gốc)</b>: như trên nhưng có tọa độ, mở thẳng trong QGIS/ArcGIS. Khung 40 km có thể tới ~60 MB.</li>
-      <li><b>Band L1C / L2A gốc</b>:
+      <li><b>Tải TCI theo lựa chọn</b>: tick ô vuông ở ảnh (danh sách mục tiêu = lượt mới nhất; dải lượt chụp = từng ngày), rồi bấm <b>Tải TCI</b> trên thanh xuất hiện phía trên. Hai loại:
         <ul>
-          <li><b>L1C</b>: từng band JP2 gốc của cả ô 110 km (B01…B12, B8A, TCI; 10/20/60 m), tải thẳng từ kho công khai Google Cloud, không cần tài khoản. Có nút tải cả 14 band hoặc chỉ 4 band 10 m.</li>
-          <li><b>L2A</b>: từng band cắt theo khung nhìn, GeoTIFF uint16, đúng lưới gốc 10/20/60 m.</li>
-        </ul>
-        Khi Copernicus đã có ảnh hôm nay mà PC chưa có, nút “Tải band L1C hôm nay” xuất hiện ở phần thông tin.</li>
+          <li><b>TCI L1C gốc cả ô</b> (mặc định): file TCI.jp2 gốc 10 m của cả ô 110 km (~100–150 MB/ảnh), lấy từ kho công khai Google Cloud.</li>
+          <li><b>TCI cắt theo khung nhìn</b>: GeoTIFF màu thật 10 m, chỉ vùng đang chọn (vài MB).</li>
+        </ul></li>
       <li><b>Cả ô gốc</b>: file visual 10 m của cả ô 110 km (~100–250 MB), liên kết có chữ ký tạm thời.</li>
     </ul>
     <h3>Tổ hợp kênh</h3>
@@ -308,10 +314,9 @@ dialog::backdrop { background: rgba(0,0,0,.5); }
       <li><b>NDVI</b> — chỉ số thực vật, so sánh 2 ngày để phát hiện phát quang, san lấp.</li>
     </ul>
     <h3>Kho ảnh theo mục tiêu</h3>
-    <p>Mở tab <b>Kho ảnh</b> và chọn một thư mục trên máy (ví dụ <code>D:\KhoAnh_Sentinel</code>). Từ lúc đó, mọi ảnh tải về (JPG, GeoTIFF, band L2A, band L1C) được ghi thẳng vào <code>&lt;thư mục kho&gt;/&lt;Ten_muc_tieu&gt;/</code>, không rơi vào thư mục Downloads. Cụ thể:</p>
+    <p>Mở tab <b>Kho ảnh</b> và chọn một thư mục trên máy (ví dụ <code>D:\KhoAnh_Sentinel</code>). Từ lúc đó, mọi ảnh tải về (JPG, GeoTIFF, TCI) được ghi thẳng vào <code>&lt;thư mục kho&gt;/&lt;Ten_muc_tieu&gt;/</code>, không rơi vào thư mục Downloads. Cụ thể:</p>
     <ul>
-      <li>Band L1C vào thư mục con <code>L1C_&lt;mã sản phẩm&gt;</code>.</li>
-      <li>Band L2A vào thư mục con <code>L2A_&lt;thời điểm chụp&gt;</code>.</li>
+      <li>TCI đặt tên <code>&lt;Ten_muc_tieu&gt;_&lt;YYYYMMDD_HHMM&gt;VN_&lt;S2x&gt;_TCI_L1C_T&lt;ô&gt;.jp2</code>.</li>
       <li>Ảnh JPG có kèm file <code>.jgw</code> và <code>.prj</code>, nên mở trong QGIS/ArcGIS là ảnh nằm đúng vị trí.</li>
       <li>Nút “Lưu ảnh mới vào kho” ở thanh trên lưu ảnh mới nhất của mọi mục tiêu, mỗi ảnh vào đúng thư mục của mục tiêu đó.</li>
     </ul>
@@ -342,11 +347,6 @@ dialog::backdrop { background: rgba(0,0,0,.5); }
       <button class="btn sm" id="btnClearCache" style="margin-left:6px">Xóa bộ đệm</button></p>
   </div>
   <div class="dlg-foot"><button class="btn" data-close>Hủy</button><button class="btn primary" id="btnSaveSettings">Lưu</button></div>
-</dialog>
-
-<dialog id="dlgBands" style="width:min(760px, calc(100vw - 32px))">
-  <div class="dlg-head"><b id="bandsTitle">Tải band gốc</b><button class="btn ghost" data-close>✕</button></div>
-  <div class="dlg-body" id="bandsBody"></div>
 </dialog>
 
 <div id="toast"></div>
@@ -803,6 +803,7 @@ function renderList() {
     const thumbSrc = a?.aoi ? imgUrl(a.itemId, t.bbox, 'tc', 'jpg', 112) : null;
     const next = (r?.passes || []).find(p => p.key >= todayKey());
     box.append(h('div', { class: 'trow' + (t.id === selectedId ? ' sel' : ''), onclick: () => select(t.id) },
+      a ? pickBox(t, a) : h('span'),
       thumbSrc ? h('img', { class: 'thumb', src: thumbSrc, loading: 'lazy', alt: '' }) : h('div', { class: 'thumb' }),
       h('div', { style: 'min-width:0' },
         h('div', { class: 'tname', title: t.name }, t.name),
@@ -902,7 +903,6 @@ function renderDetail() {
     actions.append(
       h('button', { class: 'btn sm primary', onclick: () => downloadBlob(imgUrl(acq.itemId, vb, preset, 'jpg', nativePx(vb)), fileName(t, acq, preset, 'jpg'), t, { bbox: vb }) }, 'JPG (10 m gốc)'),
       h('button', { class: 'btn sm', onclick: () => downloadBlob(imgUrl(acq.itemId, vb, preset, 'tif', nativePx(vb)), fileName(t, acq, preset, 'tif'), t) }, 'GeoTIFF (10 m gốc)'),
-      h('button', { class: 'btn sm', onclick: () => openBands(t, acq.itemId, acq.cands) }, 'Band L1C / L2A gốc'),
       h('button', { class: 'btn sm', onclick: () => openFullTile(acq) }, 'Cả ô gốc'),
       h('button', { class: 'btn sm' + (compareKey ? ' active' : ''), onclick: () => { if (compareKey) { compareKey = null; renderDetail(); } else { pickCompare = true; toast('Chọn lượt chụp thứ hai trong dải thời gian bên dưới'); } } }, compareKey ? 'Tắt so sánh' : 'So sánh với…'),
     );
@@ -926,7 +926,7 @@ function renderDetail() {
     info.append(h('dt', null, 'Ảnh rõ gần nhất'), h('dd', null, h('a', { href: '#', onclick: (e) => { e.preventDefault(); selectedKey = clear.key; renderDetail(); } }, `${vnParts(clear.dt).date} · mây ${Math.round(obstructed(clear))}%`)));
   }
   if (r?.cdse) info.append(h('dt', null, 'Copernicus'), h('dd', { style: 'color:var(--warn)' }, `Đã có ${r.cdse.level} lúc ${vnParts(r.cdse.dt).time} hôm nay — Planetary Computer chưa đồng bộ `,
-    h('button', { class: 'btn sm', onclick: () => openBands(t, r.cdse.id, [r.cdse.id]) }, 'Tải band L1C hôm nay')));
+    h('a', { class: 'btn sm', href: `https://browser.dataspace.copernicus.eu/?zoom=13&lat=${t.lat}&lng=${t.lon}`, target: '_blank', rel: 'noopener' }, 'Xem trên Copernicus')));
 
   const passes = h('div', { class: 'passes' }, (r?.passes || []).map(p => h('span', null, `${p.key === todayKey() ? 'Hôm nay' : dmOfKey(p.key)} ~${p.time} · ${shortSat(p.platform)}`)));
 
@@ -935,8 +935,9 @@ function renderDetail() {
   for (const a of acqs) {
     const p = vnParts(a.dt);
     const ph = h('div', { class: 'ph' }, a.aoi ? h('img', { src: imgUrl(a.itemId, t.bbox, 'tc', 'jpg', 188), loading: 'lazy', alt: '' }) : 'bấm để đo mây');
-    tl.append(h('button', {
-      class: 'acq' + (a.key === acq?.key ? ' sel' : '') + (a.key === compareKey ? ' cmp' : ''),
+    tl.append(h('div', {
+      role: 'button', tabindex: 0,
+      class: 'acq' + (a.key === acq?.key ? ' sel' : '') + (a.key === compareKey ? ' cmp' : '') + (picked.has(pickKey(t, a)) ? ' picked' : ''),
       title: `${p.time} ${p.date} · ${a.platform}`,
       onclick: async () => {
         if (!a.aoi) { ph.textContent = 'đang đo…'; await analyzeAcq(t, a).catch(() => {}); save(K.results, results); persistSclCache(); }
@@ -944,7 +945,7 @@ function renderDetail() {
         else { selectedKey = a.key; if (compareKey === a.key) compareKey = null; }
         renderDetail();
       },
-    }, ph, h('div', { class: 'd' }, `${p.dm} · ${shortSat(a.platform)}`), h('div', { class: 'm' }, cloudBadge(a) || '—', a.aoi && a.aoi.cov < 95 ? ` · phủ ${a.aoi.cov}%` : '')));
+    }, pickBox(t, a), ph, h('div', { class: 'd' }, `${p.dm} · ${shortSat(a.platform)}`), h('div', { class: 'm' }, cloudBadge(a) || '—', a.aoi && a.aoi.cov < 95 ? ` · phủ ${a.aoi.cov}%` : '')));
   }
 
   box.replaceChildren(
@@ -956,7 +957,11 @@ function renderDetail() {
         h('div', null, h('p', { class: 'section-title' }, 'Lượt chụp đang xem'), acq ? info : h('p', { class: 'muted small' }, '—')),
         h('div', null, h('p', { class: 'section-title' }, 'Dự kiến bay qua'), (r?.passes || []).length ? passes : h('p', { class: 'muted small' }, 'Chưa đủ dữ liệu để dự báo.')),
       )),
-    h('div', null, h('p', { class: 'section-title' }, `Các lượt chụp ${S.lookback} ngày qua (${acqs.length})`), acqs.length ? tl : h('p', { class: 'muted small' }, '—')),
+    h('div', null, h('div', { class: 'toolbar', style: 'margin-bottom:6px' },
+        h('p', { class: 'section-title', style: 'margin:0' }, `Các lượt chụp ${S.lookback} ngày qua (${acqs.length}) — tick để chọn tải TCI`),
+        acqs.length ? h('button', { class: 'btn sm', onclick: () => { const all = acqs.every(a => picked.has(pickKey(t, a))); acqs.forEach(a => togglePick(t, a, !all)); } }, 'Chọn/bỏ tất cả') : null,
+        acqs.some(isClear) ? h('button', { class: 'btn sm', onclick: () => { acqs.filter(isClear).forEach(a => togglePick(t, a, true)); } }, `Chọn các ảnh rõ (${acqs.filter(isClear).length})`) : null),
+      acqs.length ? tl : h('p', { class: 'muted small' }, '—')),
   );
   initMap(); drawMap(t, acq);
 }
@@ -994,11 +999,6 @@ function initMap() {
 /* ===================== Band gốc L1C / L2A ===================== */
 const GCS = 'https://storage.googleapis.com';
 const GCS_BUCKET = 'gcp-public-data-sentinel-2';
-const BAND_INFO = {
-  B01: ['Aerosol ven biển', 60], B02: ['Lam', 10], B03: ['Lục', 10], B04: ['Đỏ', 10], B05: ['Red-edge 1', 20], B06: ['Red-edge 2', 20],
-  B07: ['Red-edge 3', 20], B08: ['Cận hồng ngoại (NIR)', 10], B8A: ['NIR hẹp', 20], B09: ['Hơi nước', 60], B10: ['Cirrus (SWIR)', 60],
-  B11: ['SWIR 1', 20], B12: ['SWIR 2', 20], TCI: ['Ảnh màu thật RGB', 10], SCL: ['Phân loại cảnh (mây…)', 20],
-};
 function parseS2Id(id) {
   const m = String(id).match(/^(S2[A-D])_MSI(L1C|L2A)_(\d{8}T\d{6})_(?:N\d{4}_)?R(\d{3})_T(\d{2})([A-Z])([A-Z]{2})/);
   return m && { sat: m[1], level: m[2], sensing: m[3], orbit: m[4], utm: m[5], lat: m[6], sq: m[7], tile: m[5] + m[6] + m[7] };
@@ -1030,82 +1030,95 @@ async function findL1C(p) {
   const mtd = files.find(f => /MTD_TL\.xml$/.test(f.name));
   return { safe: safe.split('/').slice(-2, -1)[0], bands, mtd: mtd && `${GCS}/${GCS_BUCKET}/${mtd.name}`, browser: `https://console.cloud.google.com/storage/browser/${GCS_BUCKET}/${safe}` };
 }
-async function openBands(t, id, cands) {
-  const dlg = $('#dlgBands'), body = $('#bandsBody');
-  const ids = [...new Set([id, ...(cands || [])])];
-  const render = async (curId) => {
-    const p = parseS2Id(curId);
-    body.replaceChildren(h('p', { class: 'muted' }, 'Đang tìm file gốc…'));
-    $('#bandsTitle').textContent = `Band gốc · ${t.name} · ${p ? `${p.sat} ô ${p.tile} · ${p.sensing.slice(6, 8)}/${p.sensing.slice(4, 6)}/${p.sensing.slice(0, 4)}` : curId}`;
-    const parts = [];
-    if (ids.length > 1) parts.push(h('div', { class: 'toolbar', style: 'margin-bottom:10px' }, h('span', { class: 'small muted' }, 'Ô MGRS:'),
-      ids.map(x => h('button', { class: 'btn sm' + (x === curId ? ' active' : ''), onclick: () => render(x) }, parseS2Id(x)?.tile || x))));
-    // L1C: cả ô 110 km, JP2 gốc
-    parts.push(h('p', { class: 'section-title' }, 'L1C · cả ô 110 × 110 km · JP2 gốc, giữ nguyên độ phân giải (Google Cloud, công khai)'));
-    let l1c = null;
-    try { l1c = p && await findL1C(p); } catch (e) { parts.push(h('p', { style: 'color:var(--bad)' }, 'Lỗi truy vấn kho L1C: ' + e.message)); }
-    if (l1c) {
-      const tb = h('tbody');
-      for (const b of l1c.bands) tb.append(h('tr', null, h('td', null, h('b', null, b.band)), h('td', null, BAND_INFO[b.band]?.[0] || ''), h('td', null, `${BAND_INFO[b.band]?.[1] || '?'} m`), h('td', null, fmtSize(b.size)), h('td', null, h('a', { href: b.url, download: b.name, target: '_blank', rel: 'noopener', onclick: (e) => { if (libraryOn()) { e.preventDefault(); downloadLinks([b], t, l1c.safe); } } }, 'Tải JP2'))));
-      parts.push(h('div', { class: 'tablewrap', style: 'max-height:320px' }, h('table', { class: 'bands' }, h('thead', null, h('tr', null, h('th', null, 'Band'), h('th', null, 'Mô tả'), h('th', null, 'Phân giải'), h('th', null, 'Dung lượng'), h('th', null, ''))), tb)),
-        h('div', { class: 'toolbar', style: 'margin:8px 0 16px' },
-          h('button', { class: 'btn sm primary', onclick: () => downloadLinks(l1c.bands, t, l1c.safe) }, `Tải cả ${l1c.bands.length} band (${fmtSize(l1c.bands.reduce((s, b) => s + b.size, 0))})`),
-          h('button', { class: 'btn sm', onclick: () => downloadLinks(l1c.bands.filter(b => ['B02', 'B03', 'B04', 'B08'].includes(b.band)), t, l1c.safe) }, 'Chỉ 4 band 10 m'),
-          l1c.mtd ? h('a', { class: 'btn sm', href: l1c.mtd, target: '_blank', rel: 'noopener' }, 'Metadata MTD_TL.xml') : null,
-          h('a', { class: 'btn sm', href: l1c.browser, target: '_blank', rel: 'noopener' }, 'Mở thư mục'),
-          h('span', { class: 'small muted' }, l1c.safe)));
-    } else if (p) {
-      parts.push(h('p', { class: 'small muted', style: 'margin-bottom:16px' }, 'Kho Google Cloud chưa có L1C cho lượt này (thường trễ vài giờ so với Copernicus). Có thể tải từ Copernicus Browser bằng tài khoản CDSE miễn phí.'));
-    }
-    // L2A: cắt theo khung nhìn, giữ độ phân giải gốc của từng band
-    if (p?.level === 'L2A' || /MSIL2A/.test(curId)) {
-      const vb = viewBbox(t);
-      const [w, hh] = bboxKm(vb);
-      parts.push(h('p', { class: 'section-title' }, `L2A · cắt theo khung nhìn ${w.toFixed(1)} × ${hh.toFixed(1)} km · GeoTIFF uint16, giữ nguyên độ phân giải`));
-      const row = h('div', { class: 'toolbar' });
-      for (const b of ['B01', 'B02', 'B03', 'B04', 'B05', 'B06', 'B07', 'B08', 'B8A', 'B09', 'B11', 'B12', 'SCL']) {
-        const res = BAND_INFO[b][1];
-        const url = `${DATA}/item/bbox/${vb.join(',')}.tif?collection=${COLL}&item=${encodeURIComponent(curId)}&assets=${b}&max_size=${nativePx(vb, res)}`;
-        row.append(h('button', { class: 'btn sm', title: `${BAND_INFO[b][0]} · ${res} m`, onclick: () => downloadBlob(url, `${slug(t.name)}_${curId.slice(0, 3)}_${p?.sensing || ''}_L2A_${b}_${res}m_${EXTENTS[S.extent].tag}.tif`, t, { sub: `L2A_${p?.sensing || curId}` }) }, `${b} · ${res} m`));
-      }
-      parts.push(row, h('p', { class: 'small muted' }, 'Giá trị L2A là phản xạ mặt đất ×10000 cộng offset 1000 (baseline ≥ 04.00). Band 20/60 m được xuất ở đúng lưới gốc, không nội suy lên 10 m.'));
-    }
-    body.replaceChildren(...parts);
-  };
-  dlg.showModal();
-  render(id);
+/* ===================== Chọn ảnh & tải TCI ===================== */
+// picked: khóa `${targetId}|${acqKey}` — tick ở danh sách mục tiêu (lượt mới nhất) hoặc ở dải lượt chụp
+const picked = new Set();
+const pickKey = (t, a) => `${t.id}|${a.key}`;
+function togglePick(t, a, on) {
+  const k = pickKey(t, a), val = on ?? !picked.has(k);
+  val ? picked.add(k) : picked.delete(k);
+  // đồng bộ mọi ô tick cùng ảnh (danh sách + dải lượt chụp) mà không vẽ lại ảnh
+  document.querySelectorAll('input.pick').forEach(el => { if (el.dataset.k === k) { el.checked = val; el.closest('.acq')?.classList.toggle('picked', val); } });
+  renderPickBar();
 }
-async function downloadLinks(list, t, safe) {
-  const dir = t && await libraryDir(t, safe ? `L1C_${safe.replace(/\.SAFE$/, '')}` : '', true);
-  if (dir) {
-    // Ghi thẳng (dạng luồng) vào kho: <Kho>/<Mục tiêu>/L1C_<sản phẩm>/<band>.jp2
-    let ok = 0; const failed = [];
-    for (const [i, b] of list.entries()) {
-      try {
-        toast(`Kho ảnh: đang tải ${b.name} (${i + 1}/${list.length}, ${fmtSize(b.size)})…`, 4000);
-        const r = await fetch(b.api || b.url);
-        if (!r.ok) throw new Error('HTTP ' + r.status);
-        const w = await (await dir.getFileHandle(b.name, { create: true })).createWritable();
-        await r.body.pipeTo(w);
-        ok++;
-      } catch (e) {
-        console.warn('L1C → kho', b.name, e);
-        try { await dir.removeEntry(b.name); } catch {}
-        failed.push(b);
+function pickedList() {
+  return [...picked].map(k => {
+    const i = k.indexOf('|'), t = targets.find(x => x.id === k.slice(0, i));
+    const a = t && results[t.id]?.acqs?.find(x => x.key === k.slice(i + 1));
+    return t && a ? { t, a } : null;
+  }).filter(Boolean);
+}
+function pickBox(t, a) {
+  return h('input', { type: 'checkbox', class: 'pick', 'data-k': pickKey(t, a), title: `Chọn ảnh ${vnParts(a.dt).dm} để tải TCI`, checked: picked.has(pickKey(t, a)),
+    onclick: e => e.stopPropagation(), onchange: e => togglePick(t, a, e.target.checked) });
+}
+function renderPickBar() {
+  const bar = $('#pickbar'), list = pickedList();
+  bar.classList.toggle('hidden', !list.length);
+  if (!list.length) return;
+  const mode = h('select', { title: 'Loại TCI', onchange: e => { S.tciMode = e.target.value; save(K.settings, S); } },
+    h('option', { value: 'l1c', selected: S.tciMode !== 'crop' }, 'TCI L1C gốc cả ô (JP2, 10 m)'),
+    h('option', { value: 'crop', selected: S.tciMode === 'crop' }, 'TCI cắt theo khung nhìn (GeoTIFF, 10 m)'));
+  bar.replaceChildren(
+    h('b', null, `Đã chọn ${list.length} ảnh`),
+    h('span', { class: 'small muted' }, [...new Set(list.map(x => x.t.name))].slice(0, 4).join(', ') + (new Set(list.map(x => x.t.name)).size > 4 ? '…' : '')),
+    h('span', { style: 'margin-left:auto' }), mode,
+    h('button', { class: 'btn primary', id: 'btnTci', onclick: downloadTCI }, 'Tải TCI'),
+    h('button', { class: 'btn', onclick: () => { picked.clear(); renderPickBar(); renderList(); renderDetail(); } }, 'Bỏ chọn'));
+}
+// Ghi một URL (dạng luồng) vào kho của mục tiêu; trả về false nếu không ghi được
+async function streamToLibrary(dir, url, name) {
+  try {
+    const r = await fetch(url);
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    await r.body.pipeTo(await (await dir.getFileHandle(name, { create: true })).createWritable());
+    return true;
+  } catch (e) {
+    console.warn('→ kho', name, e);
+    try { await dir.removeEntry(name); } catch {}
+    return false;
+  }
+}
+function openLink(url, name) {
+  const a = h('a', { href: url, download: name, target: '_blank', rel: 'noopener' });
+  document.body.append(a); a.click(); a.remove();
+}
+async function downloadTCI() {
+  const list = pickedList(); if (!list.length) return;
+  const btn = $('#btnTci'); btn.disabled = true;
+  const crop = S.tciMode === 'crop';
+  let ok = 0, fallback = 0; const miss = [];
+  for (const [i, { t, a }] of list.entries()) {
+    btn.textContent = `Đang tải ${i + 1}/${list.length}…`;
+    const stamp = `${slug(t.name)}_${vnParts(a.dt).compact}VN_${shortSat(a.platform)}`;
+    try {
+      if (crop) {
+        const vb = viewBbox(t);
+        await downloadBlob(imgUrl(a.itemId, vb, 'tc', 'tif', nativePx(vb)), `${stamp}_TCI${S.extent === 'aoi' ? '' : '_' + EXTENTS[S.extent].tag}.tif`, t);
+        ok++; continue;
       }
-    }
-    if (ok) toast(`Đã lưu ${ok} band vào kho: ${await libraryPath(t)}/L1C_${safe.replace(/\.SAFE$/, '')}`, 6000);
-    refreshLibraryIfOpen(t);
-    if (!failed.length) return;
-    toast(`${failed.length} band không ghi được vào kho — chuyển sang tải thường (thư mục Downloads).`, 6000);
-    list = failed;
+      // TCI L1C gốc: thử ô đã chọn cho mục tiêu trước, rồi các ô khác của cùng lượt chụp
+      let tci = null, tile = '';
+      for (const id of [a.itemId, ...a.cands.filter(x => x !== a.itemId)]) {
+        const p = parseS2Id(id); if (!p) continue;
+        const l1c = await findL1C(p);
+        tci = l1c?.bands.find(b => b.band === 'TCI'); tile = p.tile;
+        if (tci) break;
+      }
+      if (!tci) { miss.push(`${t.name} ${vnParts(a.dt).dm}`); continue; }
+      const name = `${stamp}_TCI_L1C_T${tile}.jp2`;
+      toast(`${t.name}: TCI ${fmtSize(tci.size)} (${i + 1}/${list.length})…`, 4000);
+      const dir = await libraryDir(t, '', true);
+      if (dir && await streamToLibrary(dir, tci.api, name)) { ok++; refreshLibraryIfOpen(t); }
+      else { openLink(tci.url, name); fallback++; await new Promise(r => setTimeout(r, 900)); }
+    } catch (e) { miss.push(`${t.name}: ${e.message}`); }
   }
-  toast(`Bắt đầu tải ${list.length} file; trình duyệt có thể hỏi cho phép tải nhiều file.`, 5000);
-  for (const b of list) {
-    const a = h('a', { href: b.url, download: b.name, target: '_blank', rel: 'noopener' });
-    document.body.append(a); a.click(); a.remove();
-    await new Promise(r => setTimeout(r, 900));
-  }
+  btn.disabled = false; btn.textContent = 'Tải TCI';
+  const msg = [];
+  if (ok) msg.push(`${ok} ảnh đã lưu${libraryOn() ? ' vào kho theo mục tiêu' : ''}`);
+  if (fallback) msg.push(`${fallback} ảnh tải qua trình duyệt (Downloads)`);
+  if (miss.length) msg.push(`chưa có TCI L1C: ${miss.join('; ')}`);
+  toast(msg.join(' · ') || 'Không có gì để tải', 8000);
 }
 const STATUS_COLOR = { today: '#22c55e', yesterday: '#f59e0b', recent: '#3b82f6', old: '#94a3b8', none: '#94a3b8', wait: '#94a3b8', error: '#ef4444' };
 let lastFit = null;

@@ -18,8 +18,7 @@ Cần kết nối Internet để truy cập Microsoft Planetary Computer, Copern
 - Khung nhìn mở rộng tới 40 km (không bó trong ô geo). Bản đồ hiện toàn bộ cảnh 110 km.
 - Tải ở **độ phân giải gốc**:
   - JPG hoặc GeoTIFF 10 m theo khung nhìn.
-  - Từng band **L1C gốc** (JP2 cả ô, 10/20/60 m) lấy từ kho công khai Google Cloud.
-  - Từng band L2A cắt vùng.
+  - **Tick chọn ảnh rồi bấm Tải TCI**: TCI L1C gốc cả ô (JP2 10 m) hoặc TCI cắt theo khung nhìn.
   - Cả ô gốc.
   - ZIP ảnh mới của mọi mục tiêu kèm file CSV.
 - **Kho ảnh theo mục tiêu** (Chrome/Edge): chọn một thư mục một lần, sau đó mọi ảnh tải về tự vào `<kho>/<Ten_muc_tieu>/`. Ảnh JPG có kèm `.jgw`/`.prj` để mở đúng vị trí trong QGIS. Tab Kho ảnh để xem lại ảnh đã lưu.
