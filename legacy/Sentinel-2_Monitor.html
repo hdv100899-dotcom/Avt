@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sentinel-2 Quick Monitor | Kiểm Tra & Tải Nhanh Ảnh Vệ Tinh</title>
+  <style>
+    :root {
+      --primary: #1e40af;
+      --primary-hover: #1d4ed8;
+      --success: #15803d;
+      --warning: #b45309;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body { background-color: var(--bg); color: var(--text-main); padding: 24px; }
+    .container { max-width: 1200px; margin: 0 auto; }
+    
+    header { margin-bottom: 24px; }
+    h1 { font-size: 1.85rem; font-weight: 800; color: #1e293b; display: flex; align-items: center; gap: 8px; }
+    p.subtitle { color: var(--text-muted); font-size: 0.95rem; margin-top: 4px; }
+
+    /* Action Box */
+    .action-box {
+      background: #ffffff; border: 1px solid var(--border); border-radius: 12px;
+      padding: 18px 24px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      display: flex; gap: 16px; align-items: center; justify-content: space-between; flex-wrap: wrap;
+    }
+    .btn-main {
+      background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%);
+      color: white; border: none; padding: 14px 28px; border-radius: 8px;
+      font-size: 1.05rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 10px;
+      box-shadow: 0 4px 6px -1px rgba(37,99,235,0.3); transition: all 0.15s;
+    }
+    .btn-main:hover { background: #1e40af; transform: translateY(-1px); }
+    .btn-main:disabled { background: #94a3b8; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    /* Notice Banner */
+    .banner {
+      padding: 14px 18px; border-radius: 8px; margin-bottom: 20px; font-weight: 600; font-size: 0.95rem; display: none;
+    }
+    .banner-success { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+    .banner-info { background: #f0fdf4; color: #1e293b; border: 1px solid #cbd5e1; }
+
+    /* Navigation Tabs */
+    .tabs { display: flex; gap: 8px; margin-bottom: 16px; border-bottom: 2px solid var(--border); padding-bottom: 2px; }
+    .tab-btn {
+      padding: 10px 18px; background: none; border: none; font-size: 0.95rem; font-weight: 600;
+      color: var(--text-muted); cursor: pointer; border-radius: 6px 6px 0 0;
+    }
+    .tab-btn.active { color: var(--primary); border-bottom: 3px solid var(--primary); }
+
+    /* Table & Cards */
+    .table-container { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th { background: #f1f5f9; padding: 12px 16px; font-size: 0.85rem; text-transform: uppercase; color: #475569; letter-spacing: 0.5px; border-bottom: 1px solid var(--border); }
+    td { padding: 14px 16px; border-bottom: 1px solid var(--border); font-size: 0.95rem; vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover { background: #f8fafc; }
+
+    .target-title { font-weight: 700; color: #0f172a; font-size: 1rem; }
+    .target-sub { font-size: 0.82rem; color: var(--text-muted); margin-top: 2px; }
+    .time-badge { font-weight: 700; color: #0f172a; font-size: 1rem; }
+
+    /* Status Badges */
+    .badge { display: inline-block; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 0.82rem; }
+    .badge-today { background: #15803d; color: white; }
+    .badge-yesterday { background: #d97706; color: white; }
+    .badge-recent { background: #3b82f6; color: white; }
+    .badge-waiting { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; font-weight: 600; }
+
+    /* Action Buttons */
+    .btn-action-group { display: flex; gap: 8px; align-items: center; }
+    .btn-fast {
+      background: #16a34a; color: white; text-decoration: none; padding: 7px 12px;
+      border-radius: 6px; font-size: 0.85rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;
+      transition: background 0.15s;
+    }
+    .btn-fast:hover { background: #15803d; }
+    .btn-raw {
+      background: #f1f5f9; color: #334155; text-decoration: none; padding: 7px 10px;
+      border-radius: 6px; font-size: 0.82rem; font-weight: 600; border: 1px solid #cbd5e1; display: inline-flex; align-items: center; gap: 4px;
+    }
+    .btn-raw:hover { background: #e2e8f0; }
+    .btn-view {
+      background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 7px 10px;
+      border-radius: 6px; font-size: 0.82rem; font-weight: 600; cursor: pointer;
+    }
+    .btn-view:hover { background: #dbeafe; }
+
+    /* GeoJSON Dropzone */
+    .dropzone {
+      border: 2px dashed #94a3b8; border-radius: 12px; padding: 32px; text-align: center;
+      background: #ffffff; cursor: pointer; transition: all 0.2s; margin-bottom: 20px;
+    }
+    .dropzone:hover, .dropzone.dragover { border-color: var(--primary); background: #eff6ff; }
+    textarea { width: 100%; height: 120px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-family: monospace; margin-top: 8px; }
+
+    /* Modal for Image Preview */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.75);
+      display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px;
+    }
+    .modal-content {
+      background: white; border-radius: 12px; max-width: 900px; width: 100%; max-height: 90vh;
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+    .modal-header { padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
+    .modal-body { padding: 20px; overflow-y: auto; text-align: center; }
+    .modal-body img { max-width: 100%; height: auto; border-radius: 8px; border: 1px solid var(--border); }
+    .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted); }
+
+    .progress-box { display: none; margin-top: 12px; width: 100%; }
+    .progress-bar-bg { background: #e2e8f0; border-radius: 999px; height: 8px; overflow: hidden; }
+    .progress-bar-fill { background: #2563eb; height: 100%; width: 0%; transition: width 0.2s; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>🛰️ Rà Soát & Tải Nhanh Ảnh Vệ Tinh Sentinel-2</h1>
+    <p class="subtitle">Ứng dụng Web thuần chạy trực tiếp trên trình duyệt • Không cần máy chủ • Click đúp mở dùng ngay</p>
+  </header>
+
+  <!-- Action Bar -->
+  <div class="action-box">
+    <div>
+      <button id="btnScanAll" class="btn-main" onclick="scanAllTargets()">
+        <span>🚀 BẤM ĐỂ RÀ SOÁT TẤT CẢ MỤC TIÊU HÔM NAY</span>
+      </button>
+      <div class="progress-box" id="progressBox">
+        <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressBar"></div></div>
+        <small id="progressText" style="color: var(--text-muted); margin-top: 4px; display: block;"></small>
+      </div>
+    </div>
+    <div style="text-align: right;">
+      <span id="targetCountBadge" style="font-weight: 700; color: #1e293b; font-size: 1.1rem;">10 Mục tiêu</span>
+      <p style="font-size: 0.85rem; color: var(--text-muted);">Khoảng tìm kiếm: 30 ngày gần đây</p>
+    </div>
+  </div>
+
+  <!-- Status Banner -->
+  <div id="summaryBanner" class="banner"></div>
+
+  <!-- Tabs Navigation -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('list')">📋 Danh Sách Mục Tiêu & Tải Ảnh</button>
+    <button class="tab-btn" onclick="switchTab('geojson')">📁 Nhập Hàng Loạt GeoJSON / Thư Mục</button>
+  </div>
+
+  <!-- TAB 1: LIST & DOWNLOAD -->
+  <div id="tabList">
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 32%;">Mục Tiêu Theo Dõi</th>
+            <th style="width: 20%;">Tình Trạng Lượt Bay</th>
+            <th style="width: 20%;">Thời Gian Chụp</th>
+            <th style="width: 10%;">Độ Mây</th>
+            <th style="width: 18%;">Tải & Xem Ảnh</th>
+          </tr>
+        </thead>
+        <tbody id="targetTableBody">
+          <!-- Rows rendered by JavaScript -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TAB 2: GEOJSON IMPORT -->
+  <div id="tabGeojson" style="display: none;">
+    <div style="background: white; border: 1px solid var(--border); border-radius: 12px; padding: 24px;">
+      <h2 style="font-size: 1.25rem; margin-bottom: 8px;">📂 Nhập Hàng Loạt Vùng Quan Sát (GeoJSON)</h2>
+      <p style="color: var(--text-muted); margin-bottom: 20px;">
+        Kéo thả 1 hoặc <b>nhiều file .geojson cùng lúc</b> (xuất từ QGIS, ArcGIS, Google Earth). Hệ thống sẽ tự động bóc tách tên mục tiêu và khung tọa độ:
+      </p>
+
+      <div class="dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
+        <p style="font-size: 1.8rem; margin-bottom: 8px;">📁</p>
+        <p style="font-weight: 700; color: var(--primary); font-size: 1.05rem;">Bấm vào đây hoặc kéo thả file .geojson vào</p>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 4px;">Hỗ trợ kéo thả cùng lúc 10, 20, 50 file</p>
+        <input type="file" id="fileInput" multiple accept=".geojson,.json" style="display: none;" onchange="handleFilesUpload(this.files)">
+      </div>
+
+      <div style="margin-top: 20px;">
+        <label style="font-weight: 600; font-size: 0.95rem;">Hoặc dán trực tiếp mã GeoJSON vào đây:</label>
+        <textarea id="rawGeojsonText" placeholder='{"type": "FeatureCollection", "features": [...]}'></textarea>
+        <button class="btn-raw" style="margin-top: 8px; padding: 10px 18px; font-weight: 700;" onclick="parsePastedGeoJSON()">
+          Phân Tích Mã Vừa Dán
+        </button>
+      </div>
+
+      <div id="previewArea" style="margin-top: 24px; display: none;">
+        <h3 style="font-size: 1.1rem; margin-bottom: 8px;">🔎 Xem trước các mục tiêu tìm thấy:</h3>
+        <div class="table-container" style="max-height: 250px; overflow-y: auto; margin-bottom: 16px;">
+          <table>
+            <thead>
+              <tr><th>Tên Mục Tiêu</th><th>Tọa Độ Tâm</th><th>Bán Kính</th></tr>
+            </thead>
+            <tbody id="previewTableBody"></tbody>
+          </table>
+        </div>
+        <div style="display: flex; gap: 12px; align-items: center;">
+          <button class="btn-main" onclick="applyImportedTargets(true)">Thay Thế Toàn Bộ Danh Sách Hiện Tại</button>
+          <button class="btn-raw" style="padding: 14px 20px; font-weight: 700;" onclick="applyImportedTargets(false)">Thêm Nối Tiếp Vào Danh Sách</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Preview Image -->
+<div id="imageModal" class="modal-overlay" onclick="closeModal(event)">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h3 id="modalTitle" style="font-size: 1.1rem;">Xem Ảnh Vệ Tinh</h3>
+      <button class="close-btn" onclick="closeModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p id="modalMeta" style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 12px;"></p>
+      <img id="modalImg" src="" alt="Sentinel-2 Satellite Image">
+      <div style="margin-top: 16px; display: flex; justify-content: center; gap: 12px;">
+        <a id="modalFastDownload" href="#" target="_blank" class="btn-fast">⚡ Tải Ảnh Nhanh (JPEG 1s)</a>
+        <a id="modalRawDownload" href="#" target="_blank" class="btn-raw">📦 Tải Ảnh Gốc (GeoTIFF 250MB)</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Initial targets storage
+  const DEFAULT_TARGETS = [
+    { id: "tgt-longthanh", name: "Sân bay Quốc tế Long Thành", location: "Đồng Nai", lat: 10.778, lon: 106.985, radius_km: 3.5, bbox: [106.953, 10.746, 107.017, 10.810] },
+    { id: "tgt-trian", name: "Hồ Thủy điện Trị An", location: "Đồng Nai", lat: 11.125, lon: 107.125, radius_km: 4.5, bbox: [107.084, 11.084, 107.166, 11.165] },
+    { id: "tgt-cangio", name: "Rừng ngập mặn Cần Giờ", location: "TP. Hồ Chí Minh", lat: 10.450, lon: 106.900, radius_km: 4.0, bbox: [106.863, 10.414, 106.937, 10.486] },
+    { id: "tgt-dautieng", name: "Hồ Dầu Tiếng", location: "Tây Ninh", lat: 11.350, lon: 106.350, radius_km: 5.0, bbox: [106.304, 11.305, 106.396, 11.395] },
+    { id: "tgt-halong", name: "Vịnh Hạ Long", location: "Quảng Ninh", lat: 20.910, lon: 107.180, radius_km: 4.5, bbox: [107.137, 20.869, 107.223, 20.951] },
+    { id: "tgt-cattien", name: "Vườn Quốc gia Cát Tiên", location: "Đồng Nai", lat: 11.425, lon: 107.425, radius_km: 4.0, bbox: [107.388, 11.389, 107.462, 11.461] },
+    { id: "tgt-babe", name: "Hồ Ba Bể", location: "Bắc Kạn", lat: 22.408, lon: 105.615, radius_km: 3.0, bbox: [105.586, 22.381, 105.644, 22.435] },
+    { id: "tgt-hoalac", name: "KCNC Hòa Lạc", location: "Hà Nội", lat: 21.015, lon: 105.525, radius_km: 3.5, bbox: [105.491, 20.983, 105.559, 21.047] },
+    { id: "tgt-sontra", name: "Bán đảo Sơn Trà", location: "Đà Nẵng", lat: 16.115, lon: 108.275, radius_km: 3.5, bbox: [108.242, 16.083, 108.308, 16.147] },
+    { id: "tgt-caimep", name: "Cảng Cái Mép - Thị Vải", location: "Bà Rịa - Vũng Tàu", lat: 10.518, lon: 107.018, radius_km: 3.5, bbox: [106.986, 10.486, 107.050, 10.550] }
+  ];
+
+  let targets = JSON.parse(localStorage.getItem("sentinel_targets")) || DEFAULT_TARGETS;
+  let parsedGeojsonBuffer = [];
+  let cachedSasToken = "";
+  let cachedTokenExpiry = 0;
+
+  function saveTargets() {
+    localStorage.setItem("sentinel_targets", JSON.stringify(targets));
+    updateTargetCount();
+  }
+
+  function updateTargetCount() {
+    document.getElementById("targetCountBadge").innerText = `${targets.length} Mục tiêu`;
+  }
+
+  // Get SAS token from Microsoft Planetary Computer
+  async function getSasToken() {
+    const now = Date.now();
+    if (cachedSasToken && now < cachedTokenExpiry) return cachedSasToken;
+    try {
+      const resp = await fetch("https://planetarycomputer.microsoft.com/api/sas/v1/token/sentinel-2-l2a");
+      if (resp.ok) {
+        const data = await resp.json();
+        cachedSasToken = data.token;
+        cachedTokenExpiry = now + 3600000; // cache for 1 hour
+        return cachedSasToken;
+      }
+    } catch (err) {
+      console.warn("Lỗi lấy SAS token:", err);
+    }
+    return "";
+  }
+
+  // Convert UTC string to Vietnam Local Time (UTC+7)
+  function formatVietnamTime(utcStr) {
+    if (!utcStr) return { date: "Chưa rõ", time: "Chưa rõ", daysAgo: 999 };
+    const date = new Date(utcStr);
+    const vnDate = new Date(date.getTime() + 7 * 3600 * 1000);
+    
+    const d = String(vnDate.getUTCDate()).padStart(2, '0');
+    const m = String(vnDate.getUTCMonth() + 1).padStart(2, '0');
+    const y = vnDate.getUTCFullYear();
+    
+    const hh = String(vnDate.getUTCHours()).padStart(2, '0');
+    const mm = String(vnDate.getUTCMinutes()).padStart(2, '0');
+    const ss = String(vnDate.getUTCSeconds()).padStart(2, '0');
+
+    // Calculate days ago relative to today
+    const nowVn = new Date(Date.now() + 7 * 3600 * 1000);
+    const diffTime = nowVn.getTime() - vnDate.getTime();
+    const daysAgo = Math.floor(diffTime / (1000 * 3600 * 24));
+
+    return {
+      date: `${d}/${m}/${y}`,
+      time: `${hh}:${mm}:${ss}`,
+      daysAgo: Math.max(0, daysAgo)
+    };
+  }
+
+  // Query Planetary Computer for a target
+  async function querySentinelScene(target, token) {
+    const now = new Date();
+    const past = new Date(now.getTime() - 30 * 24 * 3600 * 1000);
+    const dtRange = `${past.toISOString()}/${now.toISOString()}`;
+
+    const payload = {
+      collections: ["sentinel-2-l2a"],
+      bbox: target.bbox,
+      datetime: dtRange,
+      limit: 1,
+      sortby: [{ field: "properties.datetime", direction: "desc" }]
+    };
+
+    try {
+      const resp = await fetch("https://planetarycomputer.microsoft.com/api/stac/v1/search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        if (data.features && data.features.length > 0) {
+          const f = data.features[0];
+          const props = f.properties;
+          const assets = f.assets || {};
+          
+          const rawVisual = (assets.visual && assets.visual.href) || "";
+          const signedVisual = rawVisual ? (rawVisual.includes("?") ? `${rawVisual}&${token}` : `${rawVisual}?${token}`) : "";
+          
+          // Fast download: Rendered preview image (PNG/JPEG ~1MB - 2MB)
+          const previewUrl = (assets.rendered_preview && assets.rendered_preview.href) ||
+                             (assets.thumbnail && assets.thumbnail.href) ||
+                             `https://planetarycomputer.microsoft.com/api/data/v1/item/preview.png?collection=sentinel-2-l2a&item=${f.id}&assets=visual`;
+          
+          const timeInfo = formatVietnamTime(props.datetime);
+
+          return {
+            id: f.id,
+            platform: props.platform || "Sentinel-2",
+            cloud_cover: props["eo:cloud_cover"] !== undefined ? Math.round(props["eo:cloud_cover"] * 10) / 10 : 0,
+            date: timeInfo.date,
+            time: timeInfo.time,
+            daysAgo: timeInfo.daysAgo,
+            rawVisualUrl: signedVisual,
+            fastDownloadUrl: previewUrl,
+            previewUrl: previewUrl
+          };
+        }
+      }
+    } catch (e) {
+      console.warn("Lỗi STAC mục tiêu", target.name, e);
+    }
+    return null;
+  }
+
+  // Scan All Targets Routine
+  async function scanAllTargets() {
+    const btn = document.getElementById("btnScanAll");
+    const pBox = document.getElementById("progressBox");
+    const pBar = document.getElementById("progressBar");
+    const pText = document.getElementById("progressText");
+
+    btn.disabled = true;
+    pBox.style.display = "block";
+
+    pText.innerText = "Đang xin mã ủy quyền Microsoft SAS Token...";
+    const token = await getSasToken();
+
+    let countToday = 0;
+    let countYesterday = 0;
+
+    for (let i = 0; i < targets.length; i++) {
+      const t = targets[i];
+      pText.innerText = `Đang kiểm tra Sentinel-2 (${i + 1}/${targets.length}): ${t.name}...`;
+      pBar.style.width = `${((i + 1) / targets.length) * 100}%`;
+
+      const scene = await querySentinelScene(t, token);
+      if (scene) {
+        t.latest_scene = scene;
+        if (scene.daysAgo === 0) countToday++;
+        if (scene.daysAgo === 1) countYesterday++;
+      }
+    }
+
+    saveTargets();
+    renderTable();
+
+    btn.disabled = false;
+    pBox.style.display = "none";
+
+    // Show summary banner
+    const banner = document.getElementById("summaryBanner");
+    banner.style.display = "block";
+    if (countToday > 0) {
+      banner.className = "banner banner-success";
+      banner.innerHTML = `🟢 <b>HÔM NAY CÓ ${countToday} MỤC TIÊU VỪA CÓ ẢNH SENTINEL-2 MỚI CHỤP!</b> Bấm nút '⚡ Tải Nhanh' để tải ngay trong 1 giây.`;
+    } else if (countYesterday > 0) {
+      banner.className = "banner banner-info";
+      banner.innerHTML = `🟡 <b>Hôm nay chòm vệ tinh chưa có lịch bay qua các mục tiêu này. Có ${countYesterday} mục tiêu vừa được chụp ngày hôm qua.</b>`;
+    } else {
+      banner.className = "banner banner-info";
+      banner.innerHTML = `ℹ️ <b>Hôm nay chòm vệ tinh Sentinel-2 chưa có lịch bay qua các mục tiêu này.</b> <i>(Sentinel-2 quét theo chu kỳ 2 - 5 ngày/lần. Bảng bên dưới hiển thị ảnh của lượt bay gần nhất để bạn tải về).</i>`;
+    }
+  }
+
+  // Render Table Rows
+  function renderTable() {
+    const tbody = document.getElementById("targetTableBody");
+    tbody.innerHTML = "";
+
+    targets.forEach((t, index) => {
+      const s = t.latest_scene;
+      const tr = document.createElement("tr");
+
+      // Column 1: Name
+      const tdName = document.createElement("td");
+      tdName.innerHTML = `
+        <div class="target-title">${t.name}</div>
+        <div class="target-sub">📍 ${t.location || "Tọa độ"} • Bán kính ${t.radius_km || 3.5} km</div>
+      `;
+
+      // Column 2: Status Badge
+      const tdStatus = document.createElement("td");
+      if (!s) {
+        tdStatus.innerHTML = `<span class="badge badge-waiting">⚪ Chưa quét</span>`;
+      } else if (s.daysAgo === 0) {
+        tdStatus.innerHTML = `<span class="badge badge-today">🟢 VỪA CHỤP HÔM NAY</span>`;
+      } else if (s.daysAgo === 1) {
+        tdStatus.innerHTML = `<span class="badge badge-yesterday">🟡 VỪA CHỤP HÔM QUA</span>`;
+      } else if (s.daysAgo <= 3) {
+        tdStatus.innerHTML = `<span class="badge badge-recent">🔵 ${s.daysAgo} ngày trước</span>`;
+      } else {
+        tdStatus.innerHTML = `<span class="badge badge-waiting">⚪ Hôm nay chưa bay qua<br><small style="color:var(--text-muted);font-weight:normal;">(${s.date})</small></span>`;
+      }
+
+      // Column 3: Time
+      const tdTime = document.createElement("td");
+      if (s) {
+        tdTime.innerHTML = `
+          <div class="time-badge">🕒 ${s.time}</div>
+          <div class="target-sub">Ngày ${s.date} (${s.platform})</div>
+        `;
+      } else {
+        tdTime.innerHTML = `---`;
+      }
+
+      // Column 4: Cloud
+      const tdCloud = document.createElement("td");
+      tdCloud.innerHTML = s ? `☁️ <b>${s.cloud_cover}%</b>` : `---`;
+
+      // Column 5: Action Downloads
+      const tdAction = document.createElement("td");
+      if (s && s.fastDownloadUrl) {
+        tdAction.innerHTML = `
+          <div class="btn-action-group">
+            <a href="${s.fastDownloadUrl}" target="_blank" download="${t.name}_${s.date}.png" class="btn-fast" title="Tải ảnh màu HD ~1MB chỉ mất 1 giây">⚡ TẢI NHANH (1s)</a>
+            <a href="${s.rawVisualUrl || s.fastDownloadUrl}" target="_blank" class="btn-raw" title="Tải ảnh gốc GeoTIFF 10m thô (~200MB)">📦 Gốc (200MB)</a>
+            <button class="btn-view" onclick="openModal('${t.name}', '${s.date}', '${s.time}', '${s.platform}', '${s.cloud_cover}', '${s.fastDownloadUrl}', '${s.rawVisualUrl}')">👁️</button>
+          </div>
+        `;
+      } else {
+        tdAction.innerHTML = `<button class="btn-raw" onclick="scanSingleTarget(${index})">🔍 Quét điểm này</button>`;
+      }
+
+      tr.appendChild(tdName);
+      tr.appendChild(tdStatus);
+      tr.appendChild(tdTime);
+      tr.appendChild(tdCloud);
+      tr.appendChild(tdAction);
+      tbody.appendChild(tr);
+    });
+  }
+
+  // Scan single target
+  async function scanSingleTarget(idx) {
+    const t = targets[idx];
+    const token = await getSasToken();
+    const scene = await querySentinelScene(t, token);
+    if (scene) {
+      t.latest_scene = scene;
+      saveTargets();
+      renderTable();
+    }
+  }
+
+  // Open Modal Image
+  function openModal(name, date, time, platform, cloud, fastUrl, rawUrl) {
+    document.getElementById("modalTitle").innerText = `Ảnh Vệ Tinh: ${name}`;
+    document.getElementById("modalMeta").innerText = `Chụp lúc ${time} ngày ${date} • Vệ tinh ${platform} • Tỷ lệ mây ${cloud}%`;
+    document.getElementById("modalImg").src = fastUrl;
+    document.getElementById("modalFastDownload").href = fastUrl;
+    document.getElementById("modalRawDownload").href = rawUrl || fastUrl;
+    document.getElementById("imageModal").style.display = "flex";
+  }
+
+  function closeModal() {
+    document.getElementById("imageModal").style.display = "none";
+  }
+
+  // Switch Tabs
+  function switchTab(tabName) {
+    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+    if (tabName === 'list') {
+      document.querySelectorAll(".tab-btn")[0].classList.add("active");
+      document.getElementById("tabList").style.display = "block";
+      document.getElementById("tabGeojson").style.display = "none";
+    } else {
+      document.querySelectorAll(".tab-btn")[1].classList.add("active");
+      document.getElementById("tabList").style.display = "none";
+      document.getElementById("tabGeojson").style.display = "block";
+    }
+  }
+
+  // Parse GeoJSON from Point, Polygon, MultiPolygon
+  function extractTargetsFromGeoJSON(jsonObj, fallbackName = "") {
+    let features = [];
+    if (jsonObj.type === "FeatureCollection") features = jsonObj.features || [];
+    else if (jsonObj.type === "Feature") features = [jsonObj];
+    else if (jsonObj.coordinates) features = [{ type: "Feature", geometry: jsonObj, properties: {} }];
+
+    const results = [];
+    features.forEach((f, idx) => {
+      const geom = f.geometry || {};
+      const props = f.properties || {};
+      const gType = geom.type;
+      const coords = geom.coordinates || [];
+
+      const name = props.name || props.Name || props.title || props.id || (fallbackName ? `${fallbackName} (${idx+1})` : `Mục tiêu ${idx+1}`);
+      const loc = props.location || props.province || fallbackName || "GeoJSON Import";
+
+      let bbox = null, lat = 0, lon = 0, radius = 3.5;
+
+      if (gType === "Point" && coords.length >= 2) {
+        lon = coords[0]; lat = coords[1];
+        const latDelta = radius / 111.0;
+        const lonDelta = radius / (111.0 * Math.cos(lat * Math.PI / 180.0));
+        bbox = [lon - lonDelta, lat - latDelta, lon + lonDelta, lat + latDelta];
+      } else if (gType === "Polygon" || gType === "MultiPolygon") {
+        const pts = [];
+        if (gType === "Polygon") {
+          (coords[0] || []).forEach(p => pts.push(p));
+        } else {
+          coords.forEach(poly => (poly[0] || []).forEach(p => pts.push(p)));
+        }
+        if (pts.length > 0) {
+          const lons = pts.map(p => p[0]);
+          const lats = pts.map(p => p[1]);
+          const minLon = Math.min(...lons), maxLon = Math.max(...lons);
+          const minLat = Math.min(...lats), maxLat = Math.max(...lats);
+          bbox = [minLon, minLat, maxLon, maxLat];
+          lat = (minLat + maxLat) / 2.0;
+          lon = (minLon + maxLon) / 2.0;
+          radius = Math.max(1.0, Math.round((maxLat - minLat) * 111.0 / 2.0 * 10) / 10);
+        }
+      }
+
+      if (bbox) {
+        results.push({
+          id: `tgt-${Date.now()}-${idx}`,
+          name: String(name).trim(),
+          location: String(loc).trim(),
+          lat: Math.round(lat * 10000) / 10000,
+          lon: Math.round(lon * 10000) / 10000,
+          radius_km: radius,
+          bbox: bbox.map(b => Math.round(b * 10000) / 10000)
+        });
+      }
+    });
+    return results;
+  }
+
+  // Handle Multi-file Drag & Drop
+  function handleFilesUpload(fileList) {
+    if (!fileList || fileList.length === 0) return;
+    parsedGeojsonBuffer = [];
+
+    let filesRead = 0;
+    Array.from(fileList).forEach(file => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const json = JSON.parse(e.target.result);
+          const baseName = file.name.replace(/\.[^/.]+$/, "");
+          const tgts = extractTargetsFromGeoJSON(json, baseName);
+          parsedGeojsonBuffer.push(...tgts);
+        } catch (err) {
+          console.error("Lỗi đọc file:", file.name, err);
+        }
+        filesRead++;
+        if (filesRead === fileList.length) {
+          showPreviewArea();
+        }
+      };
+      reader.readAsText(file);
+    });
+  }
+
+  // Handle Pasted GeoJSON
+  function parsePastedGeoJSON() {
+    const text = document.getElementById("rawGeojsonText").value.trim();
+    if (!text) return alert("Vui lòng dán nội dung GeoJSON!");
+    try {
+      const json = JSON.parse(text);
+      parsedGeojsonBuffer = extractTargetsFromGeoJSON(json, "Mục tiêu dán");
+      showPreviewArea();
+    } catch (e) {
+      alert("Cú pháp JSON không hợp lệ: " + e.message);
+    }
+  }
+
+  function showPreviewArea() {
+    if (parsedGeojsonBuffer.length === 0) {
+      alert("Không tìm thấy hình học Polygon hoặc Point nào trong các file đã chọn!");
+      return;
+    }
+    const tbody = document.getElementById("previewTableBody");
+    tbody.innerHTML = "";
+    parsedGeojsonBuffer.forEach(t => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td><b>${t.name}</b> (${t.location})</td>
+        <td>${t.lat}, ${t.lon}</td>
+        <td>${t.radius_km} km</td>
+      `;
+      tbody.appendChild(tr);
+    });
+    document.getElementById("previewArea").style.display = "block";
+  }
+
+  function applyImportedTargets(replaceAll) {
+    if (replaceAll) {
+      targets = parsedGeojsonBuffer;
+    } else {
+      targets.push(...parsedGeojsonBuffer);
+    }
+    saveTargets();
+    renderTable();
+    switchTab('list');
+    alert(`Đã lưu thành công ${parsedGeojsonBuffer.length} mục tiêu vào hệ thống!`);
+  }
+
+  // Setup drag & drop styles
+  const dz = document.getElementById("dropzone");
+  ['dragenter', 'dragover'].forEach(name => {
+    dz.addEventListener(name, (e) => { e.preventDefault(); dz.classList.add('dragover'); }, false);
+  });
+  ['dragleave', 'drop'].forEach(name => {
+    dz.addEventListener(name, (e) => { e.preventDefault(); dz.classList.remove('dragover'); }, false);
+  });
+  dz.addEventListener('drop', (e) => {
+    e.preventDefault();
+    if (e.dataTransfer.files) handleFilesUpload(e.dataTransfer.files);
+  });
+
+  // Initial Load
+  updateTargetCount();
+  renderTable();
+</script>
+
+</body>
+</html>

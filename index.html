@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sentinel-2 Monitor</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+:root {
+  --bg: #f4f6f9; --panel: #ffffff; --panel-2: #f8fafc; --border: #e2e8f0; --border-strong: #cbd5e1;
+  --text: #0f172a; --muted: #64748b; --accent: #1d4ed8; --accent-soft: #eff6ff; --accent-text: #ffffff;
+  --ok: #15803d; --ok-soft: #dcfce7; --warn: #b45309; --warn-soft: #fef3c7; --info: #2563eb; --info-soft: #dbeafe;
+  --bad: #b91c1c; --bad-soft: #fee2e2; --idle: #475569; --idle-soft: #f1f5f9;
+  --shadow: 0 1px 2px rgba(15,23,42,.06), 0 1px 3px rgba(15,23,42,.08);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0b1120; --panel: #111827; --panel-2: #0f172a; --border: #1f2937; --border-strong: #334155;
+    --text: #e5e7eb; --muted: #94a3b8; --accent: #3b82f6; --accent-soft: #172554; --accent-text: #ffffff;
+    --ok: #4ade80; --ok-soft: #14532d; --warn: #fbbf24; --warn-soft: #451a03; --info: #60a5fa; --info-soft: #1e3a8a;
+    --bad: #f87171; --bad-soft: #450a0a; --idle: #cbd5e1; --idle-soft: #1e293b;
+    --shadow: none; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0b1120; --panel: #111827; --panel-2: #0f172a; --border: #1f2937; --border-strong: #334155;
+  --text: #e5e7eb; --muted: #94a3b8; --accent: #3b82f6; --accent-soft: #172554; --accent-text: #ffffff;
+  --ok: #4ade80; --ok-soft: #14532d; --warn: #fbbf24; --warn-soft: #451a03; --info: #60a5fa; --info-soft: #1e3a8a;
+  --bad: #f87171; --bad-soft: #450a0a; --idle: #cbd5e1; --idle-soft: #1e293b;
+  --shadow: none; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--text); font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+button, input, select, textarea { font: inherit; color: inherit; }
+a { color: var(--accent); }
+.muted { color: var(--muted); }
+.small { font-size: 12px; }
+.hidden { display: none !important; }
+
+/* Top bar */
+.topbar { position: sticky; top: 0; z-index: 1000; background: var(--panel); border-bottom: 1px solid var(--border); padding: 10px 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 10px; margin-right: auto; min-width: 0; }
+.brand svg { flex: none; }
+.brand h1 { font-size: 16px; margin: 0; white-space: nowrap; }
+.brand .sub { font-size: 12px; color: var(--muted); }
+.btn { border: 1px solid var(--border-strong); background: var(--panel); border-radius: 8px; padding: 7px 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-weight: 600; white-space: nowrap; }
+.btn:hover { background: var(--panel-2); }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
+.btn.primary:hover { filter: brightness(1.08); }
+.btn.sm { padding: 4px 8px; font-size: 12px; border-radius: 6px; }
+.btn.ghost { border-color: transparent; background: transparent; }
+.btn.danger { color: var(--bad); }
+.btn.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.progress { display: flex; align-items: center; gap: 8px; min-width: 200px; }
+.progress .bar { flex: 1; height: 6px; background: var(--idle-soft); border-radius: 99px; overflow: hidden; min-width: 80px; }
+.progress .fill { height: 100%; width: 0; background: var(--accent); transition: width .2s; }
+
+.tabs { display: flex; gap: 4px; padding: 0 16px; background: var(--panel); border-bottom: 1px solid var(--border); overflow-x: auto; }
+.tab { padding: 10px 14px; border: none; background: none; cursor: pointer; font-weight: 600; color: var(--muted); border-bottom: 2px solid transparent; white-space: nowrap; }
+.tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+.page { padding: 16px; max-width: 1600px; margin: 0 auto; }
+
+/* Summary chips */
+.summary { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.chip { border: 1px solid var(--border); background: var(--panel); border-radius: 10px; padding: 8px 12px; cursor: pointer; text-align: left; box-shadow: var(--shadow); min-width: 130px; }
+.chip b { display: block; font-size: 20px; line-height: 1.1; }
+.chip span { font-size: 12px; color: var(--muted); }
+.chip.active { border-color: var(--accent); outline: 1px solid var(--accent); }
+.chip.ok b { color: var(--ok); } .chip.warn b { color: var(--warn); } .chip.info b { color: var(--info); } .chip.bad b { color: var(--bad); }
+
+.banner { border-radius: 10px; padding: 10px 14px; margin-bottom: 12px; border: 1px solid var(--border); background: var(--panel); }
+.banner.ok { background: var(--ok-soft); border-color: transparent; }
+.banner.info { background: var(--info-soft); border-color: transparent; }
+
+/* Split layout */
+.split { display: grid; grid-template-columns: minmax(320px, 420px) 1fr; gap: 12px; align-items: start; }
+@media (max-width: 960px) { .split { grid-template-columns: 1fr; } }
+.card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow); }
+.list-head { padding: 10px; display: flex; gap: 8px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+.list-head input, .list-head select { flex: 1; min-width: 120px; padding: 6px 8px; border: 1px solid var(--border-strong); border-radius: 8px; background: var(--panel); }
+.tlist { max-height: calc(100vh - 250px); overflow-y: auto; }
+@media (max-width: 960px) { .tlist { max-height: 50vh; } }
+.trow { display: grid; grid-template-columns: 56px 1fr auto; gap: 10px; padding: 8px 10px; border-bottom: 1px solid var(--border); cursor: pointer; align-items: center; }
+.trow:hover { background: var(--panel-2); }
+.trow.sel { background: var(--accent-soft); }
+.thumb { width: 56px; height: 56px; border-radius: 6px; background: var(--idle-soft); object-fit: cover; display: block; }
+.tname { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tmeta { font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tright { text-align: right; display: flex; flex-direction: column; gap: 4px; align-items: flex-end; }
+
+.pill { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+.pill.today { background: var(--ok-soft); color: var(--ok); }
+.pill.yesterday { background: var(--warn-soft); color: var(--warn); }
+.pill.recent { background: var(--info-soft); color: var(--info); }
+.pill.old, .pill.none, .pill.wait { background: var(--idle-soft); color: var(--idle); }
+.pill.error { background: var(--bad-soft); color: var(--bad); }
+.cloud { font-size: 12px; font-weight: 600; white-space: nowrap; }
+.cloud.clear { color: var(--ok); } .cloud.mid { color: var(--warn); } .cloud.bad { color: var(--bad); }
+
+/* Detail */
+.detail { padding: 12px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.dhead { display: flex; gap: 10px; align-items: flex-start; flex-wrap: wrap; }
+.dhead h2 { margin: 0; font-size: 18px; }
+.dgrid { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 12px; }
+@media (max-width: 1250px) { .dgrid { grid-template-columns: 1fr; } }
+.viewer { position: relative; background: #0b1120; border-radius: 10px; overflow: hidden; aspect-ratio: 1 / 1; max-height: 70vh; width: 100%; display: flex; align-items: center; justify-content: center; }
+.viewer img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.viewer .msg { position: absolute; color: #e2e8f0; text-align: center; padding: 20px; font-size: 13px; }
+.viewer .lbl { position: absolute; top: 8px; background: rgba(0,0,0,.6); color: #fff; font-size: 12px; padding: 2px 8px; border-radius: 6px; z-index: 2; }
+.viewer input[type=range] { position: absolute; bottom: 10px; left: 5%; width: 90%; z-index: 3; }
+.seg { display: inline-flex; border: 1px solid var(--border-strong); border-radius: 8px; overflow: hidden; flex-wrap: wrap; }
+.seg button { border: none; background: var(--panel); padding: 6px 10px; cursor: pointer; font-weight: 600; font-size: 12px; }
+.seg button.active { background: var(--accent); color: var(--accent-text); }
+.toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+#map { height: 320px; border-radius: 10px; border: 1px solid var(--border); z-index: 0; }
+.kv { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; font-size: 13px; }
+.kv dt { color: var(--muted); } .kv dd { margin: 0; font-weight: 600; }
+.timeline { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; }
+.acq { flex: none; width: 104px; border: 1px solid var(--border); border-radius: 8px; padding: 4px; cursor: pointer; background: var(--panel); text-align: left; }
+.acq.sel { border-color: var(--accent); outline: 2px solid var(--accent); }
+.acq.cmp { border-color: var(--warn); outline: 2px dashed var(--warn); }
+.acq .ph { width: 94px; height: 94px; border-radius: 6px; background: var(--idle-soft); display: flex; align-items: center; justify-content: center; font-size: 11px; color: var(--muted); overflow: hidden; }
+.acq .ph img { width: 100%; height: 100%; object-fit: cover; }
+.acq .d { font-size: 12px; font-weight: 700; margin-top: 3px; }
+.acq .m { font-size: 11px; color: var(--muted); }
+.passes { display: flex; gap: 6px; flex-wrap: wrap; }
+.passes span { border: 1px dashed var(--border-strong); border-radius: 6px; padding: 2px 8px; font-size: 12px; }
+.section-title { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); font-weight: 700; margin: 0 0 6px; }
+.empty { padding: 40px 16px; text-align: center; color: var(--muted); }
+
+/* Manage */
+.mgrid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+@media (max-width: 960px) { .mgrid { grid-template-columns: 1fr; } }
+.pad { padding: 14px; }
+.form { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; }
+.form label { display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: var(--muted); font-weight: 600; }
+.form input, .form select, textarea { padding: 7px 8px; border: 1px solid var(--border-strong); border-radius: 8px; background: var(--panel); color: var(--text); }
+textarea { width: 100%; min-height: 110px; font-family: ui-monospace, Consolas, monospace; font-size: 12px; }
+.drop { border: 2px dashed var(--border-strong); border-radius: 10px; padding: 22px; text-align: center; cursor: pointer; }
+.drop.over { border-color: var(--accent); background: var(--accent-soft); }
+table { width: 100%; border-collapse: collapse; }
+th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--border); font-size: 13px; vertical-align: middle; }
+th { font-size: 11px; text-transform: uppercase; color: var(--muted); letter-spacing: .04em; background: var(--panel-2); position: sticky; top: 0; }
+td input { width: 100%; padding: 4px 6px; border: 1px solid var(--border); border-radius: 6px; background: var(--panel); }
+.tablewrap { max-height: 60vh; overflow: auto; }
+
+dialog { border: 1px solid var(--border); border-radius: 12px; background: var(--panel); color: var(--text); padding: 0; width: min(560px, calc(100vw - 32px)); }
+dialog::backdrop { background: rgba(0,0,0,.5); }
+.dlg-head { padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+.dlg-body { padding: 16px; }
+.dlg-foot { padding: 12px 16px; border-top: 1px solid var(--border); display: flex; gap: 8px; justify-content: flex-end; }
+.check { display: flex; gap: 8px; align-items: center; font-size: 13px; margin-top: 10px; }
+
+#toast { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); z-index: 3000; display: flex; flex-direction: column; gap: 6px; align-items: center; pointer-events: none; }
+#toast div { background: #0f172a; color: #fff; padding: 8px 14px; border-radius: 8px; font-size: 13px; box-shadow: 0 4px 12px rgba(0,0,0,.25); max-width: calc(100vw - 32px); }
+.help h3 { margin: 18px 0 6px; font-size: 15px; }
+.help p, .help li { max-width: 820px; }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true" style="color:var(--accent)"><rect x="9" y="9" width="6" height="6" rx="1"/><path d="M9 12H3M21 12h-6M5 9v6M19 9v6M12 9V5M12 19v-4"/><path d="M10 5h4"/></svg>
+    <div>
+      <h1>Sentinel-2 Monitor</h1>
+      <div class="sub">Rà soát lượt chụp mới · cắt ảnh đúng vùng mục tiêu · đo mây trong vùng</div>
+    </div>
+  </div>
+  <div class="progress hidden" id="progress"><div class="bar"><div class="fill" id="progressFill"></div></div><span class="small muted" id="progressText"></span></div>
+  <span class="small muted" id="lastScan"></span>
+  <button class="btn primary" id="btnScan">Quét tất cả</button>
+  <button class="btn" id="btnZip" title="Tải ZIP ảnh cắt của lượt chụp mới nhất mỗi mục tiêu">Tải ZIP ảnh mới</button>
+  <button class="btn" id="btnSettings" aria-label="Cài đặt">Cài đặt</button>
+</header>
+
+<nav class="tabs">
+  <button class="tab active" data-view="monitor">Theo dõi</button>
+  <button class="tab" data-view="manage">Quản lý mục tiêu</button>
+  <button class="tab" data-view="help">Hướng dẫn</button>
+</nav>
+
+<!-- MONITOR -->
+<div class="page" id="view-monitor">
+  <div class="summary" id="summary"></div>
+  <div id="banner"></div>
+  <div class="split">
+    <div class="card">
+      <div class="list-head">
+        <input id="search" type="search" placeholder="Tìm mục tiêu / nhóm…">
+        <select id="sort">
+          <option value="newest">Mới chụp nhất trước</option>
+          <option value="name">Theo tên</option>
+          <option value="group">Theo nhóm</option>
+          <option value="next">Sắp bay qua trước</option>
+        </select>
+      </div>
+      <div class="tlist" id="tlist"></div>
+    </div>
+    <div class="card detail" id="detail"></div>
+  </div>
+</div>
+
+<!-- MANAGE -->
+<div class="page hidden" id="view-manage">
+  <div class="mgrid">
+    <div class="card pad">
+      <p class="section-title">Thêm một mục tiêu</p>
+      <div class="form">
+        <label>Tên<input id="fName" placeholder="VD: Cảng Cam Ranh"></label>
+        <label>Nhóm / địa bàn<input id="fGroup" placeholder="VD: Khánh Hòa"></label>
+        <label>Tọa độ (vĩ độ, kinh độ)<input id="fCoord" placeholder="11.915, 109.165"></label>
+        <label>Bán kính (km)<input id="fRadius" type="number" step="0.5" min="0.5" value="3"></label>
+      </div>
+      <div class="toolbar" style="margin-top:10px">
+        <button class="btn primary" id="btnAdd">Thêm</button>
+        <span class="small muted">Hoặc bấm “Chọn trên bản đồ” ở tab Theo dõi.</span>
+      </div>
+    </div>
+    <div class="card pad">
+      <p class="section-title">Nhập hàng loạt</p>
+      <div class="drop" id="drop">
+        <b>Kéo thả file .geojson / .json / .kml / .csv</b><br>
+        <span class="small muted">Nhiều file cùng lúc. File chỉ có 1 đối tượng sẽ lấy tên file làm tên mục tiêu.</span>
+        <input type="file" id="fileInput" multiple accept=".geojson,.json,.kml,.csv,.txt" class="hidden">
+      </div>
+      <p class="small muted" style="margin:10px 0 4px">Hoặc dán GeoJSON, KML, hay danh sách CSV <code>tên, vĩ độ, kinh độ[, bán kính km]</code>:</p>
+      <textarea id="paste" placeholder='Sân bay Long Thành, 10.778, 106.985, 3.5'></textarea>
+      <div class="toolbar" style="margin-top:8px">
+        <button class="btn" id="btnParse">Phân tích</button>
+        <span class="small muted" id="importInfo"></span>
+        <span style="margin-left:auto"></span>
+        <button class="btn primary hidden" id="btnAppend">Thêm vào danh sách</button>
+        <button class="btn hidden" id="btnReplace">Thay toàn bộ</button>
+      </div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:12px">
+    <div class="pad toolbar" style="border-bottom:1px solid var(--border)">
+      <b id="mgCount"></b>
+      <span style="margin-left:auto"></span>
+      <button class="btn sm" id="btnExportGeo">Xuất GeoJSON</button>
+      <button class="btn sm" id="btnExportJson">Sao lưu JSON</button>
+      <button class="btn sm" id="btnReset">Khôi phục danh sách mẫu</button>
+      <button class="btn sm danger" id="btnClear">Xóa tất cả</button>
+    </div>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th style="width:30%">Tên</th><th style="width:18%">Nhóm</th><th>Vĩ độ</th><th>Kinh độ</th><th>Bán kính km</th><th></th></tr></thead>
+        <tbody id="mgBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- HELP -->
+<div class="page hidden help" id="view-help">
+  <div class="card pad">
+    <h3 style="margin-top:0">Cách đọc trạng thái</h3>
+    <ul>
+      <li><span class="pill today">Hôm nay</span> <span class="pill yesterday">Hôm qua</span> <span class="pill recent">2–3 ngày</span> <span class="pill old">cũ hơn</span> — tính theo <b>ngày lịch giờ Việt Nam</b> của lượt chụp mới nhất phủ lên vùng mục tiêu.</li>
+      <li><b>Mây vùng</b>: tỷ lệ mây + bóng mây đo <b>trong đúng khung mục tiêu</b> từ lớp phân loại cảnh SCL, không phải tỷ lệ mây của cả ô 110 × 110 km. Hai con số này có thể lệch rất xa (ô 29% nhưng vùng mục tiêu 99%).</li>
+      <li><b>Phủ</b>: phần trăm khung mục tiêu nằm trong vệt quét. Dưới 100% nghĩa là mục tiêu nằm ở mép dải chụp.</li>
+      <li><b>Dự kiến bay qua</b>: mỗi vệ tinh Sentinel-2 lặp lại quỹ đạo sau đúng 10 ngày, nên ngày bay kế tiếp được suy ra từ các lượt chụp đã thấy (theo từng vệ tinh và quỹ đạo tương đối).</li>
+    </ul>
+    <h3>Khi nào có ảnh “hôm nay”?</h3>
+    <p>Sentinel-2 bay qua Việt Nam khoảng <b>10:00–11:10</b> giờ VN. Ảnh L2A thường xuất hiện trên Planetary Computer sau <b>5–7 giờ</b>, tức khoảng 15:30–18:00. Trước giờ đó, cột “Dự kiến” cho biết hôm nay có lượt bay hay không. Nếu bật “Dò Copernicus”, app kiểm tra thêm kho Copernicus (thường có ảnh L1C sớm hơn khoảng 1 giờ) và báo khi ảnh đã chụp nhưng Planetary Computer chưa đồng bộ.</p>
+    <h3>Các kiểu tải</h3>
+    <ul>
+      <li><b>JPG vùng</b>: ảnh đã cắt theo khung mục tiêu, độ phân giải gốc 10 m, vài trăm KB, tải ngay.</li>
+      <li><b>GeoTIFF vùng</b>: như trên nhưng có tọa độ, mở thẳng trong QGIS/ArcGIS.</li>
+      <li><b>Cả ô gốc</b>: file visual 10 m của cả ô 110 km (~100–250 MB), liên kết có chữ ký tạm thời.</li>
+    </ul>
+    <h3>Tổ hợp kênh</h3>
+    <ul>
+      <li><b>Màu thật</b> (B4-B3-B2) — nhìn như mắt thường.</li>
+      <li><b>Hồng ngoại</b> (B8-B4-B3) — thực vật đỏ tươi, dễ phân biệt công trình, bãi trống, ngụy trang bằng cây cắt.</li>
+      <li><b>SWIR</b> (B12-B8A-B4) — xuyên khói/mù mỏng tốt hơn, làm nổi vùng cháy, nền đất ẩm, mái kim loại.</li>
+      <li><b>NDVI</b> — chỉ số thực vật, so sánh 2 ngày để phát hiện phát quang, san lấp.</li>
+    </ul>
+    <h3>So sánh hai ngày</h3>
+    <p>Chọn một lượt chụp, sau đó bấm “So sánh với…” và chọn lượt thứ hai trong dải thời gian; kéo thanh trượt trên ảnh để đối chiếu.</p>
+    <h3>Dữ liệu và quyền riêng tư</h3>
+    <p>Danh sách mục tiêu và kết quả quét chỉ lưu trong trình duyệt của máy này (localStorage). App gửi khung tọa độ mục tiêu tới API công khai của Microsoft Planetary Computer (và Copernicus nếu bật dò) để tìm và cắt ảnh.</p>
+  </div>
+</div>
+
+<dialog id="dlgSettings">
+  <div class="dlg-head"><b>Cài đặt</b><button class="btn ghost" data-close>✕</button></div>
+  <div class="dlg-body">
+    <div class="form">
+      <label>Số ngày tìm lại<input type="number" id="sLookback" min="5" max="180"></label>
+      <label>Ngưỡng “ảnh rõ” (mây vùng ≤ %)<input type="number" id="sCloud" min="0" max="100"></label>
+      <label>Số lượt phân tích mây / mục tiêu<input type="number" id="sAnalyze" min="1" max="30"></label>
+      <label>Truy vấn song song<input type="number" id="sConc" min="1" max="8"></label>
+      <label>Cạnh dài tối đa ảnh tải (px)<input type="number" id="sMax" min="256" max="4096" step="256"></label>
+      <label>Tự quét lại mỗi (phút, 0 = tắt)<input type="number" id="sAuto" min="0" max="720"></label>
+      <label>Giao diện<select id="sTheme"><option value="auto">Theo hệ thống</option><option value="light">Sáng</option><option value="dark">Tối</option></select></label>
+    </div>
+    <label class="check"><input type="checkbox" id="sCdse"> Dò kho Copernicus khi hôm nay có lượt bay mà Planetary Computer chưa có ảnh</label>
+    <label class="check"><input type="checkbox" id="sNotify"> Thông báo trên máy tính khi có ảnh mới</label>
+    <p class="small muted" style="margin-top:12px">Kết quả đo mây được lưu đệm theo từng cảnh, nên quét lại chỉ tốn truy vấn cho cảnh mới.
+      <button class="btn sm" id="btnClearCache" style="margin-left:6px">Xóa bộ đệm</button></p>
+  </div>
+  <div class="dlg-foot"><button class="btn" data-close>Hủy</button><button class="btn primary" id="btnSaveSettings">Lưu</button></div>
+</dialog>
+
+<div id="toast"></div>
+
+<script>
+'use strict';
+/* ===================== Config & storage ===================== */
+const STAC = 'https://planetarycomputer.microsoft.com/api/stac/v1';
+const DATA = 'https://planetarycomputer.microsoft.com/api/data/v1';
+const SAS = 'https://planetarycomputer.microsoft.com/api/sas/v1/token/sentinel-2-l2a';
+const CDSE = 'https://stac.dataspace.copernicus.eu/v1/search';
+const COLL = 'sentinel-2-l2a';
+const VN_OFFSET = 7 * 3600e3;
+const DAY = 864e5;
+const REPEAT_DAYS = 10;   // chu kỳ lặp quỹ đạo của mỗi vệ tinh Sentinel-2
+const K = { targets: 's2m.targets', results: 's2m.results', settings: 's2m.settings', scl: 's2m.scl', lastScan: 's2m.lastScan' };
+
+const DEFAULT_SETTINGS = { lookback: 30, cloud: 20, analyze: 6, conc: 4, maxSize: 2048, auto: 0, cdse: true, notify: false, theme: 'auto' };
+
+const DEFAULT_TARGETS = [
+  ['Sân bay Quốc tế Long Thành', 'Đồng Nai', 10.778, 106.985, 3.5],
+  ['Hồ Thủy điện Trị An', 'Đồng Nai', 11.125, 107.125, 4.5],
+  ['Rừng ngập mặn Cần Giờ', 'TP. Hồ Chí Minh', 10.450, 106.900, 4.0],
+  ['Hồ Dầu Tiếng', 'Tây Ninh', 11.350, 106.350, 5.0],
+  ['Vịnh Hạ Long', 'Quảng Ninh', 20.910, 107.180, 4.5],
+  ['Vườn Quốc gia Cát Tiên', 'Đồng Nai', 11.425, 107.425, 4.0],
+  ['Hồ Ba Bể', 'Bắc Kạn', 22.408, 105.615, 3.0],
+  ['KCNC Hòa Lạc', 'Hà Nội', 21.015, 105.525, 3.5],
+  ['Bán đảo Sơn Trà', 'Đà Nẵng', 16.115, 108.275, 3.5],
+  ['Cảng Cái Mép - Thị Vải', 'Bà Rịa - Vũng Tàu', 10.518, 107.018, 3.5],
+].map(([name, group, lat, lon, r], i) => makeTarget({ id: 'd' + i, name, group, lat, lon, radius_km: r }));
+
+function load(key, fallback) {
+  try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch { return fallback; }
+}
+function save(key, val) {
+  try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) { console.warn('localStorage', e); }
+}
+
+const S = Object.assign({}, DEFAULT_SETTINGS, load(K.settings, {}));
+let targets = load(K.targets, null) || migrateLegacy() || DEFAULT_TARGETS.map(t => ({ ...t }));
+let results = load(K.results, {});
+const sclCache = load(K.scl, {});
+
+function migrateLegacy() {
+  // Danh sách từ bản cũ (Sentinel-2_Monitor.html) nếu còn trong trình duyệt
+  const old = load('sentinel_targets', null);
+  if (!Array.isArray(old) || !old.length) return null;
+  return old.filter(t => Array.isArray(t.bbox)).map(t => makeTarget({ name: t.name, group: t.location, lat: t.lat, lon: t.lon, radius_km: t.radius_km, bbox: t.bbox }));
+}
+
+/* ===================== Helpers ===================== */
+const $ = s => document.querySelector(s);
+function h(tag, attrs, ...kids) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (v == null || v === false) continue;
+    if (k === 'class') el.className = v;
+    else if (k.startsWith('on')) el.addEventListener(k.slice(2), v);
+    else if (k === 'style') el.style.cssText = v;
+    else el.setAttribute(k, v === true ? '' : v);
+  }
+  for (const c of kids.flat()) if (c != null && c !== false) el.append(c instanceof Node ? c : String(c));
+  return el;
+}
+function toast(msg, ms = 3000) {
+  const d = h('div', null, msg); $('#toast').append(d); setTimeout(() => d.remove(), ms);
+}
+function round(v, n = 4) { return Math.round(v * 10 ** n) / 10 ** n; }
+function uid() { return 't' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+
+function bboxFromPoint(lat, lon, r) {
+  const dLat = r / 111.32, dLon = r / (111.32 * Math.cos(lat * Math.PI / 180));
+  return [lon - dLon, lat - dLat, lon + dLon, lat + dLat].map(v => round(v));
+}
+function makeTarget({ id, name, group, lat, lon, radius_km, bbox }) {
+  radius_km = Number(radius_km) || 3;
+  if (!bbox) bbox = bboxFromPoint(lat, lon, radius_km);
+  if (lat == null || lon == null) { lat = (bbox[1] + bbox[3]) / 2; lon = (bbox[0] + bbox[2]) / 2; }
+  return { id: id || uid(), name: String(name || 'Mục tiêu').trim(), group: String(group || '').trim(), lat: round(lat), lon: round(lon), radius_km: round(radius_km, 1), bbox: bbox.map(v => round(v)) };
+}
+function bboxPolygon(b) { return { type: 'Polygon', coordinates: [[[b[0], b[1]], [b[2], b[1]], [b[2], b[3]], [b[0], b[3]], [b[0], b[1]]]] }; }
+
+// Ngày lịch theo giờ Việt Nam (khóa YYYY-MM-DD) — tránh lỗi "chụp hôm qua 10h, bây giờ 9h sáng => 0 ngày"
+const vnKey = ms => new Date(ms + VN_OFFSET).toISOString().slice(0, 10);
+const todayKey = () => vnKey(Date.now());
+const keyDiff = (a, b) => Math.round((Date.parse(a) - Date.parse(b)) / DAY);
+function vnParts(iso) {
+  const d = new Date(Date.parse(iso) + VN_OFFSET).toISOString();
+  return { key: d.slice(0, 10), date: `${d.slice(8, 10)}/${d.slice(5, 7)}/${d.slice(0, 4)}`, dm: `${d.slice(8, 10)}/${d.slice(5, 7)}`, time: d.slice(11, 16), compact: d.slice(0, 10).replace(/-/g, '') + '_' + d.slice(11, 16).replace(':', '') };
+}
+function relDay(key) {
+  const n = keyDiff(todayKey(), key);
+  if (n <= 0) return n === 0 ? 'Hôm nay' : 'Ngày mai' + (n < -1 ? ` +${-n - 1}` : '');
+  return n === 1 ? 'Hôm qua' : `${n} ngày trước`;
+}
+function dmOfKey(key) { return `${key.slice(8, 10)}/${key.slice(5, 7)}`; }
+const shortSat = p => (p || '').replace(/^Sentinel-/i, 'S');
+function slug(s) {
+  return String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[đĐ]/g, 'd').replace(/[^A-Za-z0-9]+/g, '_').replace(/^_|_$/g, '').slice(0, 60) || 'muctieu';
+}
+function pointInRing(x, y, ring) {
+  let inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const [xi, yi] = ring[i], [xj, yj] = ring[j];
+    if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) inside = !inside;
+  }
+  return inside;
+}
+function geomContains(g, x, y) {
+  if (!g) return false;
+  const polys = g.type === 'Polygon' ? [g.coordinates] : g.type === 'MultiPolygon' ? g.coordinates : [];
+  return polys.some(p => pointInRing(x, y, p[0]) && !p.slice(1).some(hole => pointInRing(x, y, hole)));
+}
+
+/* ===================== Network ===================== */
+function limiter(n) {
+  let active = 0; const q = [];
+  const next = () => {
+    if (active >= n || !q.length) return;
+    active++; const { fn, res, rej } = q.shift();
+    Promise.resolve().then(fn).then(res, rej).finally(() => { active--; next(); });
+  };
+  return fn => new Promise((res, rej) => { q.push({ fn, res, rej }); next(); });
+}
+let netLimit = limiter(S.conc * 2);
+
+async function fetchRetry(url, opts = {}, tries = 3) {
+  let last;
+  for (let i = 0; i < tries; i++) {
+    try {
+      const r = await fetch(url, { ...opts, signal: AbortSignal.timeout(opts.timeout || 45000) });
+      if (r.ok) return r;
+      last = new Error(`HTTP ${r.status}`);
+      if (r.status < 500 && r.status !== 429) throw last;
+    } catch (e) {
+      last = e;
+      if (/HTTP 4(?!29)/.test(e.message)) throw e;
+    }
+    await new Promise(r => setTimeout(r, 1000 * 2 ** i));
+  }
+  throw last;
+}
+
+let sas = { token: '', exp: 0 };
+async function getSas() {
+  if (sas.token && Date.now() < sas.exp) return sas.token;
+  const j = await (await fetchRetry(SAS)).json();
+  // Token thực tế sống ~45 phút; dùng msft:expiry thay vì giả định 1 giờ
+  sas = { token: j.token, exp: (Date.parse(j['msft:expiry']) || Date.now() + 30 * 60e3) - 5 * 60e3 };
+  return sas.token;
+}
+
+async function stacSearch(t) {
+  // Dùng GET: API STAC của Planetary Computer không trả lời preflight OPTIONS (405),
+  // nên POST kèm Content-Type: application/json bị trình duyệt chặn CORS.
+  const now = Date.now();
+  const qs = new URLSearchParams({
+    collections: COLL,
+    bbox: t.bbox.join(','),
+    datetime: `${new Date(now - S.lookback * DAY).toISOString()}/${new Date(now + DAY).toISOString()}`,
+    limit: '250',
+    sortby: '-datetime',
+    fields: 'id,geometry,properties.datetime,properties.platform,properties.eo:cloud_cover,properties.s2:mgrs_tile,properties.sat:relative_orbit,-assets,-links,-bbox',
+  });
+  const r = await netLimit(() => fetchRetry(`${STAC}/search?${qs}`));
+  return (await r.json()).features || [];
+}
+
+// Gộp các ô MGRS của cùng một lượt bay; ưu tiên ô chứa tâm mục tiêu
+function groupAcquisitions(t, feats) {
+  const map = new Map();
+  for (const f of feats) {
+    const p = f.properties;
+    const key = `${p.platform}|${p.datetime.slice(0, 16)}`;
+    if (!map.has(key)) map.set(key, { key, dt: p.datetime, platform: p.platform || 'Sentinel-2', orbit: p['sat:relative_orbit'], feats: [] });
+    map.get(key).feats.push(f);
+  }
+  const cx = (t.bbox[0] + t.bbox[2]) / 2, cy = (t.bbox[1] + t.bbox[3]) / 2;
+  return [...map.values()].map(a => {
+    a.feats.sort((x, y) => (geomContains(y.geometry, cx, cy) - geomContains(x.geometry, cx, cy)) || ((x.properties['eo:cloud_cover'] ?? 100) - (y.properties['eo:cloud_cover'] ?? 100)));
+    const first = a.feats[0].properties;
+    return {
+      key: a.key, dt: a.dt, platform: a.platform, orbit: a.orbit,
+      cands: a.feats.map(f => f.id), itemId: a.feats[0].id,
+      tile: first['s2:mgrs_tile'], tileCloud: first['eo:cloud_cover'],
+      aoi: null,
+    };
+  }).sort((a, b) => b.dt.localeCompare(a.dt));
+}
+
+function sclUrl(itemId, bbox) {
+  return `${DATA}/item/bbox/${bbox.join(',')}.png?collection=${COLL}&item=${encodeURIComponent(itemId)}&assets=SCL&max_size=160`;
+}
+// Đo mây trong đúng khung mục tiêu từ lớp SCL (3 = bóng mây, 8/9 = mây, 10 = mây ti)
+async function sclStats(itemId, bbox) {
+  const ck = itemId + '|' + bbox.join(',');
+  if (sclCache[ck]) return sclCache[ck];
+  const blob = await netLimit(async () => (await fetchRetry(sclUrl(itemId, bbox))).blob());
+  const bmp = await createImageBitmap(blob);
+  const c = document.createElement('canvas'); c.width = bmp.width; c.height = bmp.height;
+  const ctx = c.getContext('2d', { willReadFrequently: true });
+  ctx.drawImage(bmp, 0, 0);
+  const px = ctx.getImageData(0, 0, c.width, c.height).data;
+  let total = 0, valid = 0, cloud = 0, shadow = 0;
+  for (let i = 0; i < px.length; i += 4) {
+    total++;
+    const v = px[i];
+    if (px[i + 3] === 0 || v === 0) continue;
+    valid++;
+    if (v === 8 || v === 9 || v === 10) cloud++;
+    else if (v === 3) shadow++;
+  }
+  const r = valid
+    ? { cloud: round(cloud / valid * 100, 1), shadow: round(shadow / valid * 100, 1), cov: round(valid / total * 100, 0) }
+    : { cloud: null, shadow: null, cov: 0 };
+  sclCache[ck] = r;
+  return r;
+}
+function persistSclCache() {
+  const keys = Object.keys(sclCache);
+  if (keys.length > 4000) keys.slice(0, keys.length - 3000).forEach(k => delete sclCache[k]);
+  save(K.scl, sclCache);
+}
+
+async function analyzeAcq(t, acq) {
+  let best = null;
+  for (const id of acq.cands) {
+    const r = await sclStats(id, t.bbox);
+    if (!best || r.cov > best.r.cov) best = { id, r };
+    if (r.cov >= 95) break;
+  }
+  acq.itemId = best.id;
+  acq.aoi = best.r;
+  return acq;
+}
+const obstructed = a => a.aoi && a.aoi.cloud != null ? a.aoi.cloud + a.aoi.shadow : null;
+const isClear = a => { const o = obstructed(a); return o != null && o <= S.cloud && a.aoi.cov >= 60; };
+
+// Dự báo lượt bay: mỗi vệ tinh lặp lại quỹ đạo tương đối sau đúng 10 ngày
+function predictPasses(acqs) {
+  const last = new Map();
+  for (const a of acqs) {
+    const g = `${a.platform}|${a.orbit}`;
+    if (!last.has(g) || last.get(g).dt < a.dt) last.set(g, a);
+  }
+  const today = todayKey(), out = new Map();
+  for (const a of last.values()) {
+    let ms = Date.parse(a.dt);
+    while (vnKey(ms) < today) ms += REPEAT_DAYS * DAY;
+    for (let k = 0; k < 2; k++, ms += REPEAT_DAYS * DAY) {
+      const key = vnKey(ms);
+      if (!out.has(key)) out.set(key, { key, time: vnParts(new Date(ms).toISOString()).time, platform: a.platform });
+    }
+  }
+  return [...out.values()].sort((a, b) => a.key.localeCompare(b.key)).slice(0, 4);
+}
+
+async function cdseProbe(t) {
+  const start = Date.parse(todayKey() + 'T00:00:00Z') - VN_OFFSET;   // 00:00 giờ VN
+  const body = {
+    collections: ['sentinel-2-l1c', 'sentinel-2-l2a'],
+    intersects: bboxPolygon(t.bbox),
+    datetime: `${new Date(start).toISOString()}/${new Date(start + DAY - 1000).toISOString()}`,
+    limit: 5,
+  };
+  const r = await netLimit(() => fetchRetry(CDSE, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }, 2));
+  const f = ((await r.json()).features || [])[0];
+  return f ? { id: f.id, dt: f.properties.datetime, level: /L1C/.test(f.id) ? 'L1C' : 'L2A' } : null;
+}
+
+/* ===================== Rendering URLs ===================== */
+const PRESETS = {
+  tc:   { label: 'Màu thật', q: 'assets=visual&asset_bidx=visual%7C1%2C2%2C3&nodata=0' },
+  nir:  { label: 'Hồng ngoại', q: 'assets=B08&assets=B04&assets=B03&nodata=0&rescale=1000,4000' },
+  swir: { label: 'SWIR', q: 'assets=B12&assets=B8A&assets=B04&nodata=0&rescale=1000,4000' },
+  ndvi: { label: 'NDVI', q: 'expression=(B08-B04)%2F(B08%2BB04)&asset_as_band=True&rescale=-0.2,0.8&colormap_name=rdylgn&nodata=0' },
+};
+function imgUrl(itemId, bbox, preset = 'tc', fmt = 'png', max = 1024) {
+  return `${DATA}/item/bbox/${bbox.join(',')}.${fmt}?collection=${COLL}&item=${encodeURIComponent(itemId)}&${PRESETS[preset].q}&max_size=${max}`;
+}
+function fileName(t, acq, preset, ext) {
+  return `${slug(t.name)}_${vnParts(acq.dt).compact}VN_${shortSat(acq.platform)}_${preset}.${ext}`;
+}
+
+/* ===================== Scan ===================== */
+let scanning = false;
+async function scanTarget(t, { quiet } = {}) {
+  const prev = results[t.id];
+  const res = { scannedAt: new Date().toISOString(), acqs: [], passes: [], error: null, cdse: null };
+  try {
+    const feats = await stacSearch(t);
+    res.acqs = groupAcquisitions(t, feats);
+    // giữ lại kết quả đo mây cũ để khỏi tính lại
+    const old = new Map((prev?.acqs || []).map(a => [a.key, a]));
+    for (const a of res.acqs) { const o = old.get(a.key); if (o?.aoi) { a.aoi = o.aoi; a.itemId = o.itemId; } }
+    await Promise.all(res.acqs.slice(0, S.analyze).map(a => a.aoi ? a : analyzeAcq(t, a).catch(e => console.warn('SCL', t.name, e))));
+    res.passes = predictPasses(res.acqs);
+    const latest = res.acqs[0];
+    const passToday = res.passes.some(p => p.key === todayKey());
+    if (S.cdse && passToday && (!latest || vnParts(latest.dt).key !== todayKey())) {
+      res.cdse = await cdseProbe(t).catch(() => null);
+    }
+  } catch (e) {
+    res.error = e.message || String(e);
+    if (prev) { res.acqs = prev.acqs; res.passes = prev.passes; }
+  }
+  results[t.id] = res;
+  if (!quiet) { save(K.results, results); persistSclCache(); }
+  return { prevLatest: prev?.acqs?.[0]?.key, res };
+}
+
+async function scanAll() {
+  if (scanning || !targets.length) return;
+  scanning = true;
+  $('#btnScan').disabled = true;
+  $('#progress').classList.remove('hidden');
+  let done = 0; const fresh = [];
+  const setP = (name) => {
+    $('#progressFill').style.width = `${done / targets.length * 100}%`;
+    $('#progressText').textContent = `${done}/${targets.length}${name ? ' · ' + name : ''}`;
+  };
+  setP();
+  const pool = limiter(S.conc);
+  await Promise.all(targets.map(t => pool(async () => {
+    const { prevLatest, res } = await scanTarget(t, { quiet: true });
+    const latest = res.acqs[0];
+    if (prevLatest && latest && latest.key !== prevLatest && latest.dt > prevLatest.split('|')[1]) fresh.push({ t, latest });
+    done++; setP(t.name);
+    renderList(); if (t.id === selectedId) renderDetail();
+  })));
+  save(K.results, results); persistSclCache();
+  save(K.lastScan, new Date().toISOString());
+  scanning = false;
+  $('#btnScan').disabled = false;
+  $('#progress').classList.add('hidden');
+  renderAll();
+  if (fresh.length) notifyFresh(fresh);
+  scheduleAuto();
+}
+
+function notifyFresh(list) {
+  const names = list.map(x => x.t.name);
+  toast(`Ảnh mới: ${names.slice(0, 3).join(', ')}${names.length > 3 ? ` và ${names.length - 3} mục tiêu khác` : ''}`, 6000);
+  document.title = `(${list.length}) Sentinel-2 Monitor`;
+  if (S.notify && 'Notification' in window && Notification.permission === 'granted') {
+    try { new Notification('Sentinel-2: có ảnh mới', { body: names.join(', ') }); } catch {}
+  }
+}
+
+let autoTimer = null;
+function scheduleAuto() {
+  clearTimeout(autoTimer);
+  if (S.auto > 0) autoTimer = setTimeout(scanAll, S.auto * 60e3);
+}
+
+/* ===================== State helpers ===================== */
+function statusOf(t) {
+  const r = results[t.id];
+  if (!r) return { cls: 'wait', label: 'Chưa quét', rank: 9 };
+  if (r.error && !r.acqs?.length) return { cls: 'error', label: 'Lỗi', rank: 8 };
+  const a = r.acqs?.[0];
+  if (!a) return { cls: 'none', label: `Không có ảnh ${S.lookback} ngày`, rank: 7 };
+  const n = keyDiff(todayKey(), vnParts(a.dt).key);
+  if (n <= 0) return { cls: 'today', label: 'Hôm nay', rank: 0, n };
+  if (n === 1) return { cls: 'yesterday', label: 'Hôm qua', rank: 1, n };
+  if (n <= 3) return { cls: 'recent', label: `${n} ngày trước`, rank: 2, n };
+  return { cls: 'old', label: `${n} ngày trước`, rank: 3, n };
+}
+const passToday = t => (results[t.id]?.passes || []).some(p => p.key === todayKey());
+function cloudBadge(a) {
+  const o = obstructed(a);
+  if (o == null) return a?.tileCloud != null ? h('span', { class: 'cloud muted', title: 'Mây cả ô 110 km (chưa đo trong vùng)' }, `ô ${Math.round(a.tileCloud)}%`) : null;
+  const cls = o <= S.cloud ? 'clear' : o <= 60 ? 'mid' : 'bad';
+  return h('span', { class: 'cloud ' + cls, title: `Mây ${a.aoi.cloud}% + bóng mây ${a.aoi.shadow}% trong vùng · phủ ${a.aoi.cov}%` }, `mây ${Math.round(o)}%`);
+}
+function latestClear(t) { return (results[t.id]?.acqs || []).find(isClear); }
+
+/* ===================== UI: summary & list ===================== */
+let filter = 'all', selectedId = null, selectedKey = null, compareKey = null, preset = 'tc', pickMode = false;
+const FILTERS = {
+  all:    { label: 'Mục tiêu', cls: '', fn: () => true },
+  today:  { label: 'Có ảnh hôm nay', cls: 'ok', fn: t => statusOf(t).cls === 'today' },
+  clear:  { label: 'Hôm nay & rõ', cls: 'ok', fn: t => statusOf(t).cls === 'today' && isClear(results[t.id].acqs[0]) },
+  pass:   { label: 'Dự kiến bay hôm nay', cls: 'info', fn: t => passToday(t) },
+  pending:{ label: 'Đã chụp, chờ PC', cls: 'warn', fn: t => !!results[t.id]?.cdse && statusOf(t).cls !== 'today' },
+  error:  { label: 'Lỗi / chưa quét', cls: 'bad', fn: t => ['error', 'wait'].includes(statusOf(t).cls) },
+};
+
+function renderSummary() {
+  const box = $('#summary'); box.replaceChildren();
+  for (const [k, f] of Object.entries(FILTERS)) {
+    const n = targets.filter(f.fn).length;
+    if (k === 'pending' && !n) continue;
+    box.append(h('button', { class: `chip ${f.cls} ${filter === k ? 'active' : ''}`, onclick: () => { filter = filter === k ? 'all' : k; renderSummary(); renderList(); } }, h('b', null, n), h('span', null, f.label)));
+  }
+  const banner = $('#banner'); banner.replaceChildren();
+  const nToday = targets.filter(FILTERS.today.fn).length, nClear = targets.filter(FILTERS.clear.fn).length, nPass = targets.filter(FILTERS.pass.fn).length;
+  const hourVN = new Date(Date.now() + VN_OFFSET).getUTCHours();
+  if (!Object.keys(results).length) {
+    banner.append(h('div', { class: 'banner' }, 'Bấm “Quét tất cả” để tìm các lượt chụp Sentinel-2 phủ lên từng mục tiêu.'));
+  } else if (nToday) {
+    banner.append(h('div', { class: 'banner ok' }, h('b', null, `Hôm nay có ảnh mới ở ${nToday} mục tiêu`), nClear ? `, trong đó ${nClear} ảnh rõ (mây vùng ≤ ${S.cloud}%).` : ', nhưng vùng mục tiêu đều nhiều mây.'));
+  } else if (nPass) {
+    banner.append(h('div', { class: 'banner info' }, h('b', null, `Hôm nay có lượt bay dự kiến qua ${nPass} mục tiêu. `), hourVN < 19 ? 'Ảnh thường lên Planetary Computer khoảng 15:30–18:00 giờ VN; bật “Tự quét lại” để app tự kiểm tra.' : 'Nếu vẫn chưa thấy ảnh, lượt bay có thể bị lùi hoặc đang xử lý chậm.'));
+  }
+}
+
+function sortedFiltered() {
+  const q = $('#search').value.trim().toLowerCase();
+  let arr = targets.filter(FILTERS[filter].fn).filter(t => !q || (t.name + ' ' + t.group).toLowerCase().includes(q));
+  const mode = $('#sort').value;
+  const latestDt = t => results[t.id]?.acqs?.[0]?.dt || '';
+  const nextKey = t => (results[t.id]?.passes || [])[0]?.key || '9999';
+  if (mode === 'name') arr.sort((a, b) => a.name.localeCompare(b.name, 'vi'));
+  else if (mode === 'group') arr.sort((a, b) => a.group.localeCompare(b.group, 'vi') || a.name.localeCompare(b.name, 'vi'));
+  else if (mode === 'next') arr.sort((a, b) => nextKey(a).localeCompare(nextKey(b)) || a.name.localeCompare(b.name, 'vi'));
+  else arr.sort((a, b) => latestDt(b).localeCompare(latestDt(a)) || statusOf(a).rank - statusOf(b).rank);
+  return arr;
+}
+
+function renderList() {
+  const box = $('#tlist'); box.replaceChildren();
+  const arr = sortedFiltered();
+  if (!arr.length) { box.append(h('div', { class: 'empty' }, targets.length ? 'Không có mục tiêu khớp bộ lọc.' : 'Chưa có mục tiêu. Thêm ở tab “Quản lý mục tiêu”.')); return; }
+  for (const t of arr) {
+    const r = results[t.id], a = r?.acqs?.[0], st = statusOf(t);
+    const thumbSrc = a?.aoi ? imgUrl(a.itemId, t.bbox, 'tc', 'jpg', 112) : null;
+    const next = (r?.passes || []).find(p => p.key >= todayKey());
+    box.append(h('div', { class: 'trow' + (t.id === selectedId ? ' sel' : ''), onclick: () => select(t.id) },
+      thumbSrc ? h('img', { class: 'thumb', src: thumbSrc, loading: 'lazy', alt: '' }) : h('div', { class: 'thumb' }),
+      h('div', { style: 'min-width:0' },
+        h('div', { class: 'tname', title: t.name }, t.name),
+        h('div', { class: 'tmeta' }, a ? `${vnParts(a.dt).time} ${vnParts(a.dt).date} · ${shortSat(a.platform)}` : (t.group || `${t.lat}, ${t.lon}`)),
+        h('div', { class: 'tmeta' }, next ? `Dự kiến: ${next.key === todayKey() ? 'hôm nay' : dmOfKey(next.key)} ~${next.time}` : (t.group ? t.group : '')),
+      ),
+      h('div', { class: 'tright' },
+        h('span', { class: 'pill ' + st.cls, title: r?.error || '' }, st.label),
+        a ? cloudBadge(a) : null,
+        r?.cdse && st.cls !== 'today' ? h('span', { class: 'pill yesterday', title: `Copernicus đã có ${r.cdse.id}` }, 'Đã chụp, chờ PC') : null,
+      )));
+  }
+}
+
+/* ===================== UI: detail ===================== */
+let map = null, mapLayers = null, overlay = null;
+
+function select(id, key) {
+  selectedId = id;
+  const r = results[id];
+  selectedKey = key || r?.acqs?.[0]?.key || null;
+  compareKey = null;
+  renderList(); renderDetail();
+}
+
+function renderDetail() {
+  const box = $('#detail');
+  const t = targets.find(x => x.id === selectedId);
+  if (!t) {
+    box.replaceChildren(h('div', null, h('p', { class: 'section-title' }, 'Bản đồ mục tiêu'), mapHolder(), h('p', { class: 'small muted' }, 'Chọn một mục tiêu ở danh sách hoặc bấm vào khung trên bản đồ.')));
+    initMap(); drawMap(null); return;
+  }
+  const r = results[t.id];
+  const acqs = r?.acqs || [];
+  const acq = acqs.find(a => a.key === selectedKey) || acqs[0];
+  const cmp = compareKey ? acqs.find(a => a.key === compareKey) : null;
+  const st = statusOf(t);
+
+  const head = h('div', { class: 'dhead' },
+    h('div', { style: 'flex:1;min-width:200px' },
+      h('h2', null, t.name),
+      h('div', { class: 'small muted' }, [t.group, `${t.lat}, ${t.lon}`, `bán kính ${t.radius_km} km`].filter(Boolean).join(' · '))),
+    h('span', { class: 'pill ' + st.cls }, st.label),
+    h('button', { class: 'btn sm', onclick: async (e) => { e.target.disabled = true; await scanTarget(t); renderAll(); } }, 'Quét lại'),
+    h('a', { class: 'btn sm', href: `https://browser.dataspace.copernicus.eu/?zoom=14&lat=${t.lat}&lng=${t.lon}`, target: '_blank', rel: 'noopener' }, 'Copernicus Browser'),
+  );
+
+  if (r?.error) head.append(h('div', { class: 'small', style: 'color:var(--bad);width:100%' }, `Lỗi lần quét gần nhất: ${r.error}`));
+
+  // Viewer
+  const viewer = h('div', { class: 'viewer' });
+  if (!acq) {
+    viewer.append(h('div', { class: 'msg' }, r ? `Không có lượt chụp nào trong ${S.lookback} ngày.` : 'Chưa quét mục tiêu này.'));
+  } else {
+    const base = cmp || acq;
+    const msg = h('div', { class: 'msg' }, 'Đang tải ảnh…');
+    viewer.append(msg);
+    const imgB = h('img', { src: imgUrl(base.itemId, t.bbox, preset, 'png', 1024), alt: '', onload: () => msg.remove(), onerror: () => { msg.textContent = 'Không tải được ảnh (cảnh có thể nằm ngoài vùng hoặc máy chủ bận).'; } });
+    viewer.append(imgB);
+    if (cmp) {
+      const imgA = h('img', { src: imgUrl(acq.itemId, t.bbox, preset, 'png', 1024), alt: '' });
+      const range = h('input', { type: 'range', min: 0, max: 100, value: 50, 'aria-label': 'Thanh so sánh' });
+      const setClip = () => { imgA.style.clipPath = `inset(0 ${100 - range.value}% 0 0)`; };
+      range.addEventListener('input', setClip); setClip();
+      viewer.append(imgA, range,
+        h('span', { class: 'lbl', style: 'left:8px' }, vnParts(acq.dt).date),
+        h('span', { class: 'lbl', style: 'right:8px' }, vnParts(cmp.dt).date));
+    }
+  }
+
+  const presetSeg = h('div', { class: 'seg' }, Object.entries(PRESETS).map(([k, p]) =>
+    h('button', { class: preset === k ? 'active' : '', onclick: () => { preset = k; renderDetail(); } }, p.label)));
+
+  const actions = h('div', { class: 'toolbar' }, presetSeg);
+  if (acq) {
+    actions.append(
+      h('button', { class: 'btn sm primary', onclick: () => downloadBlob(imgUrl(acq.itemId, t.bbox, preset, 'jpg', S.maxSize), fileName(t, acq, preset, 'jpg')) }, 'JPG vùng'),
+      h('button', { class: 'btn sm', onclick: () => downloadBlob(imgUrl(acq.itemId, t.bbox, preset, 'tif', Math.max(S.maxSize, 2048)), fileName(t, acq, preset, 'tif')) }, 'GeoTIFF vùng'),
+      h('button', { class: 'btn sm', onclick: () => openFullTile(acq) }, 'Cả ô gốc'),
+      h('button', { class: 'btn sm' + (compareKey ? ' active' : ''), onclick: () => { if (compareKey) { compareKey = null; renderDetail(); } else { pickCompare = true; toast('Chọn lượt chụp thứ hai trong dải thời gian bên dưới'); } } }, compareKey ? 'Tắt so sánh' : 'So sánh với…'),
+    );
+  }
+
+  // Info
+  const info = h('dl', { class: 'kv' });
+  if (acq) {
+    const p = vnParts(acq.dt);
+    info.append(
+      h('dt', null, 'Thời điểm chụp'), h('dd', null, `${p.time} ngày ${p.date} (giờ VN) · ${relDay(p.key)}`),
+      h('dt', null, 'Vệ tinh'), h('dd', null, `${acq.platform} · quỹ đạo R${String(acq.orbit ?? '?').padStart(3, '0')} · ô ${acq.tile || '?'}`),
+      h('dt', null, 'Mây trong vùng'), h('dd', null, acq.aoi?.cloud != null ? `${acq.aoi.cloud}% mây + ${acq.aoi.shadow}% bóng mây` : 'chưa đo'),
+      h('dt', null, 'Mây cả ô 110 km'), h('dd', null, acq.tileCloud != null ? `${round(acq.tileCloud, 1)}%` : '—'),
+      h('dt', null, 'Phủ vùng'), h('dd', null, acq.aoi ? `${acq.aoi.cov}%` : '—'),
+      h('dt', null, 'Mã cảnh'), h('dd', { class: 'small', style: 'word-break:break-all;font-weight:400' }, acq.itemId),
+    );
+  }
+  const clear = latestClear(t);
+  if (clear && acq && clear.key !== acq.key) {
+    info.append(h('dt', null, 'Ảnh rõ gần nhất'), h('dd', null, h('a', { href: '#', onclick: (e) => { e.preventDefault(); selectedKey = clear.key; renderDetail(); } }, `${vnParts(clear.dt).date} · mây ${Math.round(obstructed(clear))}%`)));
+  }
+  if (r?.cdse) info.append(h('dt', null, 'Copernicus'), h('dd', { style: 'color:var(--warn)' }, `Đã có ${r.cdse.level} lúc ${vnParts(r.cdse.dt).time} hôm nay — Planetary Computer chưa đồng bộ`));
+
+  const passes = h('div', { class: 'passes' }, (r?.passes || []).map(p => h('span', null, `${p.key === todayKey() ? 'Hôm nay' : dmOfKey(p.key)} ~${p.time} · ${shortSat(p.platform)}`)));
+
+  // Timeline
+  const tl = h('div', { class: 'timeline' });
+  for (const a of acqs) {
+    const p = vnParts(a.dt);
+    const ph = h('div', { class: 'ph' }, a.aoi ? h('img', { src: imgUrl(a.itemId, t.bbox, 'tc', 'jpg', 188), loading: 'lazy', alt: '' }) : 'bấm để đo mây');
+    tl.append(h('button', {
+      class: 'acq' + (a.key === acq?.key ? ' sel' : '') + (a.key === compareKey ? ' cmp' : ''),
+      title: `${p.time} ${p.date} · ${a.platform}`,
+      onclick: async () => {
+        if (!a.aoi) { ph.textContent = 'đang đo…'; await analyzeAcq(t, a).catch(() => {}); save(K.results, results); persistSclCache(); }
+        if (pickCompare && acq && a.key !== acq.key) { compareKey = a.key; pickCompare = false; }
+        else { selectedKey = a.key; if (compareKey === a.key) compareKey = null; }
+        renderDetail();
+      },
+    }, ph, h('div', { class: 'd' }, `${p.dm} · ${shortSat(a.platform)}`), h('div', { class: 'm' }, cloudBadge(a) || '—', a.aoi && a.aoi.cov < 95 ? ` · phủ ${a.aoi.cov}%` : '')));
+  }
+
+  box.replaceChildren(
+    head,
+    h('div', { class: 'dgrid' },
+      h('div', { style: 'display:flex;flex-direction:column;gap:10px;min-width:0' }, viewer, actions),
+      h('div', { style: 'display:flex;flex-direction:column;gap:12px;min-width:0' },
+        mapHolder(),
+        h('div', null, h('p', { class: 'section-title' }, 'Lượt chụp đang xem'), acq ? info : h('p', { class: 'muted small' }, '—')),
+        h('div', null, h('p', { class: 'section-title' }, 'Dự kiến bay qua'), (r?.passes || []).length ? passes : h('p', { class: 'muted small' }, 'Chưa đủ dữ liệu để dự báo.')),
+      )),
+    h('div', null, h('p', { class: 'section-title' }, `Các lượt chụp ${S.lookback} ngày qua (${acqs.length})`), acqs.length ? tl : h('p', { class: 'muted small' }, '—')),
+  );
+  initMap(); drawMap(t, acq);
+}
+let pickCompare = false;
+
+/* ===================== Map ===================== */
+let mapEl = null;
+function mapHolder() {
+  if (!mapEl) mapEl = h('div', { id: 'map' });
+  const wrap = h('div', { style: 'position:relative' }, mapEl,
+    h('button', { class: 'btn sm' + (pickMode ? ' active' : ''), style: 'position:absolute;bottom:22px;left:8px;z-index:500', onclick: (e) => { pickMode = !pickMode; e.currentTarget.classList.toggle('active', pickMode); toast(pickMode ? 'Bấm lên bản đồ để đặt tâm mục tiêu mới' : 'Đã tắt chế độ chọn'); } }, 'Chọn trên bản đồ'));
+  return wrap;
+}
+function initMap() {
+  if (!window.L) { mapEl.replaceChildren(h('div', { class: 'empty' }, 'Không tải được thư viện bản đồ (Leaflet). Kiểm tra kết nối mạng.')); return; }
+  if (map) { setTimeout(() => map.invalidateSize(), 0); return; }
+  map = L.map(mapEl, { zoomControl: true, attributionControl: true }).setView([16, 106.5], 5);
+  const sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 18, attribution: 'Esri World Imagery' });
+  const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' });
+  sat.addTo(map);
+  L.control.layers({ 'Ảnh nền Esri': sat, 'Bản đồ OSM': osm }).addTo(map);
+  mapLayers = L.layerGroup().addTo(map);
+  map.on('click', (e) => {
+    if (!pickMode) return;
+    const name = prompt('Tên mục tiêu mới:', `Điểm ${round(e.latlng.lat, 3)}, ${round(e.latlng.lng, 3)}`);
+    if (!name) return;
+    const r = parseFloat(prompt('Bán kính (km):', '3')) || 3;
+    const t = makeTarget({ name, lat: e.latlng.lat, lon: e.latlng.lng, radius_km: r });
+    targets.push(t); saveTargets(); pickMode = false;
+    select(t.id);
+    scanTarget(t).then(() => renderAll());
+  });
+  setTimeout(() => map.invalidateSize(), 0);
+}
+const STATUS_COLOR = { today: '#22c55e', yesterday: '#f59e0b', recent: '#3b82f6', old: '#94a3b8', none: '#94a3b8', wait: '#94a3b8', error: '#ef4444' };
+let lastFit = null;
+function drawMap(sel, acq) {
+  if (!map) return;
+  mapLayers.clearLayers();
+  if (overlay) { overlay.remove(); overlay = null; }
+  for (const t of targets) {
+    const b = t.bbox, isSel = sel && t.id === sel.id;
+    L.rectangle([[b[1], b[0]], [b[3], b[2]]], { color: isSel ? '#facc15' : STATUS_COLOR[statusOf(t).cls], weight: isSel ? 3 : 2, fill: !isSel, fillOpacity: 0.15 })
+      .bindTooltip(t.name).on('click', () => { if (!pickMode) select(t.id); }).addTo(mapLayers);
+  }
+  if (sel && acq?.itemId) {
+    const b = sel.bbox;
+    overlay = L.imageOverlay(imgUrl(acq.itemId, b, preset, 'png', 1024), [[b[1], b[0]], [b[3], b[2]]], { opacity: 0.95 }).addTo(map);
+  }
+  const fitKey = sel ? sel.id : 'all:' + targets.length;
+  if (fitKey !== lastFit) {
+    lastFit = fitKey;
+    if (sel) map.fitBounds([[sel.bbox[1], sel.bbox[0]], [sel.bbox[3], sel.bbox[2]]], { padding: [30, 30], maxZoom: 13 });
+    else if (targets.length) map.fitBounds(targets.map(t => [[t.bbox[1], t.bbox[0]], [t.bbox[3], t.bbox[2]]]).flat(), { padding: [20, 20], maxZoom: 12 });
+  }
+}
+
+/* ===================== Downloads ===================== */
+async function downloadBlob(url, name) {
+  toast('Đang tải ' + name + '…');
+  try {
+    const r = await fetchRetry(url, { timeout: 120000 }, 2);
+    saveBlob(await r.blob(), name);
+  } catch (e) { toast('Tải thất bại: ' + e.message, 5000); }
+}
+function saveBlob(blob, name) {
+  const a = h('a', { href: URL.createObjectURL(blob), download: name });
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 30000);
+}
+async function openFullTile(acq) {
+  try {
+    const [item, token] = await Promise.all([fetchRetry(`${STAC}/collections/${COLL}/items/${encodeURIComponent(acq.itemId)}`).then(r => r.json()), getSas()]);
+    const href = item.assets?.visual?.href;
+    if (!href) throw new Error('cảnh không có tệp visual');
+    window.open(href + (href.includes('?') ? '&' : '?') + token, '_blank', 'noopener');
+  } catch (e) { toast('Không lấy được liên kết: ' + e.message, 5000); }
+}
+async function downloadZip() {
+  const list = targets.map(t => ({ t, a: results[t.id]?.acqs?.[0] })).filter(x => x.a);
+  if (!list.length) return toast('Chưa có kết quả quét.');
+  if (!window.JSZip) return toast('Không tải được thư viện ZIP; hãy tải từng ảnh.', 5000);
+  const btn = $('#btnZip'); btn.disabled = true;
+  const zip = new JSZip(); let done = 0, fail = 0;
+  const pool = limiter(S.conc);
+  const rows = [['ten', 'nhom', 'thoi_diem_vn', 've_tinh', 'may_vung_pct', 'may_o_pct', 'phu_pct', 'ma_canh', 'tep']];
+  await Promise.all(list.map(({ t, a }) => pool(async () => {
+    const name = fileName(t, a, 'tc', 'jpg');
+    try {
+      const r = await fetchRetry(imgUrl(a.itemId, t.bbox, 'tc', 'jpg', S.maxSize), { timeout: 120000 }, 2);
+      zip.file(name, await r.blob());
+      const p = vnParts(a.dt);
+      rows.push([t.name, t.group, `${p.date} ${p.time}`, a.platform, obstructed(a) ?? '', round(a.tileCloud ?? 0, 1), a.aoi?.cov ?? '', a.itemId, name]);
+    } catch { fail++; }
+    btn.textContent = `ZIP ${++done}/${list.length}`;
+  })));
+  zip.file('danh_sach.csv', '﻿' + rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\r\n'));
+  saveBlob(await zip.generateAsync({ type: 'blob' }), `Sentinel2_${todayKey()}.zip`);
+  btn.disabled = false; btn.textContent = 'Tải ZIP ảnh mới';
+  if (fail) toast(`${fail} ảnh không tải được`, 5000);
+}
+
+/* ===================== Manage targets ===================== */
+function saveTargets() { save(K.targets, targets); }
+function renderManage() {
+  $('#mgCount').textContent = `${targets.length} mục tiêu`;
+  const body = $('#mgBody'); body.replaceChildren();
+  for (const t of targets) {
+    const inp = (field, type = 'text') => h('input', { type, value: t[field], step: type === 'number' ? 'any' : null, onchange: (e) => updateTarget(t, field, e.target.value) });
+    body.append(h('tr', null,
+      h('td', null, inp('name')), h('td', null, inp('group')), h('td', null, inp('lat', 'number')), h('td', null, inp('lon', 'number')), h('td', null, inp('radius_km', 'number')),
+      h('td', null, h('button', { class: 'btn sm danger', onclick: () => { targets = targets.filter(x => x !== t); delete results[t.id]; saveTargets(); save(K.results, results); renderAll(); } }, 'Xóa'))));
+  }
+}
+function updateTarget(t, field, v) {
+  if (['lat', 'lon', 'radius_km'].includes(field)) {
+    v = parseFloat(v); if (!isFinite(v)) return;
+    t[field] = v;
+    t.bbox = bboxFromPoint(t.lat, t.lon, t.radius_km);
+    delete results[t.id]; save(K.results, results);
+  } else t[field] = v.trim();
+  saveTargets(); renderAll();
+}
+
+function coordsOf(g, out = []) {
+  if (!g) return out;
+  if (g.type === 'GeometryCollection') { g.geometries.forEach(x => coordsOf(x, out)); return out; }
+  const walk = c => (typeof c[0] === 'number' ? out.push(c) : c.forEach(walk));
+  if (g.coordinates) walk(g.coordinates);
+  return out;
+}
+function targetFromCoords(name, group, pts, radius) {
+  if (!pts.length) return null;
+  const lons = pts.map(p => p[0]), lats = pts.map(p => p[1]);
+  const [x0, x1, y0, y1] = [Math.min(...lons), Math.max(...lons), Math.min(...lats), Math.max(...lats)];
+  if (pts.length === 1 || (x1 - x0 < 1e-6 && y1 - y0 < 1e-6)) return makeTarget({ name, group, lat: y0, lon: x0, radius_km: radius || 3 });
+  const lat = (y0 + y1) / 2;
+  const r = Math.max((x1 - x0) * 111.32 * Math.cos(lat * Math.PI / 180), (y1 - y0) * 111.32) / 2;
+  return makeTarget({ name, group, lat, lon: (x0 + x1) / 2, radius_km: Math.max(0.5, r), bbox: [x0, y0, x1, y1] });
+}
+function parseGeoJSON(obj, base) {
+  const feats = obj.type === 'FeatureCollection' ? obj.features || [] : obj.type === 'Feature' ? [obj] : obj.coordinates || obj.geometries ? [{ geometry: obj, properties: {} }] : [];
+  return feats.map((f, i) => {
+    const p = f.properties || {};
+    const name = p.name || p.Name || p.NAME || p.ten || p.title || (feats.length === 1 && base ? base : `${base || 'Mục tiêu'} ${i + 1}`);
+    return targetFromCoords(name, p.group || p.location || p.province || p.nhom || '', coordsOf(f.geometry), parseFloat(p.radius_km));
+  }).filter(Boolean);
+}
+function parseKML(text, base) {
+  const doc = new DOMParser().parseFromString(text, 'application/xml');
+  const pms = [...doc.getElementsByTagName('Placemark')];
+  return pms.map((pm, i) => {
+    const name = pm.getElementsByTagName('name')[0]?.textContent?.trim() || (pms.length === 1 && base ? base : `${base || 'KML'} ${i + 1}`);
+    const pts = [...pm.getElementsByTagName('coordinates')].flatMap(c => c.textContent.trim().split(/\s+/).map(s => s.split(',').map(Number)).filter(p => isFinite(p[0]) && isFinite(p[1])));
+    return targetFromCoords(name, base || '', pts);
+  }).filter(Boolean);
+}
+function parseCSV(text) {
+  return text.split(/\r?\n/).map(l => l.trim()).filter(Boolean).map(l => {
+    const parts = l.split(/[,;\t]/).map(s => s.trim());
+    const nums = parts.map(parseFloat);
+    const i = nums.findIndex((n, k) => isFinite(n) && isFinite(nums[k + 1]) && /^-?[\d.]+$/.test(parts[k]));
+    if (i < 0) return null;
+    const name = parts.slice(0, i).join(', ') || `Điểm ${parts[i]}, ${parts[i + 1]}`;
+    const [lat, lon] = [nums[i], nums[i + 1]];
+    if (Math.abs(lat) > 90 || Math.abs(lon) > 180) return null;
+    return makeTarget({ name, lat, lon, radius_km: isFinite(nums[i + 2]) ? nums[i + 2] : 3, group: parts[i + 3] || '' });
+  }).filter(Boolean);
+}
+function parseAny(text, base = '') {
+  const s = text.trim();
+  if (s.startsWith('{') || s.startsWith('[')) return parseGeoJSON(JSON.parse(s), base);
+  if (s.startsWith('<')) return parseKML(s, base);
+  return parseCSV(s);
+}
+let importBuf = [];
+function showImport(list, errors = []) {
+  importBuf = list;
+  $('#importInfo').textContent = list.length ? `Tìm thấy ${list.length} mục tiêu${errors.length ? `, ${errors.length} tệp lỗi` : ''}.` : 'Không tìm thấy tọa độ hợp lệ.' + (errors.length ? ' ' + errors.join('; ') : '');
+  $('#btnAppend').classList.toggle('hidden', !list.length);
+  $('#btnReplace').classList.toggle('hidden', !list.length);
+}
+async function handleFiles(files) {
+  const all = [], errors = [];
+  for (const f of files) {
+    try { all.push(...parseAny(await f.text(), f.name.replace(/\.[^.]+$/, ''))); } catch (e) { errors.push(`${f.name}: ${e.message}`); }
+  }
+  showImport(all, errors);
+}
+function applyImport(replace) {
+  if (replace) { if (!confirm(`Thay toàn bộ ${targets.length} mục tiêu hiện có bằng ${importBuf.length} mục tiêu mới?`)) return; targets = []; results = {}; save(K.results, results); }
+  const seen = new Set(targets.map(t => `${t.name}|${t.lat}|${t.lon}`));
+  let added = 0;
+  for (const t of importBuf) { const k = `${t.name}|${t.lat}|${t.lon}`; if (!seen.has(k)) { seen.add(k); targets.push(t); added++; } }
+  saveTargets(); importBuf = []; showImport([]); $('#importInfo').textContent = `Đã thêm ${added} mục tiêu.`;
+  lastFit = null; renderAll();
+}
+function exportGeo() {
+  const fc = { type: 'FeatureCollection', features: targets.map(t => ({ type: 'Feature', properties: { name: t.name, group: t.group, radius_km: t.radius_km }, geometry: bboxPolygon(t.bbox) })) };
+  saveBlob(new Blob([JSON.stringify(fc)], { type: 'application/geo+json' }), `muc_tieu_${todayKey()}.geojson`);
+}
+
+/* ===================== Settings ===================== */
+function applyTheme() {
+  if (S.theme === 'auto') document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.setAttribute('data-theme', S.theme);
+}
+function openSettings() {
+  $('#sLookback').value = S.lookback; $('#sCloud').value = S.cloud; $('#sAnalyze').value = S.analyze; $('#sConc').value = S.conc;
+  $('#sMax').value = S.maxSize; $('#sAuto').value = S.auto; $('#sCdse').checked = S.cdse; $('#sNotify').checked = S.notify; $('#sTheme').value = S.theme;
+  $('#dlgSettings').showModal();
+}
+async function saveSettings() {
+  const num = (id, min, max, def) => { const v = parseFloat($(id).value); return isFinite(v) ? Math.min(max, Math.max(min, v)) : def; };
+  Object.assign(S, {
+    lookback: num('#sLookback', 5, 180, 30), cloud: num('#sCloud', 0, 100, 20), analyze: num('#sAnalyze', 1, 30, 6), conc: num('#sConc', 1, 8, 4),
+    maxSize: num('#sMax', 256, 4096, 2048), auto: num('#sAuto', 0, 720, 0), cdse: $('#sCdse').checked, notify: $('#sNotify').checked, theme: $('#sTheme').value,
+  });
+  if (S.notify && 'Notification' in window && Notification.permission === 'default') await Notification.requestPermission();
+  netLimit = limiter(S.conc * 2);
+  save(K.settings, S); applyTheme(); scheduleAuto();
+  $('#dlgSettings').close(); renderAll();
+}
+
+/* ===================== Wiring ===================== */
+function renderAll() {
+  renderSummary(); renderList(); renderDetail(); renderManage();
+  const ls = load(K.lastScan, null);
+  $('#lastScan').textContent = ls ? `Quét lúc ${vnParts(ls).time} ${vnParts(ls).dm}` : '';
+}
+function showView(v) {
+  document.querySelectorAll('.tab').forEach(b => b.classList.toggle('active', b.dataset.view === v));
+  ['monitor', 'manage', 'help'].forEach(x => $('#view-' + x).classList.toggle('hidden', x !== v));
+  if (v === 'monitor' && map) setTimeout(() => map.invalidateSize(), 0);
+}
+document.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () => showView(b.dataset.view)));
+$('#btnScan').addEventListener('click', scanAll);
+$('#btnZip').addEventListener('click', downloadZip);
+$('#btnSettings').addEventListener('click', openSettings);
+$('#btnSaveSettings').addEventListener('click', saveSettings);
+document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => b.closest('dialog').close()));
+$('#btnClearCache').addEventListener('click', () => { for (const k of Object.keys(sclCache)) delete sclCache[k]; save(K.scl, {}); toast('Đã xóa bộ đệm đo mây'); });
+$('#search').addEventListener('input', renderList);
+$('#sort').addEventListener('change', renderList);
+$('#btnAdd').addEventListener('click', () => {
+  const m = $('#fCoord').value.match(/(-?\d+(?:\.\d+)?)\s*[,;\s]\s*(-?\d+(?:\.\d+)?)/);
+  if (!m) return toast('Tọa độ chưa đúng dạng “vĩ độ, kinh độ”');
+  const [lat, lon] = [parseFloat(m[1]), parseFloat(m[2])];
+  if (Math.abs(lat) > 90 || Math.abs(lon) > 180) return toast('Tọa độ ngoài phạm vi');
+  const t = makeTarget({ name: $('#fName').value || `Điểm ${lat}, ${lon}`, group: $('#fGroup').value, lat, lon, radius_km: $('#fRadius').value });
+  targets.push(t); saveTargets(); $('#fName').value = $('#fCoord').value = '';
+  toast(`Đã thêm “${t.name}”`); lastFit = null; renderAll();
+  scanTarget(t).then(() => renderAll());
+});
+const drop = $('#drop');
+drop.addEventListener('click', () => $('#fileInput').click());
+$('#fileInput').addEventListener('change', e => { handleFiles(e.target.files); e.target.value = ''; });
+['dragenter', 'dragover'].forEach(n => drop.addEventListener(n, e => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave', 'drop'].forEach(n => drop.addEventListener(n, e => { e.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', e => handleFiles(e.dataTransfer.files));
+$('#btnParse').addEventListener('click', () => { try { showImport(parseAny($('#paste').value)); } catch (e) { showImport([], [e.message]); } });
+$('#btnAppend').addEventListener('click', () => applyImport(false));
+$('#btnReplace').addEventListener('click', () => applyImport(true));
+$('#btnExportGeo').addEventListener('click', exportGeo);
+$('#btnExportJson').addEventListener('click', () => saveBlob(new Blob([JSON.stringify(targets, null, 1)], { type: 'application/json' }), `muc_tieu_${todayKey()}.json`));
+$('#btnReset').addEventListener('click', () => { if (confirm('Khôi phục 10 mục tiêu mẫu? Danh sách hiện tại sẽ bị thay thế.')) { targets = DEFAULT_TARGETS.map(t => ({ ...t })); results = {}; save(K.results, results); saveTargets(); lastFit = null; renderAll(); } });
+$('#btnClear').addEventListener('click', () => { if (confirm('Xóa toàn bộ mục tiêu?')) { targets = []; results = {}; selectedId = null; save(K.results, results); saveTargets(); renderAll(); } });
+document.addEventListener('visibilitychange', () => { if (!document.hidden) document.title = 'Sentinel-2 Monitor'; });
+document.addEventListener('keydown', e => {
+  if (!selectedId || /INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName)) return;
+  const acqs = results[selectedId]?.acqs || [];
+  const i = acqs.findIndex(a => a.key === selectedKey);
+  if (e.key === 'ArrowLeft' && i < acqs.length - 1) { selectedKey = acqs[i + 1].key; renderDetail(); }
+  if (e.key === 'ArrowRight' && i > 0) { selectedKey = acqs[i - 1].key; renderDetail(); }
+});
+
+applyTheme();
+renderAll();
+scheduleAuto();
+</script>
+</body>
+</html>
