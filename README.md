@@ -25,9 +25,11 @@ Cần kết nối Internet để truy cập Microsoft Planetary Computer, Copern
   - Cả ô gốc.
   - ZIP ảnh mới của mọi mục tiêu kèm file CSV.
 - **Kho ảnh chung** `D:\KHO_ANH\TD`: máy chủ cục bộ `server.py` ghi ảnh (JPG + `.jgw`/`.prj`, GeoTIFF, TCI L1C) vào thư mục của từng mục tiêu, tự tải file lớn thẳng từ nguồn. Tab Kho ảnh để xem lại.
-- **Đồng bộ bộ mục tiêu GSAVT**: mỗi thư mục `TD-xxx Tên` trong kho chung là một mục tiêu.
-  - Tọa độ lấy từ geo trong thư mục đó, hoặc khớp theo tên với mục tiêu đã có.
-  - Ảnh ghi thẳng vào đúng thư mục TD.
+- **Đồng bộ bộ mục tiêu GSAVT**:
+  - Nguồn chuẩn là thư mục geo chung `D:\get_Planet\geojson`, mỗi file một mục tiêu. Đổi đường dẫn ở dòng `set GEO_DIR=...` trong run.bat.
+  - Mỗi file geo được ghép với thư mục `TD-xxx Tên` tương ứng trong kho, theo tên, theo mã TD hoặc theo lõi tên.
+  - Thư mục TD chưa có geo chung thì dùng geo trong thư mục đó, hoặc tọa độ của mục tiêu cùng tên đã có.
+  - Ảnh ghi thẳng vào `D:\KHO_ANH\TD\<tên mục tiêu>\`, **giữ tên file gốc** (`T39RWH_20260922T071321_TCI.jp2`, `S2A_MSIL2A_..._TCI.jpg`).
   - Có nút gộp các thư mục lẻ do app tạo trước đây vào thư mục TD tương ứng.
 - **Nhập geo hàng loạt**:
   - Chọn file, chọn **cả thư mục** (kể cả thư mục con), hoặc kéo thả cả thư mục chứa `.geojson`/`.kml`/`.csv`.

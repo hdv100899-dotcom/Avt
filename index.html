@@ -225,7 +225,7 @@ dialog::backdrop { background: rgba(0,0,0,.5); }
     <div class="toolbar">
       <div style="flex:1;min-width:260px">
         <p class="section-title" style="margin:0 0 4px">Đồng bộ bộ mục tiêu GSAVT</p>
-        <span class="small muted" id="gsavtInfo">Mỗi thư mục <code>TD-xxx Tên</code> trong kho ảnh chung là một mục tiêu. Tọa độ lấy từ file .geojson/.kml trong thư mục đó; ảnh tải về ghi thẳng vào đúng thư mục.</span>
+        <span class="small muted" id="gsavtInfo">Bộ mục tiêu lấy từ thư mục geo chung <code>D:\get_Planet\geojson</code> (mỗi file một mục tiêu) và các thư mục <code>TD-xxx</code> trong kho. Ảnh tải về ghi vào <code>D:\KHO_ANH\TD\&lt;tên mục tiêu&gt;\</code>, giữ tên file gốc.</span>
       </div>
       <button class="btn primary" id="btnGsavt">Đồng bộ với GSAVT</button>
     </div>
@@ -330,7 +330,8 @@ dialog::backdrop { background: rgba(0,0,0,.5); }
     <p>Mở app bằng <b>run.bat</b>. Khi đó mọi ảnh tải về (JPG, GeoTIFF, TCI) <b>tự động</b> vào <code>D:\KHO_ANH\TD\&lt;Ten_muc_tieu&gt;\</code>, không cần chọn thư mục, không qua Downloads. Máy chủ cục bộ (<code>server.py</code>) tự tải file TCI lớn thẳng từ nguồn vào kho.</p>
     <ul>
       <li>Đổi đường dẫn kho: sửa dòng <code>set KHO_ANH=D:\KHO_ANH\TD</code> trong run.bat.</li>
-      <li>Tên file: <code>&lt;Ten_muc_tieu&gt;_&lt;YYYYMMDD_HHMM&gt;VN_&lt;S2x&gt;_TCI_L1C_T&lt;ô&gt;.jp2</code>, <code>..._tc.jpg</code> (kèm <code>.jgw</code>/<code>.prj</code> cho QGIS), <code>..._tc.tif</code>.</li>
+      <li>Tên file giữ <b>tên gốc</b>: TCI L1C như <code>T48QYJ_20260921T031521_TCI.jp2</code>; ảnh L2A theo mã cảnh như <code>S2C_MSIL2A_20260921T031521_R118_T48QYJ_20260921T082912_TCI.jpg</code> (kèm <code>.jgw</code>/<code>.prj</code> cho QGIS).</li>
+      <li>Thư mục: <code>D:\KHO_ANH\TD\&lt;tên mục tiêu&gt;\</code>, không có thư mục con.</li>
       <li>Tab <b>Kho ảnh</b> liệt kê các thư mục mục tiêu trong kho chung (kể cả thư mục do công cụ khác tạo).</li>
       <li><b>Đồng bộ GSAVT</b> (tab Quản lý mục tiêu): mỗi thư mục <code>TD-xxx Tên</code> trong kho là một mục tiêu.
         <ul>
@@ -674,9 +675,10 @@ const PRESETS = {
 function imgUrl(itemId, bbox, preset = 'tc', fmt = 'png', max = 1024) {
   return `${DATA}/item/bbox/${bbox.join(',')}.${fmt}?collection=${COLL}&item=${encodeURIComponent(itemId)}&${PRESETS[preset].q}&max_size=${max}`;
 }
+// Tên file theo tên gốc của sản phẩm (mã cảnh Sentinel-2), vd. S2C_MSIL2A_20260921T031521_R118_T48QYJ_20260921T082912_TCI.jpg
 function fileName(t, acq, preset, ext, extent = S.extent) {
   const ex = extent === 'aoi' ? '' : `_${EXTENTS[extent].tag}`;
-  return `${slug(t.name)}_${vnParts(acq.dt).compact}VN_${shortSat(acq.platform)}_${preset}${ex}.${ext}`;
+  return `${acq.itemId}_${preset === 'tc' ? 'TCI' : preset.toUpperCase()}${ex}.${ext}`;
 }
 
 // Khung nhìn: không bó hẹp trong ô geo của mục tiêu, cho mở rộng ra xung quanh
@@ -1137,11 +1139,10 @@ async function downloadTCI() {
   let ok = 0, fallback = 0; const miss = [];
   for (const [i, { t, a }] of list.entries()) {
     btn.textContent = `Đang tải ${i + 1}/${list.length}…`;
-    const stamp = `${slug(t.name)}_${vnParts(a.dt).compact}VN_${shortSat(a.platform)}`;
     try {
       if (crop) {
         const vb = viewBbox(t);
-        await downloadBlob(imgUrl(a.itemId, vb, 'tc', 'tif', nativePx(vb)), `${stamp}_TCI${S.extent === 'aoi' ? '' : '_' + EXTENTS[S.extent].tag}.tif`, t);
+        await downloadBlob(imgUrl(a.itemId, vb, 'tc', 'tif', nativePx(vb)), fileName(t, a, 'tc', 'tif'), t);
         ok++; continue;
       }
       // TCI L1C gốc: thử ô đã chọn cho mục tiêu trước, rồi các ô khác của cùng lượt chụp
@@ -1156,12 +1157,12 @@ async function downloadTCI() {
       if (mode === 'l1c_crop') {
         // Máy chủ cục bộ đọc đúng phần cần của JP2 (vài MB) và ghi JP2 đã cắt vào kho
         const vb = viewBbox(t);
-        const name = `${stamp}_TCI_L1C_T${tile}${S.extent === 'aoi' ? '' : '_' + EXTENTS[S.extent].tag}.jp2`;
+        const name = tci.name;   // tên gốc, vd. T48QYJ_20260921T031521_TCI.jp2
         toast(`${t.name}: đang cắt TCI L1C (${i + 1}/${list.length})…`, 4000);
         await srvCall('/api/crop', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ folder: folderName(t), sub: '', name, url: tci.url, bbox: vb }) });
         ok++; refreshLibraryIfOpen(t); continue;
       }
-      const name = `${stamp}_TCI_L1C_T${tile}.jp2`;
+      const name = tci.name;
       toast(`${t.name}: TCI ${fmtSize(tci.size)} (${i + 1}/${list.length})…`, 4000);
       let saved = false;
       if (await libReady(true)) {
@@ -1288,7 +1289,7 @@ async function ensurePermission(handle, interactive) {
 }
 // Tên thư mục không dấu (như tên file) để chắc chắn đúng trên mọi ổ đĩa, ổ mạng, USB
 // Thư mục kho của mục tiêu: thư mục GSAVT đã liên kết ("TD-016 CCKQ Al Udeid"), không thì tên không dấu
-const folderName = t => t.folder || slug(t.name);
+const folderName = t => t.folder || (SRV ? t.name.replace(/[<>:"/\\|?*\x00-\x1f]/g, '_').replace(/[. ]+$/, '').trim() : slug(t.name));
 // 'server' | 'fs' | null — sẵn sàng ghi vào kho chưa
 async function libReady(interactive) {
   if (SRV) return 'server';
@@ -1675,13 +1676,32 @@ async function syncGSAVT({ quiet } = {}) {
   let j;
   try { j = await srvCall('/api/targets'); } catch (e) { if (!quiet) toast('Không đọc được kho: ' + e.message, 6000); return; }
   gsavtFolders = j.folders;
-  const list = [], nogeo = [];
-  for (const f of j.folders.filter(f => f.code)) {
+  const list = [], nogeo = [], bad = [];
+  const tds = j.folders.filter(f => f.code), used = new Set();
+  const findOld = (...keys) => targets.find(x => keys.some(k => k && (x.folder === k || x.name === k))) ||
+    targets.find(x => keys.some(k => k && x.code && k.toUpperCase().startsWith(x.code + ' '))) ||
+    targets.find(x => keys.some(k => k && (sameTarget(x.name, k) || (x.folder && sameTarget(x.folder, k)))));
+  // 1) Bộ geo chung (D:\get_Planet\geojson): mỗi file là một mục tiêu, tên file = tên mục tiêu
+  for (const g of j.geo_files || []) {
+    let geoT = null;
+    try { geoT = parseAny(g.text, g.name)[0]; } catch {}
+    if (!geoT) { bad.push(g.path); continue; }
+    const code = (g.name.match(/TD-\d+/i) || [])[0]?.toUpperCase();
+    // ưu tiên thư mục TD (trùng tên, trùng mã, khớp lõi tên); thư mục lẻ cùng tên để sau cho bước gộp
+    const f = tds.find(x => x.folder === g.name) || (code && tds.find(x => x.code === code)) || tds.find(x => sameTarget(x.label, g.name));
+    const folder = f ? f.folder : g.name;
+    if (f) used.add(f.folder);
+    const old = findOld(folder, g.name);
+    const t = makeTarget({ id: old?.id, name: folder, folder, code: f?.code || code, group: geoT.group || old?.group || '', bbox: geoT.bbox, radius_km: geoT.radius_km });
+    list.push({ t, src: `get_Planet: ${g.path}${f ? '' : ' (chưa có thư mục trong kho — sẽ tạo khi tải ảnh)'}`, old });
+  }
+  // 2) Thư mục TD trong kho chưa có geo chung: dùng geo trong thư mục, hoặc tọa độ của mục tiêu cùng tên đã có
+  for (const f of tds.filter(f => !used.has(f.folder))) {
     let geoT = null;
     for (const g of f.geo) { try { geoT = parseAny(g.text, f.folder)[0]; if (geoT) break; } catch {} }
-    const old = targets.find(x => x.folder === f.folder) || targets.find(x => x.code === f.code) || targets.find(x => sameTarget(x.name, f.label));
+    const old = findOld(f.folder, f.label);
     const base = geoT || old;
-    if (!base) { nogeo.push({ t: { name: f.folder, folder: f.folder, code: f.code, group: '', lat: 0, lon: 0, radius_km: 0, bbox: [0, 0, 0, 0] }, src: f.folder, old: null, status: 'nogeo', on: false }); continue; }
+    if (!base) { nogeo.push({ t: { name: f.folder, folder: f.folder, code: f.code, group: '', lat: 0, lon: 0, radius_km: 0, bbox: [0, 0, 0, 0] }, src: `${f.folder} — không có file geo trong get_Planet`, old: null, status: 'nogeo', on: false }); continue; }
     const t = makeTarget({ id: old?.id, name: f.folder, folder: f.folder, code: f.code, group: geoT?.group || old?.group || '', lat: base.lat, lon: base.lon, radius_km: base.radius_km, bbox: base.bbox });
     list.push({ t, src: geoT ? `${f.folder}/${f.geo[0].path}` : `${f.folder} (tọa độ từ “${old.name}”)`, old });
   }
@@ -1691,7 +1711,7 @@ async function syncGSAVT({ quiet } = {}) {
     return { t, src, old, status, on: status !== 'same' };
   });
   const pending = rows.filter(r => r.status !== 'same').length + orphanList().length;
-  $('#gsavtInfo').textContent = `Kho ${j.root}: ${j.folders.filter(f => f.code).length} thư mục TD · ${pending ? `${pending} việc cần đồng bộ` : 'đã đồng bộ'}${nogeo.length ? ` · ${nogeo.length} thư mục chưa có geo` : ''}.`;
+  $('#gsavtInfo').textContent = `Geo: ${j.geo_dir}${j.geo_ok ? ` (${(j.geo_files || []).length} file)` : ' — KHÔNG TÌM THẤY thư mục'} · Kho: ${j.root} (${tds.length} thư mục TD) · ${pending ? `${pending} việc cần đồng bộ` : 'đã đồng bộ'}${nogeo.length ? ` · ${nogeo.length} thư mục thiếu geo` : ''}${bad.length ? ` · ${bad.length} file geo lỗi` : ''}.`;
   if (quiet) { if (pending) toast(`GSAVT: có ${pending} thay đổi cần đồng bộ (tab Quản lý mục tiêu).`, 6000); return; }
   importRows = [...rows, ...nogeo];
   $('#importInfo').textContent = '';
@@ -1700,8 +1720,11 @@ async function syncGSAVT({ quiet } = {}) {
 }
 // Thư mục lẻ (không có mã TD) khớp với một thư mục TD → nên gộp vào
 function orphanList() {
-  const tds = gsavtFolders.filter(f => f.code);
-  return gsavtFolders.filter(f => !f.code).map(f => ({ f, to: tds.find(t => sameTarget(t.label, f.folder)) })).filter(x => x.to);
+  // đích: thư mục TD đã có, hoặc thư mục của mục tiêu đã đồng bộ (sẽ được tạo khi gộp)
+  const dests = [...gsavtFolders.filter(f => f.code).map(f => ({ folder: f.folder, label: f.label })),
+    ...targets.filter(t => t.folder && !gsavtFolders.some(f => f.folder === t.folder)).map(t => ({ folder: t.folder, label: t.folder.replace(/^TD-\d+\s+/i, '') }))];
+  const own = new Set(targets.map(t => t.folder).filter(Boolean));
+  return gsavtFolders.filter(f => !f.code && !own.has(f.folder)).map(f => ({ f, to: dests.find(d => sameTarget(d.label, f.folder)) })).filter(x => x.to);
 }
 function orphanBox() {
   const list = orphanList();

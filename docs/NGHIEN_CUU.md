@@ -111,6 +111,20 @@ Kết luận: ở Việt Nam, ảnh “hôm nay” chỉ có sau khoảng **15:3
   - `Camp_As_Sayliyah` được giữ nguyên vì chưa có thư mục TD.
   - Đồng bộ lần hai báo “đã đồng bộ”.
 
+### 2.10 Nguồn geo chung và tên file gốc
+- Người dùng xác nhận:
+  - Mọi geo của hệ sinh thái nằm ở `D:\get_Planet\geojson`.
+  - Tên file theo tên gốc.
+  - Mỗi mục tiêu một thư mục mang tên mục tiêu, không có thư mục con.
+- `server.py --geo` (biến `GEO_DIR`): `GET /api/targets` trả thêm `geo_files`, mỗi file một mục tiêu.
+- Ghép file geo với thư mục kho:
+  - Ưu tiên thư mục TD: trùng tên, rồi trùng mã, rồi khớp lõi tên.
+  - Thư mục lẻ cùng tên để lại cho bước gộp; vì vậy `Erbil.geojson` được ghép với `TD-021 CCKQ Erbil`, không phải thư mục lẻ `Erbil`.
+- Thư mục lẻ có thể gộp vào thư mục của mục tiêu đã đồng bộ kể cả khi thư mục đó chưa tồn tại; `/api/merge` tự tạo. Ví dụ `Camp_As_Sayliyah` → `TD-030 CCKQ Camp As Sayliyah`.
+- Tên file tải về:
+  - TCI L1C giữ nguyên tên gốc, ví dụ `T39RWH_20260922T071321_TCI.jp2`.
+  - Ảnh L2A đặt theo mã cảnh, ví dụ `S2A_MSIL2A_20260922T071321_R106_T39RWH_20260922T104009_TCI.jpg`.
+
 ## 3. Thiết kế bản mới
 
 ### 3.1 Nguyên tắc

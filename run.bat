@@ -7,6 +7,8 @@ echo   SENTINEL-2 MONITOR
 echo ===================================================
 rem Kho anh chung: anh tai ve tu vao %KHO_ANH%\<Ten_muc_tieu>\
 set "KHO_ANH=D:\KHO_ANH\TD"
+rem Geo chung cua he sinh thai GSAVT: moi file la mot muc tieu
+set "GEO_DIR=D:\get_Planet\geojson"
 set "PORT=8765"
 
 set "PY="
@@ -28,10 +30,11 @@ echo.
 
 :RUN
 echo Kho anh chung : %KHO_ANH%
+echo Geo muc tieu  : %GEO_DIR%
 echo Mo ung dung   : http://localhost:%PORT%/
 echo Dong cua so nay la tat ung dung.
 start "" /min cmd /c "timeout /t 2 >nul & start "" http://localhost:%PORT%/"
-%PY% server.py --kho "%KHO_ANH%" --port %PORT%
+%PY% server.py --kho "%KHO_ANH%" --geo "%GEO_DIR%" --port %PORT%
 pause
 goto :EOF
 

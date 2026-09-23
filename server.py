@@ -25,6 +25,8 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_KHO = r"D:\KHO_ANH\TD" if os.name == "nt" else os.path.expanduser("~/KHO_ANH/TD")
+# Thư mục geo chung của hệ sinh thái GSAVT: mỗi file là một mục tiêu
+DEFAULT_GEO = r"D:\get_Planet\geojson" if os.name == "nt" else os.path.expanduser("~/get_Planet/geojson")
 
 # Chỉ cho máy chủ tự tải từ các nguồn ảnh mà app dùng
 ALLOWED_HOSTS = (
@@ -56,6 +58,7 @@ def safe_part(s, allow_empty=False):
 class Handler(SimpleHTTPRequestHandler):
     server_version = "S2Monitor/1.0"
     kho = DEFAULT_KHO
+    geo_dir = DEFAULT_GEO
     port = 8765
 
     def __init__(self, *a, **kw):
@@ -123,7 +126,8 @@ class Handler(SimpleHTTPRequestHandler):
         u = urllib.parse.urlparse(self.path)
         if u.path == "/api/health":
             return self._json(200, {"ok": True, "app": "s2m", "root": self.kho, "sep": os.sep, "crop": HAS_RASTERIO,
-                                     "crop_error": RASTERIO_ERR, "python": sys.version.split()[0]})
+                                     "crop_error": RASTERIO_ERR, "python": sys.version.split()[0],
+                                     "geo_dir": self.geo_dir, "geo_ok": os.path.isdir(self.geo_dir)})
         if u.path == "/api/list":
             return self._list()
         if u.path == "/api/targets":
@@ -180,14 +184,30 @@ class Handler(SimpleHTTPRequestHandler):
                                     geos.append({"path": os.path.relpath(fp, top).replace(os.sep, "/"), "text": f.read()})
                 out.append({"folder": name, "code": m.group(1).upper() if m else "", "label": m.group(2) if m else name,
                             "geo": geos[:5]})
-        return self._json(200, {"ok": True, "root": self.kho, "folders": out})
+        # Bộ geo chung (D:\get_Planet\geojson): nguồn chuẩn của danh sách mục tiêu
+        geo_files = []
+        if os.path.isdir(self.geo_dir):
+            for dirpath, dirnames, fnames in os.walk(self.geo_dir):
+                if os.path.relpath(dirpath, self.geo_dir).count(os.sep) >= 2:
+                    dirnames[:] = []
+                for fn in sorted(fnames):
+                    if fn.lower().endswith(self.GEO_EXT):
+                        fp = os.path.join(dirpath, fn)
+                        if os.path.getsize(fp) <= 2_000_000:
+                            with open(fp, "r", encoding="utf-8-sig", errors="replace") as f:
+                                geo_files.append({"name": os.path.splitext(fn)[0],
+                                                  "path": os.path.relpath(fp, self.geo_dir).replace(os.sep, "/"),
+                                                  "text": f.read()})
+        return self._json(200, {"ok": True, "root": self.kho, "geo_dir": self.geo_dir,
+                                "geo_ok": os.path.isdir(self.geo_dir), "folders": out, "geo_files": geo_files})
 
     def _merge(self, req):
         """Gộp thư mục lẻ (do app tạo trước đây) vào thư mục mục tiêu chuẩn; không ghi đè file đã có."""
         src = os.path.join(self.kho, safe_part(req.get("from")))
         dst = os.path.join(self.kho, safe_part(req.get("to")))
-        if not os.path.isdir(src) or not os.path.isdir(dst) or os.path.samefile(src, dst):
+        if not os.path.isdir(src) or (os.path.isdir(dst) and os.path.samefile(src, dst)):
             return self._json(400, {"ok": False, "error": "thư mục không hợp lệ"})
+        os.makedirs(dst, exist_ok=True)   # thư mục mục tiêu chưa có thì tạo
         moved, skipped = 0, 0
         for dirpath, _, fnames in os.walk(src):
             rel = os.path.relpath(dirpath, src)
@@ -292,9 +312,11 @@ class Handler(SimpleHTTPRequestHandler):
 def main():
     ap = argparse.ArgumentParser(description="Sentinel-2 Monitor — máy chủ cục bộ + kho ảnh")
     ap.add_argument("--kho", default=os.environ.get("KHO_ANH") or DEFAULT_KHO, help="thư mục kho ảnh chung")
+    ap.add_argument("--geo", default=os.environ.get("GEO_DIR") or DEFAULT_GEO, help="thư mục geojson chung của hệ sinh thái")
     ap.add_argument("--port", type=int, default=int(os.environ.get("PORT") or 8765))
     a = ap.parse_args()
     Handler.kho = os.path.abspath(a.kho)
+    Handler.geo_dir = os.path.abspath(a.geo)
     Handler.port = a.port
     os.makedirs(Handler.kho, exist_ok=True)
     srv = ThreadingHTTPServer(("127.0.0.1", a.port), Handler)
@@ -313,6 +335,7 @@ def main():
         pass
     print("Sentinel-2 Monitor: http://localhost:%d/" % a.port)
     print("Kho anh chung    : %s" % Handler.kho)
+    print("Geo muc tieu     : %s%s" % (Handler.geo_dir, "" if os.path.isdir(Handler.geo_dir) else "  (KHONG TIM THAY)"))
     print("Cat JP2 L1C      : %s" % ("co (rasterio)" if HAS_RASTERIO else "KHONG - chay: pip install rasterio"))
     try:
         srv.serve_forever()
