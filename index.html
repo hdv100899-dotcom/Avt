@@ -1243,7 +1243,7 @@ async function renderLibrary() {
   if (!libTarget || !counts.some(c => c.name === libTarget)) libTarget = counts[0]?.name || null;
   const side = h('div', { class: 'tlist', style: 'max-height:70vh' }, counts.length ? counts.map(c => h('div', { class: 'trow' + (c.name === libTarget ? ' sel' : ''), style: 'grid-template-columns:1fr auto', onclick: () => { libTarget = c.name; renderLibrary(); } },
     h('div', { style: 'min-width:0' }, h('div', { class: 'tname' }, c.name), h('div', { class: 'tmeta' }, known.get(c.name)?.group || (known.has(c.name) ? '' : 'không có trong danh sách mục tiêu'))),
-    h('span', { class: 'pill recent' }, `${c.files.length} tệp`))) : h('div', { class: 'empty' }, 'Kho còn trống. Tải ảnh ở tab Theo dõi, ảnh sẽ tự vào đây.'));
+    h('span', { class: 'pill recent' }, `${c.files.filter(f => !/\.(jgw|prj|aux\.xml)$/i.test(f.name)).length} ảnh`))) : h('div', { class: 'empty' }, 'Kho còn trống. Tải ảnh ở tab Theo dõi, ảnh sẽ tự vào đây.'));
   const cur = counts.find(c => c.name === libTarget);
   libUrls.forEach(u => URL.revokeObjectURL(u)); libUrls = [];
   const grid = h('div', { style: 'display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px' });
