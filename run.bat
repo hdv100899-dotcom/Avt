@@ -11,6 +11,8 @@ set PY=
 where python >nul 2>nul && set PY=python
 if not defined PY where py >nul 2>nul && set PY=py -3
 if defined PY (
+  rem rasterio: de cat TCI L1C (JP2 goc) theo khung ma khong tai ca o
+  %PY% -c "import rasterio" >nul 2>nul || (echo Dang cai rasterio lan dau... & %PY% -m pip install --user rasterio)
   echo Kho anh chung: %KHO_ANH%
   echo Mo ung dung tai http://localhost:%PORT%/  -  dong cua so nay de tat.
   start "" /min cmd /c "timeout /t 2 >nul & start "" http://localhost:%PORT%/"

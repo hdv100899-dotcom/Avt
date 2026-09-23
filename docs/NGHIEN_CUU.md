@@ -89,6 +89,13 @@ Kết luận: ở Việt Nam, ảnh “hôm nay” chỉ có sau khoảng **15:3
   - Ghi vào tệp `.part` trước rồi mới đổi tên.
 - Tải TCI L1C phía máy chủ không vướng CORS, nên tránh được lỗi 404 khi trình duyệt gọi JSON API của Google Cloud (mục 2.6). Đã thử: TCI 48QYJ ngày 21/09 (120 MB) ghi đủ vào kho.
 
+### 2.8 Cắt TCI L1C (JP2) theo khung mà không tải cả ô
+- File JP2 của Sentinel-2 L1C được chia khối 256×256, nên GDAL (qua rasterio) đọc từ `/vsicurl/` chỉ tải những khối nằm trong khung. Đo với TCI ô 48QYJ ngày 21/09: khung 9 km tải 32 đoạn, tổng **1,7 MB** (thay vì 120 MB), mất khoảng 4,5 giây.
+- Kết quả: JP2 nén không mất dữ liệu (`REVERSIBLE=YES`), giữ nguyên lưới gốc 10 m và hệ tọa độ UTM (EPSG:326xx). Đã kiểm tra: **từng pixel trùng khớp với file gốc**.
+- File tạm phải có đuôi `.jp2`. Nếu đuôi là `.part`, GDAL ghi tọa độ ra file `.aux.xml` riêng, và sau khi đổi tên thì JP2 mất tọa độ.
+- API `/item/bbox/...jp2` của Planetary Computer cũng trả về JP2 (TCI L2A), nhưng **không có tọa độ**, nên app không dùng.
+- Cách làm: `server.py` có thêm `POST /api/crop` (cần `rasterio`; `run.bat` tự cài ở lần chạy đầu). Mất khoảng 10 giây cho mỗi khung 20 km.
+
 ## 3. Thiết kế bản mới
 
 ### 3.1 Nguyên tắc

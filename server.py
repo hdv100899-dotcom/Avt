@@ -32,6 +32,14 @@ ALLOWED_HOSTS = (
     "storage.googleapis.com",
     ".blob.core.windows.net",
 )
+try:  # cắt JP2 gốc theo khung, chỉ đọc phần cần (HTTP range) — cần: pip install rasterio
+    import rasterio
+    from rasterio.warp import transform_bounds
+    from rasterio.windows import from_bounds, Window
+    HAS_RASTERIO = True
+except Exception:  # noqa: BLE001
+    HAS_RASTERIO = False
+
 BAD_CHARS = re.compile(r'[<>:"/\\|?*\x00-\x1f]')
 
 
@@ -114,7 +122,7 @@ class Handler(SimpleHTTPRequestHandler):
             return self.send_error(403)
         u = urllib.parse.urlparse(self.path)
         if u.path == "/api/health":
-            return self._json(200, {"ok": True, "app": "s2m", "root": self.kho, "sep": os.sep})
+            return self._json(200, {"ok": True, "app": "s2m", "root": self.kho, "sep": os.sep, "crop": HAS_RASTERIO})
         if u.path == "/api/list":
             return self._list()
         if u.path == "/api/file":
@@ -135,7 +143,7 @@ class Handler(SimpleHTTPRequestHandler):
                 files = []
                 for dirpath, _, fnames in os.walk(top):
                     for fn in fnames:
-                        if fn.endswith(".part"):
+                        if fn.endswith(".part") or ".part." in fn:
                             continue
                         fp = os.path.join(dirpath, fn)
                         st = os.stat(fp)
@@ -179,9 +187,48 @@ class Handler(SimpleHTTPRequestHandler):
                 r = urllib.request.urlopen(urllib.request.Request(req["url"], headers={"User-Agent": "S2Monitor/1.0"}), timeout=120)
                 size = self._write_stream(r, dest)
                 return self._json(200, {"ok": True, "path": dest, "size": size})
+            if u.path == "/api/crop":
+                return self._crop(json.loads(self.rfile.read(self._body_len())))
             return self._json(404, {"ok": False, "error": "không có API này"})
         except Exception as e:  # noqa: BLE001 — trả lỗi cho giao diện hiển thị
             return self._json(500, {"ok": False, "error": str(e)})
+
+
+    def _crop(self, req):
+        """Cắt JP2 gốc (vd. TCI L1C) theo khung WGS84, giữ nguyên lưới pixel gốc, ghi JP2 không mất dữ liệu."""
+        if not HAS_RASTERIO:
+            return self._json(501, {"ok": False, "error": "máy chưa có rasterio (pip install rasterio)"})
+        src_url = urllib.parse.urlparse(req.get("url", ""))
+        if src_url.scheme != "https" or (src_url.hostname or "").lower() != "storage.googleapis.com":
+            return self._json(400, {"ok": False, "error": "chỉ cắt được file trên storage.googleapis.com"})
+        w, s, e, n = [float(v) for v in req["bbox"]]
+        dest = self._target_path(req.get("folder"), req.get("sub"), req.get("name"))
+        env = dict(GDAL_DISABLE_READDIR_ON_OPEN="EMPTY_DIR", CPL_VSIL_CURL_ALLOWED_EXTENSIONS=".jp2",
+                   GDAL_HTTP_MERGE_CONSECUTIVE_RANGES="YES", GDAL_HTTP_MULTIRANGE="YES")
+        with rasterio.Env(**env):
+            with rasterio.open("/vsicurl/" + req["url"]) as src:
+                b = transform_bounds("EPSG:4326", src.crs, w, s, e, n, densify_pts=21)
+                win = from_bounds(*b, transform=src.transform).round_offsets().round_lengths()
+                full = Window(0, 0, src.width, src.height)
+                try:
+                    win = win.intersection(full)
+                except Exception:  # noqa: BLE001
+                    return self._json(400, {"ok": False, "error": "khung nằm ngoài ô ảnh này"})
+                data = src.read(window=win)
+                prof = dict(driver="JP2OpenJPEG", width=int(win.width), height=int(win.height), count=src.count,
+                            dtype=src.dtypes[0], crs=src.crs, transform=src.window_transform(win),
+                            QUALITY=100, REVERSIBLE="YES")
+                # File tạm phải có đuôi .jp2 để tọa độ được ghi vào trong JP2 (GeoJP2/GMLJP2), không ra .aux.xml
+                root, ext = os.path.splitext(dest)
+                tmp = root + ".part" + (ext or ".jp2")
+                with rasterio.open(tmp, "w", **prof) as out:
+                    out.write(data)
+                os.replace(tmp, dest)
+                for junk in (tmp + ".aux.xml", dest + ".aux.xml"):
+                    if os.path.exists(junk):
+                        os.remove(junk)
+        return self._json(200, {"ok": True, "path": dest, "size": os.path.getsize(dest),
+                                "width": int(win.width), "height": int(win.height)})
 
 
 def main():
@@ -195,6 +242,7 @@ def main():
     srv = ThreadingHTTPServer(("127.0.0.1", a.port), Handler)
     print("Sentinel-2 Monitor: http://localhost:%d/" % a.port)
     print("Kho anh chung    : %s" % Handler.kho)
+    print("Cat JP2 L1C      : %s" % ("co (rasterio)" if HAS_RASTERIO else "KHONG - chay: pip install rasterio"))
     try:
         srv.serve_forever()
     except KeyboardInterrupt:

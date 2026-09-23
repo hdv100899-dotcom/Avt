@@ -301,8 +301,9 @@ dialog::backdrop { background: rgba(0,0,0,.5); }
       <li><b>GeoTIFF (10 m gốc)</b>: như trên nhưng có tọa độ, mở thẳng trong QGIS/ArcGIS. Khung 40 km có thể tới ~60 MB.</li>
       <li><b>Tải TCI theo lựa chọn</b>: tick ô vuông ở ảnh (danh sách mục tiêu = lượt mới nhất; dải lượt chụp = từng ngày), rồi bấm <b>Tải TCI</b> trên thanh xuất hiện phía trên. Hai loại:
         <ul>
-          <li><b>TCI L1C gốc cả ô</b> (mặc định): file TCI.jp2 gốc 10 m của cả ô 110 km (~100–150 MB/ảnh), lấy từ kho công khai Google Cloud.</li>
-          <li><b>TCI cắt theo khung nhìn</b>: GeoTIFF màu thật 10 m, chỉ vùng đang chọn (vài MB).</li>
+          <li><b>TCI L1C cắt theo khung</b> (mặc định khi mở bằng run.bat): JP2 gốc 10 m chỉ vùng khung nhìn, giữ nguyên giá trị pixel, có tọa độ UTM, nén không mất dữ liệu. Máy chủ chỉ đọc phần cần của file gốc (khung 9 km ≈ 1,7 MB tải về thay vì 120 MB).</li>
+          <li><b>TCI L1C gốc cả ô</b>: file TCI.jp2 gốc 10 m của cả ô 110 km (~100–150 MB/ảnh), lấy từ kho công khai Google Cloud.</li>
+          <li><b>TCI L2A cắt theo khung</b>: GeoTIFF màu thật 10 m (ảnh đã hiệu chỉnh khí quyển), chỉ vùng đang chọn.</li>
         </ul></li>
       <li><b>Cả ô gốc</b>: file visual 10 m của cả ô 110 km (~100–250 MB), liên kết có chữ ký tạm thời.</li>
     </ul>
@@ -1056,9 +1057,11 @@ function renderPickBar() {
   const bar = $('#pickbar'), list = pickedList();
   bar.classList.toggle('hidden', !list.length);
   if (!list.length) return;
+  const cur = tciMode();
   const mode = h('select', { title: 'Loại TCI', onchange: e => { S.tciMode = e.target.value; save(K.settings, S); } },
-    h('option', { value: 'l1c', selected: S.tciMode !== 'crop' }, 'TCI L1C gốc cả ô (JP2, 10 m)'),
-    h('option', { value: 'crop', selected: S.tciMode === 'crop' }, 'TCI cắt theo khung nhìn (GeoTIFF, 10 m)'));
+    h('option', { value: 'l1c_crop', selected: cur === 'l1c_crop', disabled: !SRV?.crop }, 'TCI L1C cắt theo khung (JP2 gốc, 10 m)' + (SRV?.crop ? '' : ' — cần run.bat + rasterio')),
+    h('option', { value: 'l1c', selected: cur === 'l1c' }, 'TCI L1C gốc cả ô (JP2, ~120 MB/ảnh)'),
+    h('option', { value: 'crop', selected: cur === 'crop' }, 'TCI L2A cắt theo khung (GeoTIFF, 10 m)'));
   bar.replaceChildren(
     h('b', null, `Đã chọn ${list.length} ảnh`),
     h('span', { class: 'small muted' }, [...new Set(list.map(x => x.t.name))].slice(0, 4).join(', ') + (new Set(list.map(x => x.t.name)).size > 4 ? '…' : '')),
@@ -1070,10 +1073,15 @@ function openLink(url, name) {
   const a = h('a', { href: url, download: name, target: '_blank', rel: 'noopener' });
   document.body.append(a); a.click(); a.remove();
 }
+// Mặc định: cắt TCI L1C gốc nếu máy chủ cục bộ làm được, không thì tải cả ô
+function tciMode() {
+  const m = S.tciMode || 'l1c_crop';
+  return m === 'l1c_crop' && !SRV?.crop ? 'l1c' : m;
+}
 async function downloadTCI() {
   const list = pickedList(); if (!list.length) return;
   const btn = $('#btnTci'); btn.disabled = true;
-  const crop = S.tciMode === 'crop';
+  const mode = tciMode(), crop = mode === 'crop';
   let ok = 0, fallback = 0; const miss = [];
   for (const [i, { t, a }] of list.entries()) {
     btn.textContent = `Đang tải ${i + 1}/${list.length}…`;
@@ -1093,6 +1101,14 @@ async function downloadTCI() {
         if (tci) break;
       }
       if (!tci) { miss.push(`${t.name} ${vnParts(a.dt).dm}`); continue; }
+      if (mode === 'l1c_crop') {
+        // Máy chủ cục bộ đọc đúng phần cần của JP2 (vài MB) và ghi JP2 đã cắt vào kho
+        const vb = viewBbox(t);
+        const name = `${stamp}_TCI_L1C_T${tile}${S.extent === 'aoi' ? '' : '_' + EXTENTS[S.extent].tag}.jp2`;
+        toast(`${t.name}: đang cắt TCI L1C (${i + 1}/${list.length})…`, 4000);
+        await srvCall('/api/crop', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ folder: folderName(t), sub: '', name, url: tci.url, bbox: vb }) });
+        ok++; refreshLibraryIfOpen(t); continue;
+      }
       const name = `${stamp}_TCI_L1C_T${tile}.jp2`;
       toast(`${t.name}: TCI ${fmtSize(tci.size)} (${i + 1}/${list.length})…`, 4000);
       let saved = false;

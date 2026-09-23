@@ -18,7 +18,10 @@ Cần kết nối Internet để truy cập Microsoft Planetary Computer, Copern
 - Khung nhìn mở rộng tới 40 km (không bó trong ô geo). Bản đồ hiện toàn bộ cảnh 110 km.
 - Tải ở **độ phân giải gốc**:
   - JPG hoặc GeoTIFF 10 m theo khung nhìn.
-  - **Tick chọn ảnh rồi bấm Tải TCI**: TCI L1C gốc cả ô (JP2 10 m) hoặc TCI cắt theo khung nhìn.
+  - **Tick chọn ảnh rồi bấm Tải TCI**:
+    - Mặc định: **TCI L1C cắt theo khung**, dạng JP2 gốc 10 m, pixel trùng khớp file gốc. Chỉ tải vài MB thay vì cả ô 120 MB; cần `rasterio`, `run.bat` tự cài.
+    - Hoặc TCI L1C cả ô.
+    - Hoặc TCI L2A cắt theo khung (GeoTIFF).
   - Cả ô gốc.
   - ZIP ảnh mới của mọi mục tiêu kèm file CSV.
 - **Kho ảnh chung** `D:\KHO_ANH\TD`: máy chủ cục bộ `server.py` ghi ảnh (JPG + `.jgw`/`.prj`, GeoTIFF, TCI L1C) vào thư mục của từng mục tiêu, tự tải file lớn thẳng từ nguồn. Tab Kho ảnh để xem lại.
