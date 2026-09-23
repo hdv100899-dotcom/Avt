@@ -238,21 +238,24 @@ dialog::backdrop { background: rgba(0,0,0,.5); }
     <div class="card pad">
       <p class="section-title">Nhập hàng loạt</p>
       <div class="drop" id="drop">
-        <b>Kéo thả file .geojson / .json / .kml / .csv</b><br>
-        <span class="small muted">Nhiều file cùng lúc. File chỉ có 1 đối tượng sẽ lấy tên file làm tên mục tiêu.</span>
+        <b>Kéo thả file hoặc CẢ THƯ MỤC .geojson / .kml / .csv vào đây</b><br>
+        <span class="small muted">Mỗi file một đối tượng thì lấy tên file làm tên mục tiêu (vd. <code>KH_CANG_HQ_01_Cam_Ranh.geojson</code>). Nhóm lấy theo thuộc tính, thư mục con chứa file, hoặc mã địa bàn đầu tên file.</span>
+        <div class="toolbar" style="justify-content:center;margin-top:10px">
+          <button class="btn sm primary" id="btnPickFiles" type="button">Chọn file…</button>
+          <button class="btn sm" id="btnPickFolder" type="button">Chọn cả thư mục…</button>
+        </div>
         <input type="file" id="fileInput" multiple accept=".geojson,.json,.kml,.csv,.txt" class="hidden">
+        <input type="file" id="folderInput" webkitdirectory directory multiple class="hidden">
       </div>
       <p class="small muted" style="margin:10px 0 4px">Hoặc dán GeoJSON, KML, hay danh sách CSV <code>tên, vĩ độ, kinh độ[, bán kính km]</code>:</p>
       <textarea id="paste" placeholder='Sân bay Long Thành, 10.778, 106.985, 3.5'></textarea>
       <div class="toolbar" style="margin-top:8px">
         <button class="btn" id="btnParse">Phân tích</button>
         <span class="small muted" id="importInfo"></span>
-        <span style="margin-left:auto"></span>
-        <button class="btn primary hidden" id="btnAppend">Thêm vào danh sách</button>
-        <button class="btn hidden" id="btnReplace">Thay toàn bộ</button>
       </div>
     </div>
   </div>
+  <div class="card hidden" id="importCard" style="margin-top:12px"></div>
   <div class="card" style="margin-top:12px">
     <div class="pad toolbar" style="border-bottom:1px solid var(--border)">
       <b id="mgCount"></b>
@@ -1063,14 +1066,14 @@ function renderPickBar() {
     h('option', { value: 'l1c', selected: cur === 'l1c' }, 'TCI L1C gốc cả ô (JP2, ~120 MB/ảnh)'),
     h('option', { value: 'crop', selected: cur === 'crop' }, 'TCI L2A cắt theo khung (GeoTIFF, 10 m)'));
   const why = cropUnavailableReason();
-  bar.replaceChildren(
+  bar.replaceChildren(...[
     h('b', null, `Đã chọn ${list.length} ảnh`),
     h('span', { class: 'small muted' }, [...new Set(list.map(x => x.t.name))].slice(0, 4).join(', ') + (new Set(list.map(x => x.t.name)).size > 4 ? '…' : '')),
     h('span', { style: 'margin-left:auto' }), mode,
     h('button', { class: 'btn primary', id: 'btnTci', onclick: downloadTCI }, 'Tải TCI'),
     h('button', { class: 'btn', onclick: () => { picked.clear(); renderPickBar(); renderList(); renderDetail(); } }, 'Bỏ chọn'),
     why ? h('div', { class: 'small', style: 'width:100%;color:var(--warn)' }, 'Chưa cắt được TCI L1C: ', why, ' ',
-      h('button', { class: 'btn sm', onclick: async () => { SRV = null; await loadLibraryRoot(); renderPickBar(); toast(SRV?.crop ? 'Đã kết nối máy chủ, cắt TCI L1C dùng được.' : 'Vẫn chưa dùng được: ' + cropUnavailableReason(), 6000); } }, 'Kiểm tra lại')) : null);
+      h('button', { class: 'btn sm', onclick: async () => { SRV = null; await loadLibraryRoot(); renderPickBar(); toast(SRV?.crop ? 'Đã kết nối máy chủ, cắt TCI L1C dùng được.' : 'Vẫn chưa dùng được: ' + cropUnavailableReason(), 6000); } }, 'Kiểm tra lại')) : null].filter(Boolean));
 }
 // Vì sao chưa cắt được TCI L1C (JP2) — hiện ngay trên thanh chọn
 function cropUnavailableReason() {
@@ -1451,24 +1454,24 @@ function targetFromCoords(name, group, pts, radius) {
   const r = Math.max((x1 - x0) * 111.32 * Math.cos(lat * Math.PI / 180), (y1 - y0) * 111.32) / 2;
   return makeTarget({ name, group, lat, lon: (x0 + x1) / 2, radius_km: Math.max(0.5, r), bbox: [x0, y0, x1, y1] });
 }
-function parseGeoJSON(obj, base) {
+function parseGeoJSON(obj, base, defGroup = '') {
   const feats = obj.type === 'FeatureCollection' ? obj.features || [] : obj.type === 'Feature' ? [obj] : obj.coordinates || obj.geometries ? [{ geometry: obj, properties: {} }] : [];
   return feats.map((f, i) => {
     const p = f.properties || {};
     const name = p.name || p.Name || p.NAME || p.ten || p.title || (feats.length === 1 && base ? base : `${base || 'Mục tiêu'} ${i + 1}`);
-    return targetFromCoords(name, p.group || p.location || p.province || p.nhom || '', coordsOf(f.geometry), parseFloat(p.radius_km));
+    return targetFromCoords(name, p.group || p.location || p.province || p.nhom || p.diaban || defGroup, coordsOf(f.geometry), parseFloat(p.radius_km));
   }).filter(Boolean);
 }
-function parseKML(text, base) {
+function parseKML(text, base, defGroup = '') {
   const doc = new DOMParser().parseFromString(text, 'application/xml');
   const pms = [...doc.getElementsByTagName('Placemark')];
   return pms.map((pm, i) => {
     const name = pm.getElementsByTagName('name')[0]?.textContent?.trim() || (pms.length === 1 && base ? base : `${base || 'KML'} ${i + 1}`);
     const pts = [...pm.getElementsByTagName('coordinates')].flatMap(c => c.textContent.trim().split(/\s+/).map(s => s.split(',').map(Number)).filter(p => isFinite(p[0]) && isFinite(p[1])));
-    return targetFromCoords(name, base || '', pts);
+    return targetFromCoords(name, defGroup || base || '', pts);
   }).filter(Boolean);
 }
-function parseCSV(text) {
+function parseCSV(text, defGroup = '') {
   return text.split(/\r?\n/).map(l => l.trim()).filter(Boolean).map(l => {
     const parts = l.split(/[,;\t]/).map(s => s.trim());
     const nums = parts.map(parseFloat);
@@ -1477,36 +1480,141 @@ function parseCSV(text) {
     const name = parts.slice(0, i).join(', ') || `Điểm ${parts[i]}, ${parts[i + 1]}`;
     const [lat, lon] = [nums[i], nums[i + 1]];
     if (Math.abs(lat) > 90 || Math.abs(lon) > 180) return null;
-    return makeTarget({ name, lat, lon, radius_km: isFinite(nums[i + 2]) ? nums[i + 2] : 3, group: parts[i + 3] || '' });
+    return makeTarget({ name, lat, lon, radius_km: isFinite(nums[i + 2]) ? nums[i + 2] : 3, group: parts[i + 3] || defGroup });
   }).filter(Boolean);
 }
-function parseAny(text, base = '') {
-  const s = text.trim();
-  if (s.startsWith('{') || s.startsWith('[')) return parseGeoJSON(JSON.parse(s), base);
-  if (s.startsWith('<')) return parseKML(s, base);
-  return parseCSV(s);
+function parseAny(text, base = '', defGroup = '') {
+  const s = text.replace(/^\ufeff/, '').trim();
+  if (s.startsWith('{') || s.startsWith('[')) return parseGeoJSON(JSON.parse(s), base, defGroup);
+  if (s.startsWith('<')) return parseKML(s, base, defGroup);
+  return parseCSV(s, defGroup);
 }
-let importBuf = [];
-function showImport(list, errors = []) {
-  importBuf = list;
-  $('#importInfo').textContent = list.length ? `Tìm thấy ${list.length} mục tiêu${errors.length ? `, ${errors.length} tệp lỗi` : ''}.` : 'Không tìm thấy tọa độ hợp lệ.' + (errors.length ? ' ' + errors.join('; ') : '');
-  $('#btnAppend').classList.toggle('hidden', !list.length);
-  $('#btnReplace').classList.toggle('hidden', !list.length);
+/* ---- Nhập hàng loạt: file, cả thư mục (chọn hoặc kéo thả), xem trước, cập nhật theo tên ---- */
+const GEO_EXT = /\.(geojson|json|kml|csv|txt)$/i;
+// Quy ước tên file Image Hunter: DIABAN_LOAI_LUCLUONG_STT_Ten → nhóm mặc định = DIABAN
+const conventionGroup = base => (base.match(/^([A-Z]{2,})_[A-Z0-9]+_[A-Z0-9]+_\d+_/) || [])[1] || '';
+let importRows = [];
+const normName = s => String(s).trim().toLowerCase();
+function classifyImport(list) {
+  const byName = new Map(targets.map(t => [normName(t.name), t]));
+  const seen = new Set();
+  return list.map(({ t, src }) => {
+    const k = normName(t.name), old = byName.get(k);
+    let status = 'new';
+    if (seen.has(k)) status = 'dup';
+    else if (old) status = old.bbox.every((v, i) => Math.abs(v - t.bbox[i]) < 1e-4) ? 'same' : 'update';
+    seen.add(k);
+    return { t, src, old, status, on: status === 'new' || status === 'update' };
+  });
 }
-async function handleFiles(files) {
-  const all = [], errors = [];
-  for (const f of files) {
-    try { all.push(...parseAny(await f.text(), f.name.replace(/\.[^.]+$/, ''))); } catch (e) { errors.push(`${f.name}: ${e.message}`); }
+const STATUS_TXT = { new: ['Mới', 'today'], update: ['Cập nhật tọa độ', 'yesterday'], same: ['Đã có', 'old'], dup: ['Trùng trong lô', 'error'] };
+function showImport(list, errors = [], note = '') {
+  importRows = classifyImport(list);
+  const info = [];
+  if (note) info.push(note);
+  info.push(list.length ? `Tìm thấy ${list.length} mục tiêu` : 'Không tìm thấy tọa độ hợp lệ');
+  if (errors.length) info.push(`${errors.length} tệp lỗi`);
+  $('#importInfo').textContent = info.join(' · ') + '.';
+  renderImportPreview(errors);
+}
+function renderImportPreview(errors = []) {
+  const card = $('#importCard');
+  card.classList.toggle('hidden', !importRows.length && !errors.length);
+  if (!importRows.length && !errors.length) return card.replaceChildren();
+  const cnt = st => importRows.filter(r => r.status === st).length;
+  const nOn = importRows.filter(r => r.on).length;
+  const scanChk = h('input', { type: 'checkbox', id: 'importScan', checked: true });
+  const all = h('input', { type: 'checkbox', class: 'pick', checked: nOn === importRows.length && nOn > 0, onchange: e => { importRows.forEach(r => r.on = e.target.checked); renderImportPreview(errors); } });
+  const tb = h('tbody');
+  for (const r of importRows) {
+    const [txt, cls] = STATUS_TXT[r.status];
+    tb.append(h('tr', null,
+      h('td', null, h('input', { type: 'checkbox', class: 'pick', checked: r.on, onchange: e => { r.on = e.target.checked; renderImportPreview(errors); } })),
+      h('td', null, h('b', null, r.t.name)),
+      h('td', null, r.t.group || h('span', { class: 'muted' }, '—')),
+      h('td', null, `${r.t.lat}, ${r.t.lon}`),
+      h('td', null, `${r.t.radius_km} km`),
+      h('td', null, h('span', { class: 'pill ' + cls, title: r.old ? `Hiện có: ${r.old.lat}, ${r.old.lon}, ${r.old.radius_km} km` : '' }, txt)),
+      h('td', { class: 'small muted', style: 'word-break:break-all' }, r.src || '')));
   }
-  showImport(all, errors);
+  card.replaceChildren(...[
+    h('div', { class: 'pad toolbar', style: 'border-bottom:1px solid var(--border)' },
+      h('b', null, `Xem trước: ${importRows.length} mục tiêu`),
+      h('span', { class: 'small muted' }, [`${cnt('new')} mới`, `${cnt('update')} cập nhật`, `${cnt('same')} đã có`, cnt('dup') ? `${cnt('dup')} trùng trong lô` : ''].filter(Boolean).join(' · ')),
+      h('span', { style: 'margin-left:auto' }),
+      h('label', { class: 'check', style: 'margin:0' }, scanChk, 'Quét ngay sau khi nhập'),
+      h('button', { class: 'btn primary', disabled: !nOn, onclick: () => applyImport(false, scanChk.checked) }, `Nhập ${nOn} mục đã chọn`),
+      h('button', { class: 'btn', disabled: !nOn, onclick: () => applyImport(true, scanChk.checked) }, 'Thay toàn bộ danh sách'),
+      h('button', { class: 'btn ghost', onclick: () => { importRows = []; renderImportPreview(); $('#importInfo').textContent = ''; } }, 'Hủy')),
+    errors.length ? h('div', { class: 'pad small', style: 'color:var(--bad)' }, 'Tệp lỗi: ', errors.join('; ')) : null,
+    importRows.length ? h('div', { class: 'tablewrap', style: 'max-height:50vh' }, h('table', null,
+      h('thead', null, h('tr', null, h('th', { style: 'width:28px' }, all), h('th', null, 'Tên'), h('th', null, 'Nhóm'), h('th', null, 'Tâm (vĩ, kinh)'), h('th', null, 'Bán kính'), h('th', null, 'Trạng thái'), h('th', null, 'Nguồn'))), tb)) : null].filter(Boolean));
 }
-function applyImport(replace) {
-  if (replace) { if (!confirm(`Thay toàn bộ ${targets.length} mục tiêu hiện có bằng ${importBuf.length} mục tiêu mới?`)) return; targets = []; results = {}; save(K.results, results); }
-  const seen = new Set(targets.map(t => `${t.name}|${t.lat}|${t.lon}`));
-  let added = 0;
-  for (const t of importBuf) { const k = `${t.name}|${t.lat}|${t.lon}`; if (!seen.has(k)) { seen.add(k); targets.push(t); added++; } }
-  saveTargets(); importBuf = []; showImport([]); $('#importInfo').textContent = `Đã thêm ${added} mục tiêu.`;
+// files: [{ file, rel }] — rel là đường dẫn tương đối (khi chọn/kéo thả cả thư mục)
+async function handleFiles(files) {
+  const list = [], errors = []; let skipped = 0;
+  for (const { file, rel } of files) {
+    if (!GEO_EXT.test(file.name)) { skipped++; continue; }
+    const base = file.name.replace(/\.[^.]+$/, '');
+    const dirs = (rel || '').split('/').slice(0, -1);
+    // nhóm: thư mục con chứa file (bỏ thư mục gốc vừa chọn), không có thì theo mã địa bàn đầu tên file
+    const defGroup = (dirs.length >= 2 ? dirs[dirs.length - 1] : '') || conventionGroup(base);
+    try { for (const t of parseAny(await file.text(), base, defGroup)) list.push({ t, src: rel || file.name }); }
+    catch (e) { errors.push(`${rel || file.name}: ${e.message}`); }
+  }
+  showImport(list, errors, skipped ? `bỏ qua ${skipped} tệp không phải geo` : '');
+}
+const fromFileList = fl => [...fl].map(f => ({ file: f, rel: f.webkitRelativePath || '' }));
+// Kéo thả: duyệt cả thư mục (webkitGetAsEntry)
+async function filesFromDrop(dt) {
+  const items = [...(dt.items || [])].map(i => i.webkitGetAsEntry && i.webkitGetAsEntry()).filter(Boolean);
+  if (!items.length) return fromFileList(dt.files);
+  const out = [];
+  const walk = async (entry, path) => {
+    if (entry.isFile) { out.push({ file: await new Promise((ok, no) => entry.file(ok, no)), rel: path + entry.name }); return; }
+    const reader = entry.createReader();
+    for (;;) {
+      const batch = await new Promise((ok, no) => reader.readEntries(ok, no));
+      if (!batch.length) break;
+      for (const e of batch) await walk(e, path + entry.name + '/');
+    }
+  };
+  for (const e of items) await walk(e, '');
+  return out;
+}
+function applyImport(replace, scanAfter) {
+  const rows = importRows.filter(r => r.on);
+  if (!rows.length) return;
+  const touched = [];
+  if (replace) {
+    if (!confirm(`Thay toàn bộ ${targets.length} mục tiêu hiện có bằng ${rows.length} mục tiêu?`)) return;
+    targets = rows.map(r => r.t); results = {}; save(K.results, results);
+    touched.push(...targets);
+  } else {
+    for (const r of rows) {
+      if (r.status === 'update' || r.status === 'same') {
+        const o = targets.find(x => normName(x.name) === normName(r.t.name));
+        if (!o) continue;
+        Object.assign(o, { lat: r.t.lat, lon: r.t.lon, radius_km: r.t.radius_km, bbox: r.t.bbox, group: r.t.group || o.group });
+        delete results[o.id]; touched.push(o);
+      } else if (r.status === 'new') { targets.push(r.t); touched.push(r.t); }
+    }
+    save(K.results, results);
+  }
+  saveTargets();
+  const nNew = rows.filter(r => r.status === 'new').length, nUpd = rows.length - nNew;
+  importRows = []; renderImportPreview();
+  $('#importInfo').textContent = replace ? `Đã thay danh sách: ${touched.length} mục tiêu.` : `Đã thêm ${nNew}, cập nhật ${nUpd} mục tiêu.`;
   lastFit = null; renderAll();
+  if (scanAfter && touched.length) scanSome(touched);
+}
+// Quét một nhóm mục tiêu (sau khi nhập) — chạy nền, cập nhật dần
+async function scanSome(list) {
+  toast(`Đang quét ${list.length} mục tiêu vừa nhập…`, 4000);
+  const pool = limiter(S.conc);
+  await Promise.all(list.map(t => pool(async () => { await scanTarget(t, { quiet: true }); renderSummary(); renderList(); })));
+  save(K.results, results); persistSclCache(); renderAll();
+  toast(`Đã quét xong ${list.length} mục tiêu vừa nhập.`, 4000);
 }
 function exportGeo() {
   const fc = { type: 'FeatureCollection', features: targets.map(t => ({ type: 'Feature', properties: { name: t.name, group: t.group, radius_km: t.radius_km }, geometry: bboxPolygon(t.bbox) })) };
@@ -1567,14 +1675,15 @@ $('#btnAdd').addEventListener('click', () => {
   scanTarget(t).then(() => renderAll());
 });
 const drop = $('#drop');
-drop.addEventListener('click', () => $('#fileInput').click());
-$('#fileInput').addEventListener('change', e => { handleFiles(e.target.files); e.target.value = ''; });
+drop.addEventListener('click', e => { if (e.target === drop || e.target.tagName === 'B' || e.target.tagName === 'SPAN') $('#fileInput').click(); });
+$('#btnPickFiles').addEventListener('click', e => { e.stopPropagation(); $('#fileInput').click(); });
+$('#btnPickFolder').addEventListener('click', e => { e.stopPropagation(); $('#folderInput').click(); });
+$('#fileInput').addEventListener('change', e => { handleFiles(fromFileList(e.target.files)); e.target.value = ''; });
+$('#folderInput').addEventListener('change', e => { handleFiles(fromFileList(e.target.files)); e.target.value = ''; });
 ['dragenter', 'dragover'].forEach(n => drop.addEventListener(n, e => { e.preventDefault(); drop.classList.add('over'); }));
 ['dragleave', 'drop'].forEach(n => drop.addEventListener(n, e => { e.preventDefault(); drop.classList.remove('over'); }));
-drop.addEventListener('drop', e => handleFiles(e.dataTransfer.files));
-$('#btnParse').addEventListener('click', () => { try { showImport(parseAny($('#paste').value)); } catch (e) { showImport([], [e.message]); } });
-$('#btnAppend').addEventListener('click', () => applyImport(false));
-$('#btnReplace').addEventListener('click', () => applyImport(true));
+drop.addEventListener('drop', async e => handleFiles(await filesFromDrop(e.dataTransfer)));
+$('#btnParse').addEventListener('click', () => { try { showImport(parseAny($('#paste').value).map(t => ({ t, src: 'dán' }))); } catch (e) { showImport([], [e.message]); } });
 $('#btnExportGeo').addEventListener('click', exportGeo);
 $('#btnExportJson').addEventListener('click', () => saveBlob(new Blob([JSON.stringify(targets, null, 1)], { type: 'application/json' }), `muc_tieu_${todayKey()}.json`));
 $('#btnReset').addEventListener('click', () => { if (confirm('Khôi phục 10 mục tiêu mẫu? Danh sách hiện tại sẽ bị thay thế.')) { targets = DEFAULT_TARGETS.map(t => ({ ...t })); results = {}; save(K.results, results); saveTargets(); lastFit = null; renderAll(); } });

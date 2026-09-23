@@ -25,7 +25,12 @@ Cần kết nối Internet để truy cập Microsoft Planetary Computer, Copern
   - Cả ô gốc.
   - ZIP ảnh mới của mọi mục tiêu kèm file CSV.
 - **Kho ảnh chung** `D:\KHO_ANH\TD`: máy chủ cục bộ `server.py` ghi ảnh (JPG + `.jgw`/`.prj`, GeoTIFF, TCI L1C) vào thư mục của từng mục tiêu, tự tải file lớn thẳng từ nguồn. Tab Kho ảnh để xem lại.
-- Bản đồ Leaflet. Nhập mục tiêu từ GeoJSON, KML hoặc CSV; xuất GeoJSON.
+- **Nhập geo hàng loạt**:
+  - Chọn file, chọn **cả thư mục** (kể cả thư mục con), hoặc kéo thả cả thư mục chứa `.geojson`/`.kml`/`.csv`.
+  - File một đối tượng thì lấy tên file làm tên mục tiêu (quy ước `DIABAN_LOAI_LUCLUONG_STT_Ten`).
+  - Nhóm lấy theo thư mục con chứa file, hoặc theo mã địa bàn đầu tên file.
+  - Có bảng xem trước từng mục (Mới / Cập nhật tọa độ / Đã có) để tick chọn. Trùng tên thì cập nhật chứ không nhân đôi. Có thể quét ngay sau khi nhập.
+- Bản đồ Leaflet. Xuất GeoJSON.
 - Tự quét lại định kỳ và gửi thông báo hệ thống khi có ảnh mới.
 
 ## Cấu trúc
