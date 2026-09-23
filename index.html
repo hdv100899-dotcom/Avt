@@ -187,6 +187,7 @@ dialog::backdrop { background: rgba(0,0,0,.5); }
 <nav class="tabs">
   <button class="tab active" data-view="monitor">Theo dõi</button>
   <button class="tab" data-view="manage">Quản lý mục tiêu</button>
+  <button class="tab" data-view="library">Kho ảnh</button>
   <button class="tab" data-view="help">Hướng dẫn</button>
 </nav>
 
@@ -263,6 +264,16 @@ dialog::backdrop { background: rgba(0,0,0,.5); }
   </div>
 </div>
 
+<!-- LIBRARY -->
+<div class="page hidden" id="view-library">
+  <div class="toolbar" style="margin-bottom:12px">
+    <button class="btn" id="btnPickLib">Chọn thư mục kho ảnh…</button>
+    <button class="btn" id="btnRefreshLib">Làm mới</button>
+    <span class="small muted" id="libInfo"></span>
+  </div>
+  <div id="libBody"></div>
+</div>
+
 <!-- HELP -->
 <div class="page hidden help" id="view-help">
   <div class="card pad">
@@ -296,6 +307,15 @@ dialog::backdrop { background: rgba(0,0,0,.5); }
       <li><b>SWIR</b> (B12-B8A-B4) — xuyên khói/mù mỏng tốt hơn, làm nổi vùng cháy, nền đất ẩm, mái kim loại.</li>
       <li><b>NDVI</b> — chỉ số thực vật, so sánh 2 ngày để phát hiện phát quang, san lấp.</li>
     </ul>
+    <h3>Kho ảnh theo mục tiêu</h3>
+    <p>Mở tab <b>Kho ảnh</b> và chọn một thư mục trên máy (ví dụ <code>D:\KhoAnh_Sentinel</code>). Từ lúc đó, mọi ảnh tải về (JPG, GeoTIFF, band L2A, band L1C) được ghi thẳng vào <code>&lt;thư mục kho&gt;/&lt;Ten_muc_tieu&gt;/</code>, không rơi vào thư mục Downloads. Cụ thể:</p>
+    <ul>
+      <li>Band L1C vào thư mục con <code>L1C_&lt;mã sản phẩm&gt;</code>.</li>
+      <li>Band L2A vào thư mục con <code>L2A_&lt;thời điểm chụp&gt;</code>.</li>
+      <li>Ảnh JPG có kèm file <code>.jgw</code> và <code>.prj</code>, nên mở trong QGIS/ArcGIS là ảnh nằm đúng vị trí.</li>
+      <li>Nút “Lưu ảnh mới vào kho” ở thanh trên lưu ảnh mới nhất của mọi mục tiêu, mỗi ảnh vào đúng thư mục của mục tiêu đó.</li>
+    </ul>
+    <p>Tab Kho ảnh liệt kê các thư mục mục tiêu và ảnh đã lưu. Tính năng này cần Chrome hoặc Edge; nên mở app bằng <code>run.bat</code> (địa chỉ localhost). Trình duyệt khác thì ảnh vào Downloads như thường; riêng file ZIP vẫn chia sẵn mỗi mục tiêu một thư mục.</p>
     <h3>So sánh hai ngày</h3>
     <p>Chọn một lượt chụp, sau đó bấm “So sánh với…” và chọn lượt thứ hai trong dải thời gian; kéo thanh trượt trên ảnh để đối chiếu.</p>
     <h3>Dữ liệu và quyền riêng tư</h3>
@@ -316,6 +336,8 @@ dialog::backdrop { background: rgba(0,0,0,.5); }
     </div>
     <label class="check"><input type="checkbox" id="sCdse"> Dò kho Copernicus khi hôm nay có lượt bay mà Planetary Computer chưa có ảnh</label>
     <label class="check"><input type="checkbox" id="sNotify"> Thông báo trên máy tính khi có ảnh mới</label>
+    <label class="check"><input type="checkbox" id="sLibrary"> Tự lưu ảnh tải về vào kho ảnh, mỗi mục tiêu một thư mục</label>
+    <div class="toolbar" style="margin-top:6px"><button class="btn sm" id="btnPickLib2">Chọn thư mục kho ảnh…</button></div>
     <p class="small muted" style="margin-top:12px">Kết quả đo mây được lưu đệm theo từng cảnh, nên quét lại chỉ tốn truy vấn cho cảnh mới.
       <button class="btn sm" id="btnClearCache" style="margin-left:6px">Xóa bộ đệm</button></p>
   </div>
@@ -826,6 +848,7 @@ function renderDetail() {
     h('span', { class: 'pill ' + st.cls }, st.label),
     h('button', { class: 'btn sm', onclick: async (e) => { e.target.disabled = true; await scanTarget(t); renderAll(); } }, 'Quét lại'),
     h('a', { class: 'btn sm', href: `https://browser.dataspace.copernicus.eu/?zoom=14&lat=${t.lat}&lng=${t.lon}`, target: '_blank', rel: 'noopener' }, 'Copernicus Browser'),
+    h('button', { class: 'btn sm', title: libraryOn() ? '' : 'Chưa chọn thư mục kho ảnh', onclick: () => { libTarget = folderName(t); showView('library'); } }, 'Kho ảnh mục tiêu'),
   );
 
   if (r?.error) head.append(h('div', { class: 'small', style: 'color:var(--bad);width:100%' }, `Lỗi lần quét gần nhất: ${r.error}`));
@@ -877,8 +900,8 @@ function renderDetail() {
     h('span', { class: 'small muted' }, `${vw.toFixed(1)} × ${vh.toFixed(1)} km · ${nativePx(vb) - 2} px ở 10 m`));
   if (acq) {
     actions.append(
-      h('button', { class: 'btn sm primary', onclick: () => downloadBlob(imgUrl(acq.itemId, vb, preset, 'jpg', nativePx(vb)), fileName(t, acq, preset, 'jpg')) }, 'JPG (10 m gốc)'),
-      h('button', { class: 'btn sm', onclick: () => downloadBlob(imgUrl(acq.itemId, vb, preset, 'tif', nativePx(vb)), fileName(t, acq, preset, 'tif')) }, 'GeoTIFF (10 m gốc)'),
+      h('button', { class: 'btn sm primary', onclick: () => downloadBlob(imgUrl(acq.itemId, vb, preset, 'jpg', nativePx(vb)), fileName(t, acq, preset, 'jpg'), t, { bbox: vb }) }, 'JPG (10 m gốc)'),
+      h('button', { class: 'btn sm', onclick: () => downloadBlob(imgUrl(acq.itemId, vb, preset, 'tif', nativePx(vb)), fileName(t, acq, preset, 'tif'), t) }, 'GeoTIFF (10 m gốc)'),
       h('button', { class: 'btn sm', onclick: () => openBands(t, acq.itemId, acq.cands) }, 'Band L1C / L2A gốc'),
       h('button', { class: 'btn sm', onclick: () => openFullTile(acq) }, 'Cả ô gốc'),
       h('button', { class: 'btn sm' + (compareKey ? ' active' : ''), onclick: () => { if (compareKey) { compareKey = null; renderDetail(); } else { pickCompare = true; toast('Chọn lượt chụp thứ hai trong dải thời gian bên dưới'); } } }, compareKey ? 'Tắt so sánh' : 'So sánh với…'),
@@ -1000,7 +1023,9 @@ async function findL1C(p) {
   const safe = safes[safes.length - 1];   // baseline xử lý mới nhất
   const files = (await gcsList(`${safe}GRANULE/`)).items;
   const bands = files.filter(f => /IMG_DATA\/[^/]+_(B\d[\dA]|TCI)\.jp2$/.test(f.name))
-    .map(f => ({ band: f.name.match(/_(B\d[\dA]|TCI)\.jp2$/)[1], url: `${GCS}/${GCS_BUCKET}/${f.name}`, size: +f.size, name: f.name.split('/').pop() }))
+    .map(f => ({ band: f.name.match(/_(B\d[\dA]|TCI)\.jp2$/)[1], url: `${GCS}/${GCS_BUCKET}/${f.name}`,
+      api: `${GCS}/storage/v1/b/${GCS_BUCKET}/o/${encodeURIComponent(f.name)}?alt=media`,   // đường JSON API có CORS, dùng khi ghi vào kho
+      size: +f.size, name: f.name.split('/').pop() }))
     .sort((a, b) => (a.band === 'TCI') - (b.band === 'TCI') || a.band.localeCompare(b.band));
   const mtd = files.find(f => /MTD_TL\.xml$/.test(f.name));
   return { safe: safe.split('/').slice(-2, -1)[0], bands, mtd: mtd && `${GCS}/${GCS_BUCKET}/${mtd.name}`, browser: `https://console.cloud.google.com/storage/browser/${GCS_BUCKET}/${safe}` };
@@ -1021,11 +1046,11 @@ async function openBands(t, id, cands) {
     try { l1c = p && await findL1C(p); } catch (e) { parts.push(h('p', { style: 'color:var(--bad)' }, 'Lỗi truy vấn kho L1C: ' + e.message)); }
     if (l1c) {
       const tb = h('tbody');
-      for (const b of l1c.bands) tb.append(h('tr', null, h('td', null, h('b', null, b.band)), h('td', null, BAND_INFO[b.band]?.[0] || ''), h('td', null, `${BAND_INFO[b.band]?.[1] || '?'} m`), h('td', null, fmtSize(b.size)), h('td', null, h('a', { href: b.url, download: b.name, target: '_blank', rel: 'noopener' }, 'Tải JP2'))));
+      for (const b of l1c.bands) tb.append(h('tr', null, h('td', null, h('b', null, b.band)), h('td', null, BAND_INFO[b.band]?.[0] || ''), h('td', null, `${BAND_INFO[b.band]?.[1] || '?'} m`), h('td', null, fmtSize(b.size)), h('td', null, h('a', { href: b.url, download: b.name, target: '_blank', rel: 'noopener', onclick: (e) => { if (libraryOn()) { e.preventDefault(); downloadLinks([b], t, l1c.safe); } } }, 'Tải JP2'))));
       parts.push(h('div', { class: 'tablewrap', style: 'max-height:320px' }, h('table', { class: 'bands' }, h('thead', null, h('tr', null, h('th', null, 'Band'), h('th', null, 'Mô tả'), h('th', null, 'Phân giải'), h('th', null, 'Dung lượng'), h('th', null, ''))), tb)),
         h('div', { class: 'toolbar', style: 'margin:8px 0 16px' },
-          h('button', { class: 'btn sm primary', onclick: () => downloadLinks(l1c.bands) }, `Tải cả ${l1c.bands.length} band (${fmtSize(l1c.bands.reduce((s, b) => s + b.size, 0))})`),
-          h('button', { class: 'btn sm', onclick: () => downloadLinks(l1c.bands.filter(b => ['B02', 'B03', 'B04', 'B08'].includes(b.band))) }, 'Chỉ 4 band 10 m'),
+          h('button', { class: 'btn sm primary', onclick: () => downloadLinks(l1c.bands, t, l1c.safe) }, `Tải cả ${l1c.bands.length} band (${fmtSize(l1c.bands.reduce((s, b) => s + b.size, 0))})`),
+          h('button', { class: 'btn sm', onclick: () => downloadLinks(l1c.bands.filter(b => ['B02', 'B03', 'B04', 'B08'].includes(b.band)), t, l1c.safe) }, 'Chỉ 4 band 10 m'),
           l1c.mtd ? h('a', { class: 'btn sm', href: l1c.mtd, target: '_blank', rel: 'noopener' }, 'Metadata MTD_TL.xml') : null,
           h('a', { class: 'btn sm', href: l1c.browser, target: '_blank', rel: 'noopener' }, 'Mở thư mục'),
           h('span', { class: 'small muted' }, l1c.safe)));
@@ -1041,7 +1066,7 @@ async function openBands(t, id, cands) {
       for (const b of ['B01', 'B02', 'B03', 'B04', 'B05', 'B06', 'B07', 'B08', 'B8A', 'B09', 'B11', 'B12', 'SCL']) {
         const res = BAND_INFO[b][1];
         const url = `${DATA}/item/bbox/${vb.join(',')}.tif?collection=${COLL}&item=${encodeURIComponent(curId)}&assets=${b}&max_size=${nativePx(vb, res)}`;
-        row.append(h('button', { class: 'btn sm', title: `${BAND_INFO[b][0]} · ${res} m`, onclick: () => downloadBlob(url, `${slug(t.name)}_${curId.slice(0, 3)}_${p?.sensing || ''}_L2A_${b}_${res}m_${EXTENTS[S.extent].tag}.tif`) }, `${b} · ${res} m`));
+        row.append(h('button', { class: 'btn sm', title: `${BAND_INFO[b][0]} · ${res} m`, onclick: () => downloadBlob(url, `${slug(t.name)}_${curId.slice(0, 3)}_${p?.sensing || ''}_L2A_${b}_${res}m_${EXTENTS[S.extent].tag}.tif`, t, { sub: `L2A_${p?.sensing || curId}` }) }, `${b} · ${res} m`));
       }
       parts.push(row, h('p', { class: 'small muted' }, 'Giá trị L2A là phản xạ mặt đất ×10000 cộng offset 1000 (baseline ≥ 04.00). Band 20/60 m được xuất ở đúng lưới gốc, không nội suy lên 10 m.'));
     }
@@ -1050,7 +1075,31 @@ async function openBands(t, id, cands) {
   dlg.showModal();
   render(id);
 }
-async function downloadLinks(list) {
+async function downloadLinks(list, t, safe) {
+  const dir = t && await libraryDir(t, safe ? `L1C_${safe.replace(/\.SAFE$/, '')}` : '', true);
+  if (dir) {
+    // Ghi thẳng (dạng luồng) vào kho: <Kho>/<Mục tiêu>/L1C_<sản phẩm>/<band>.jp2
+    let ok = 0; const failed = [];
+    for (const [i, b] of list.entries()) {
+      try {
+        toast(`Kho ảnh: đang tải ${b.name} (${i + 1}/${list.length}, ${fmtSize(b.size)})…`, 4000);
+        const r = await fetch(b.api || b.url);
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const w = await (await dir.getFileHandle(b.name, { create: true })).createWritable();
+        await r.body.pipeTo(w);
+        ok++;
+      } catch (e) {
+        console.warn('L1C → kho', b.name, e);
+        try { await dir.removeEntry(b.name); } catch {}
+        failed.push(b);
+      }
+    }
+    if (ok) toast(`Đã lưu ${ok} band vào kho: ${await libraryPath(t)}/L1C_${safe.replace(/\.SAFE$/, '')}`, 6000);
+    refreshLibraryIfOpen(t);
+    if (!failed.length) return;
+    toast(`${failed.length} band không ghi được vào kho — chuyển sang tải thường (thư mục Downloads).`, 6000);
+    list = failed;
+  }
   toast(`Bắt đầu tải ${list.length} file; trình duyệt có thể hỏi cho phép tải nhiều file.`, 5000);
   for (const b of list) {
     const a = h('a', { href: b.url, download: b.name, target: '_blank', rel: 'noopener' });
@@ -1087,12 +1136,128 @@ function drawMap(sel, acq) {
 }
 
 /* ===================== Downloads ===================== */
-async function downloadBlob(url, name) {
+async function downloadBlob(url, name, t, opts = {}) {
   toast('Đang tải ' + name + '…');
   try {
-    const r = await fetchRetry(url, { timeout: 120000 }, 2);
-    saveBlob(await r.blob(), name);
+    const dirP = t ? libraryDir(t, opts.sub || '', true) : null;   // gọi ngay trong thao tác bấm để xin quyền thư mục
+    const r = await fetchRetry(url, { timeout: 180000 }, 2);
+    const blob = await r.blob();
+    const dir = await dirP;
+    if (dir) {
+      await writeFile(dir, name, blob);
+      if (opts.bbox && /\.jpe?g$/i.test(name)) await writeWorldFile(dir, name, blob, opts.bbox);
+      toast(`Đã lưu vào kho: ${await libraryPath(t)}${opts.sub ? '/' + opts.sub : ''}/${name}`, 5000);
+      refreshLibraryIfOpen(t);
+    } else saveBlob(blob, name);
   } catch (e) { toast('Tải thất bại: ' + e.message, 5000); }
+}
+
+/* ===================== Kho ảnh theo mục tiêu (File System Access API) ===================== */
+// Ảnh tải về được ghi thẳng vào <thư mục kho>/<Tên mục tiêu>/..., không rơi vào Downloads.
+const FS_OK = 'showDirectoryPicker' in window;
+const idb = {
+  db: null,
+  async open() {
+    if (this.db) return this.db;
+    this.db = await new Promise((res, rej) => { const r = indexedDB.open('s2m', 1); r.onupgradeneeded = () => r.result.createObjectStore('kv'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
+    return this.db;
+  },
+  async get(k) { const db = await this.open(); return new Promise((res, rej) => { const r = db.transaction('kv').objectStore('kv').get(k); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); },
+  async set(k, v) { const db = await this.open(); return new Promise((res, rej) => { const tx = db.transaction('kv', 'readwrite'); tx.objectStore('kv').put(v, k); tx.oncomplete = () => res(); tx.onerror = () => rej(tx.error); }); },
+};
+let libRoot = null;
+const libraryOn = () => FS_OK && S.library !== false && !!libRoot;
+async function loadLibraryRoot() { if (FS_OK) { try { libRoot = (await idb.get('libRoot')) || null; } catch { libRoot = null; } } updateLibraryUI(); }
+async function pickLibraryRoot() {
+  if (!FS_OK) return toast('Trình duyệt này không hỗ trợ ghi thư mục. Dùng Chrome hoặc Edge.', 6000);
+  try {
+    libRoot = await window.showDirectoryPicker({ id: 's2m-kho', mode: 'readwrite' });
+    await idb.set('libRoot', libRoot); S.library = true; save(K.settings, S);
+    toast(`Kho ảnh: ${libRoot.name}`); updateLibraryUI(); renderLibrary();
+  } catch (e) { if (e.name !== 'AbortError') toast('Không chọn được thư mục: ' + e.message, 5000); }
+}
+async function ensurePermission(handle, interactive) {
+  const o = { mode: 'readwrite' };
+  if (await handle.queryPermission(o) === 'granted') return true;
+  return interactive && await handle.requestPermission(o) === 'granted';
+}
+// Tên thư mục không dấu (như tên file) để chắc chắn đúng trên mọi ổ đĩa, ổ mạng, USB
+const folderName = t => slug(t.name);
+async function libraryDir(t, sub, interactive) {
+  // Lần tải đầu tiên: mời chọn thư mục kho (chỉ hỏi một lần)
+  if (interactive && FS_OK && !libRoot && S.library !== false && !S.libraryAsked) {
+    S.libraryAsked = true; save(K.settings, S);
+    if (confirm('Chọn một thư mục làm KHO ẢNH? Ảnh tải về sẽ tự xếp vào thư mục riêng của từng mục tiêu.\n(Bấm Hủy để tải vào Downloads như bình thường; có thể chọn sau ở tab Kho ảnh.)')) await pickLibraryRoot();
+  }
+  if (!libraryOn()) return null;
+  if (!await ensurePermission(libRoot, interactive)) { toast('Chưa được cấp quyền ghi vào kho ảnh; tải về thư mục Downloads.', 5000); return null; }
+  let d = await libRoot.getDirectoryHandle(folderName(t), { create: true });
+  if (sub) d = await d.getDirectoryHandle(sub, { create: true });
+  return d;
+}
+async function libraryPath(t) { return `${libRoot?.name || ''}/${folderName(t)}`; }
+async function writeFile(dir, name, blob) {
+  const w = await (await dir.getFileHandle(name, { create: true })).createWritable();
+  await w.write(blob); await w.close();
+}
+// File world (.jgw) để JPG đặt đúng vị trí trong QGIS/ArcGIS (hệ WGS84, EPSG:4326)
+async function writeWorldFile(dir, name, blob, b) {
+  try {
+    const bmp = await createImageBitmap(blob);
+    const px = (b[2] - b[0]) / bmp.width, py = (b[3] - b[1]) / bmp.height;
+    const base = name.replace(/\.[^.]+$/, '');
+    await writeFile(dir, base + '.jgw', new Blob([[px, 0, 0, -py, b[0] + px / 2, b[3] - py / 2].map(v => v.toFixed(12)).join('\r\n') + '\r\n']));
+    await writeFile(dir, base + '.prj', new Blob(['GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,298.257223563]],PRIMEM["Greenwich",0],UNIT["degree",0.0174532925199433]]']));
+  } catch (e) { console.warn('world file', e); }
+}
+function updateLibraryUI() {
+  const on = libraryOn();
+  $('#btnZip').textContent = on ? 'Lưu ảnh mới vào kho' : 'Tải ZIP ảnh mới';
+  $('#btnZip').title = on ? 'Lưu ảnh mới nhất của mọi mục tiêu vào thư mục riêng của từng mục tiêu' : 'Tải ZIP ảnh cắt của lượt chụp mới nhất mỗi mục tiêu';
+  const lbl = $('#libInfo');
+  if (lbl) lbl.textContent = !FS_OK ? 'Trình duyệt không hỗ trợ (cần Chrome/Edge) — ảnh sẽ vào thư mục Downloads.' : libRoot ? `Thư mục kho: ${libRoot.name}` : 'Chưa chọn thư mục kho.';
+}
+
+let libTarget = null, libUrls = [];
+function refreshLibraryIfOpen(t) { if (!$('#view-library').classList.contains('hidden') && (!t || !libTarget || libTarget === folderName(t))) renderLibrary(); }
+async function listFiles(dir, prefix = '') {
+  const out = [];
+  for await (const [name, hnd] of dir.entries()) {
+    if (hnd.kind === 'directory') out.push(...await listFiles(hnd, prefix + name + '/'));
+    else { const f = await hnd.getFile(); out.push({ path: prefix + name, name, file: f }); }
+  }
+  return out;
+}
+async function renderLibrary() {
+  const box = $('#libBody'); if (!box) return;
+  updateLibraryUI();
+  if (!FS_OK) { box.replaceChildren(h('div', { class: 'empty' }, 'Trình duyệt này không cho web ghi vào thư mục. Hãy mở app bằng Chrome hoặc Edge để dùng kho ảnh theo mục tiêu.')); return; }
+  if (!libRoot) { box.replaceChildren(h('div', { class: 'empty' }, h('p', null, 'Chọn một thư mục làm kho ảnh. Mỗi mục tiêu sẽ có một thư mục con; ảnh tải về tự vào đúng thư mục đó.'), h('button', { class: 'btn primary', onclick: pickLibraryRoot }, 'Chọn thư mục kho ảnh'))); return; }
+  if (!await ensurePermission(libRoot, false)) { box.replaceChildren(h('div', { class: 'empty' }, h('p', null, `Cần cấp lại quyền truy cập thư mục “${libRoot.name}”.`), h('button', { class: 'btn primary', onclick: async () => { await ensurePermission(libRoot, true); renderLibrary(); } }, 'Cấp quyền'))); return; }
+  box.replaceChildren(h('p', { class: 'muted' }, 'Đang đọc kho…'));
+  const folders = [];
+  for await (const [name, hnd] of libRoot.entries()) if (hnd.kind === 'directory') folders.push({ name, hnd });
+  const known = new Map(targets.map(t => [folderName(t), t]));
+  const counts = await Promise.all(folders.map(async f => ({ ...f, files: await listFiles(f.hnd) })));
+  counts.sort((a, b) => Math.max(0, ...b.files.map(x => x.file.lastModified)) - Math.max(0, ...a.files.map(x => x.file.lastModified)));
+  if (!libTarget || !counts.some(c => c.name === libTarget)) libTarget = counts[0]?.name || null;
+  const side = h('div', { class: 'tlist', style: 'max-height:70vh' }, counts.length ? counts.map(c => h('div', { class: 'trow' + (c.name === libTarget ? ' sel' : ''), style: 'grid-template-columns:1fr auto', onclick: () => { libTarget = c.name; renderLibrary(); } },
+    h('div', { style: 'min-width:0' }, h('div', { class: 'tname' }, c.name), h('div', { class: 'tmeta' }, known.get(c.name)?.group || (known.has(c.name) ? '' : 'không có trong danh sách mục tiêu'))),
+    h('span', { class: 'pill recent' }, `${c.files.length} tệp`))) : h('div', { class: 'empty' }, 'Kho còn trống. Tải ảnh ở tab Theo dõi, ảnh sẽ tự vào đây.'));
+  const cur = counts.find(c => c.name === libTarget);
+  libUrls.forEach(u => URL.revokeObjectURL(u)); libUrls = [];
+  const grid = h('div', { style: 'display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px' });
+  for (const f of (cur?.files || []).sort((a, b) => b.file.lastModified - a.file.lastModified)) {
+    if (/\.(jgw|prj|aux\.xml)$/i.test(f.name)) continue;
+    const isImg = /\.(jpe?g|png)$/i.test(f.name);
+    const url = URL.createObjectURL(f.file); libUrls.push(url);
+    grid.append(h('a', { href: url, target: '_blank', rel: 'noopener', class: 'acq', style: 'width:auto;text-decoration:none;color:inherit', title: f.path },
+      h('div', { class: 'ph', style: 'width:100%;height:150px' }, isImg ? h('img', { src: url, loading: 'lazy', alt: '' }) : f.name.split('.').pop().toUpperCase()),
+      h('div', { class: 'd', style: 'word-break:break-all' }, f.path),
+      h('div', { class: 'm' }, `${fmtSize(f.file.size)} · ${new Date(f.file.lastModified).toLocaleString('vi-VN')}`)));
+  }
+  box.replaceChildren(h('div', { class: 'split' }, h('div', { class: 'card' }, side),
+    h('div', { class: 'card pad' }, h('p', { class: 'section-title' }, cur ? `${libRoot.name} / ${cur.name}` : 'Kho ảnh'), cur ? grid : h('p', { class: 'muted' }, '—'))));
 }
 function saveBlob(blob, name) {
   const a = h('a', { href: URL.createObjectURL(blob), download: name });
@@ -1110,8 +1275,26 @@ async function openFullTile(acq) {
 async function downloadZip() {
   const list = targets.map(t => ({ t, a: results[t.id]?.acqs?.[0] })).filter(x => x.a);
   if (!list.length) return toast('Chưa có kết quả quét.');
+  const btn = $('#btnZip');
+  if (libraryOn() && await ensurePermission(libRoot, true)) {
+    btn.disabled = true; let done = 0, fail = 0;
+    const pool = limiter(S.conc);
+    await Promise.all(list.map(({ t, a }) => pool(async () => {
+      const vb = viewBbox(t), name = fileName(t, a, 'tc', 'jpg');
+      try {
+        const blob = await (await fetchRetry(imgUrl(a.itemId, vb, 'tc', 'jpg', nativePx(vb)), { timeout: 180000 }, 2)).blob();
+        const dir = await libraryDir(t, '', false);
+        await writeFile(dir, name, blob); await writeWorldFile(dir, name, blob, vb);
+      } catch { fail++; }
+      btn.textContent = `Kho ${++done}/${list.length}`;
+    })));
+    btn.disabled = false; updateLibraryUI();
+    toast(`Đã lưu ${list.length - fail} ảnh vào ${libRoot.name}/<mục tiêu>/${fail ? `, ${fail} lỗi` : ''}`, 6000);
+    refreshLibraryIfOpen(null);
+    return;
+  }
   if (!window.JSZip) return toast('Không tải được thư viện ZIP; hãy tải từng ảnh.', 5000);
-  const btn = $('#btnZip'); btn.disabled = true;
+  btn.disabled = true;
   const zip = new JSZip(); let done = 0, fail = 0;
   const pool = limiter(S.conc);
   const rows = [['ten', 'nhom', 'thoi_diem_vn', 've_tinh', 'may_vung_pct', 'may_o_pct', 'phu_pct', 'ma_canh', 'tep']];
@@ -1120,7 +1303,7 @@ async function downloadZip() {
     const vb = viewBbox(t);
     try {
       const r = await fetchRetry(imgUrl(a.itemId, vb, 'tc', 'jpg', nativePx(vb)), { timeout: 180000 }, 2);
-      zip.file(name, await r.blob());
+      zip.file(`${folderName(t)}/${name}`, await r.blob());   // mỗi mục tiêu một thư mục trong ZIP
       const p = vnParts(a.dt);
       rows.push([t.name, t.group, `${p.date} ${p.time}`, a.platform, obstructed(a) ?? '', round(a.tileCloud ?? 0, 1), a.aoi?.cov ?? '', a.itemId, name]);
     } catch { fail++; }
@@ -1128,7 +1311,7 @@ async function downloadZip() {
   })));
   zip.file('danh_sach.csv', '﻿' + rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\r\n'));
   saveBlob(await zip.generateAsync({ type: 'blob' }), `Sentinel2_${todayKey()}.zip`);
-  btn.disabled = false; btn.textContent = 'Tải ZIP ảnh mới';
+  btn.disabled = false; updateLibraryUI();
   if (fail) toast(`${fail} ảnh không tải được`, 5000);
 }
 
@@ -1239,18 +1422,18 @@ function applyTheme() {
 }
 function openSettings() {
   $('#sLookback').value = S.lookback; $('#sCloud').value = S.cloud; $('#sAnalyze').value = S.analyze; $('#sConc').value = S.conc;
-  $('#sAuto').value = S.auto; $('#sCdse').checked = S.cdse; $('#sNotify').checked = S.notify; $('#sTheme').value = S.theme;
+  $('#sAuto').value = S.auto; $('#sCdse').checked = S.cdse; $('#sNotify').checked = S.notify; $('#sLibrary').checked = S.library !== false; $('#sTheme').value = S.theme;
   $('#dlgSettings').showModal();
 }
 async function saveSettings() {
   const num = (id, min, max, def) => { const v = parseFloat($(id).value); return isFinite(v) ? Math.min(max, Math.max(min, v)) : def; };
   Object.assign(S, {
     lookback: num('#sLookback', 5, 180, 30), cloud: num('#sCloud', 0, 100, 20), analyze: num('#sAnalyze', 1, 30, 6), conc: num('#sConc', 1, 8, 4),
-    auto: num('#sAuto', 0, 720, 0), cdse: $('#sCdse').checked, notify: $('#sNotify').checked, theme: $('#sTheme').value,
+    auto: num('#sAuto', 0, 720, 0), cdse: $('#sCdse').checked, notify: $('#sNotify').checked, library: $('#sLibrary').checked, theme: $('#sTheme').value,
   });
   if (S.notify && 'Notification' in window && Notification.permission === 'default') await Notification.requestPermission();
   netLimit = limiter(S.conc * 2);
-  save(K.settings, S); applyTheme(); scheduleAuto();
+  save(K.settings, S); applyTheme(); scheduleAuto(); updateLibraryUI();
   $('#dlgSettings').close(); renderAll();
 }
 
@@ -1262,7 +1445,8 @@ function renderAll() {
 }
 function showView(v) {
   document.querySelectorAll('.tab').forEach(b => b.classList.toggle('active', b.dataset.view === v));
-  ['monitor', 'manage', 'help'].forEach(x => $('#view-' + x).classList.toggle('hidden', x !== v));
+  ['monitor', 'manage', 'library', 'help'].forEach(x => $('#view-' + x).classList.toggle('hidden', x !== v));
+  if (v === 'library') renderLibrary();
   if (v === 'monitor' && map) setTimeout(() => map.invalidateSize(), 0);
 }
 document.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () => showView(b.dataset.view)));
@@ -1306,8 +1490,13 @@ document.addEventListener('keydown', e => {
   if (e.key === 'ArrowRight' && i > 0) { selectedKey = acqs[i - 1].key; renderDetail(); }
 });
 
+$('#btnPickLib').addEventListener('click', pickLibraryRoot);
+$('#btnPickLib2').addEventListener('click', pickLibraryRoot);
+$('#btnRefreshLib').addEventListener('click', renderLibrary);
+
 applyTheme();
 renderAll();
+loadLibraryRoot();
 scheduleAuto();
 </script>
 </body>

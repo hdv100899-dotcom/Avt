@@ -70,6 +70,14 @@ Kết luận: ở Việt Nam, ảnh “hôm nay” chỉ có sau khoảng **15:3
 - **Giới hạn khung cắt**: JPG 50 km (~5000 px) trả về sau 7 giây. GeoTIFF 50 km (~66 MB) có lúc bị ngắt giữa chừng, nên khung lớn nhất trong app là 40 km.
 - **Xem trọn cảnh**: tile `/item/tiles/WebMercatorQuad/{z}/{x}/{y}@1x.png?...` được dùng làm lớp phủ Leaflet.
 
+### 2.6 Kho ảnh theo mục tiêu
+- Trình duyệt không cho trang web tự chọn thư mục con trong Downloads. Muốn xếp ảnh theo mục tiêu thì phải dùng **File System Access API** (`showDirectoryPicker`, chỉ có trên Chrome/Edge).
+- Người dùng chọn thư mục kho một lần. Quyền truy cập thư mục được lưu trong IndexedDB; mỗi phiên mới trình duyệt hỏi lại một lần ngay khi bấm tải.
+- Tên thư mục mục tiêu dùng dạng không dấu, giống tên file. Lúc thử, tên có dấu (“Vịnh Hạ Long”) làm file bị ghi nhầm ra thư mục gốc của kho.
+- Band L1C được ghi dạng luồng qua đường JSON API của Google Cloud (`storage/v1/b/<bucket>/o/<tên đã mã hóa>?alt=media`, có CORS). Đường tải trực tiếp của file không có CORS nên trình duyệt không đọc được nội dung để ghi vào kho.
+  - Trong môi trường thử nghiệm, Chromium nhận 404 ở đường này, trong khi gọi bằng công cụ khác thì được 200; chưa kiểm chứng được trên máy thật.
+  - Vì vậy nếu ghi thất bại, app tự chuyển sang tải thường vào thư mục Downloads.
+
 ## 3. Thiết kế bản mới
 
 ### 3.1 Nguyên tắc

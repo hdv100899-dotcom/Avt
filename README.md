@@ -22,6 +22,7 @@ Cần kết nối Internet để truy cập Microsoft Planetary Computer, Copern
   - Từng band L2A cắt vùng.
   - Cả ô gốc.
   - ZIP ảnh mới của mọi mục tiêu kèm file CSV.
+- **Kho ảnh theo mục tiêu** (Chrome/Edge): chọn một thư mục một lần, sau đó mọi ảnh tải về tự vào `<kho>/<Ten_muc_tieu>/`. Ảnh JPG có kèm `.jgw`/`.prj` để mở đúng vị trí trong QGIS. Tab Kho ảnh để xem lại ảnh đã lưu.
 - Bản đồ Leaflet. Nhập mục tiêu từ GeoJSON, KML hoặc CSV; xuất GeoJSON.
 - Tự quét lại định kỳ và gửi thông báo hệ thống khi có ảnh mới.
 
