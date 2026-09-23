@@ -78,6 +78,17 @@ Kết luận: ở Việt Nam, ảnh “hôm nay” chỉ có sau khoảng **15:3
   - Trong môi trường thử nghiệm, Chromium nhận 404 ở đường này, trong khi gọi bằng công cụ khác thì được 200; chưa kiểm chứng được trên máy thật.
   - Vì vậy nếu ghi thất bại, app tự chuyển sang tải thường vào thư mục Downloads.
 
+### 2.7 Kho ảnh chung cố định (D:\KHO_ANH\TD)
+- Trình duyệt **không cho** trang web ghi vào một đường dẫn cố định mà không có người bấm chọn (kể cả File System Access API). Vì vậy dùng máy chủ cục bộ `server.py` (chỉ thư viện chuẩn Python), do `run.bat` khởi động.
+- API: `GET /api/health`, `GET /api/list`, `GET /api/file?path=`, `POST /api/save?folder=&sub=&name=` (gửi dữ liệu), `POST /api/fetch` `{folder, sub, name, url}` (máy chủ tự tải).
+- Bảo vệ:
+  - Chỉ nghe `127.0.0.1`, chỉ nhận Host là `localhost`/`127.0.0.1`.
+  - Lệnh ghi phải có header `X-S2M: 1`. Trang web khác không gửi được header này tới đây mà không qua kiểm tra CORS, và máy chủ không cho phép.
+  - Tên thư mục/tệp được làm sạch (không `..`, không ký tự cấm).
+  - Chỉ tải từ Planetary Computer, Google Cloud Storage và Azure Blob.
+  - Ghi vào tệp `.part` trước rồi mới đổi tên.
+- Tải TCI L1C phía máy chủ không vướng CORS, nên tránh được lỗi 404 khi trình duyệt gọi JSON API của Google Cloud (mục 2.6). Đã thử: TCI 48QYJ ngày 21/09 (120 MB) ghi đủ vào kho.
+
 ## 3. Thiết kế bản mới
 
 ### 3.1 Nguyên tắc

@@ -3,7 +3,7 @@
 Ứng dụng web chạy từ một file duy nhất, dùng để rà soát các mục tiêu xem đã có ảnh Sentinel-2 mới hay chưa. App đo mây trong đúng khung mục tiêu và tải ảnh đã cắt sẵn theo vùng.
 
 ## Chạy
-- **Windows**: bấm đúp `run.bat`. App mở ở `http://localhost:8765/index.html`; nếu máy không có Python thì mở thẳng file.
+- **Windows**: bấm đúp `run.bat` (cần Python 3). App mở ở `http://localhost:8765/`; ảnh tải về **tự vào kho chung `D:\KHO_ANH\TD\<Ten_muc_tieu>\`**. Đổi đường dẫn ở dòng `set KHO_ANH=...` trong run.bat.
 - **Linux/macOS**: `./run.sh`
 - Hoặc bấm đúp `index.html`.
 
@@ -21,7 +21,7 @@ Cần kết nối Internet để truy cập Microsoft Planetary Computer, Copern
   - **Tick chọn ảnh rồi bấm Tải TCI**: TCI L1C gốc cả ô (JP2 10 m) hoặc TCI cắt theo khung nhìn.
   - Cả ô gốc.
   - ZIP ảnh mới của mọi mục tiêu kèm file CSV.
-- **Kho ảnh theo mục tiêu** (Chrome/Edge): chọn một thư mục một lần, sau đó mọi ảnh tải về tự vào `<kho>/<Ten_muc_tieu>/`. Ảnh JPG có kèm `.jgw`/`.prj` để mở đúng vị trí trong QGIS. Tab Kho ảnh để xem lại ảnh đã lưu.
+- **Kho ảnh chung** `D:\KHO_ANH\TD`: máy chủ cục bộ `server.py` ghi ảnh (JPG + `.jgw`/`.prj`, GeoTIFF, TCI L1C) vào thư mục của từng mục tiêu, tự tải file lớn thẳng từ nguồn. Tab Kho ảnh để xem lại.
 - Bản đồ Leaflet. Nhập mục tiêu từ GeoJSON, KML hoặc CSV; xuất GeoJSON.
 - Tự quét lại định kỳ và gửi thông báo hệ thống khi có ảnh mới.
 
@@ -29,6 +29,7 @@ Cần kết nối Internet để truy cập Microsoft Planetary Computer, Copern
 | Đường dẫn | Nội dung |
 |---|---|
 | `index.html` | Ứng dụng |
-| `run.bat`, `run.sh` | Khởi chạy |
+| `server.py` | Máy chủ cục bộ: phục vụ app + ghi vào kho ảnh chung |
+| `run.bat`, `run.sh` | Khởi chạy (đặt đường dẫn kho `KHO_ANH`) |
 | `docs/NGHIEN_CUU.md` | Nghiên cứu: lỗi của bản cũ, kết quả thử API, thiết kế |
 | `legacy/` | Bản cũ để đối chiếu |

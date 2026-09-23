@@ -313,14 +313,14 @@ dialog::backdrop { background: rgba(0,0,0,.5); }
       <li><b>SWIR</b> (B12-B8A-B4) — xuyên khói/mù mỏng tốt hơn, làm nổi vùng cháy, nền đất ẩm, mái kim loại.</li>
       <li><b>NDVI</b> — chỉ số thực vật, so sánh 2 ngày để phát hiện phát quang, san lấp.</li>
     </ul>
-    <h3>Kho ảnh theo mục tiêu</h3>
-    <p>Mở tab <b>Kho ảnh</b> và chọn một thư mục trên máy (ví dụ <code>D:\KhoAnh_Sentinel</code>). Từ lúc đó, mọi ảnh tải về (JPG, GeoTIFF, TCI) được ghi thẳng vào <code>&lt;thư mục kho&gt;/&lt;Ten_muc_tieu&gt;/</code>, không rơi vào thư mục Downloads. Cụ thể:</p>
+    <h3>Kho ảnh chung D:\KHO_ANH\TD</h3>
+    <p>Mở app bằng <b>run.bat</b>. Khi đó mọi ảnh tải về (JPG, GeoTIFF, TCI) <b>tự động</b> vào <code>D:\KHO_ANH\TD\&lt;Ten_muc_tieu&gt;\</code>, không cần chọn thư mục, không qua Downloads. Máy chủ cục bộ (<code>server.py</code>) tự tải file TCI lớn thẳng từ nguồn vào kho.</p>
     <ul>
-      <li>TCI đặt tên <code>&lt;Ten_muc_tieu&gt;_&lt;YYYYMMDD_HHMM&gt;VN_&lt;S2x&gt;_TCI_L1C_T&lt;ô&gt;.jp2</code>.</li>
-      <li>Ảnh JPG có kèm file <code>.jgw</code> và <code>.prj</code>, nên mở trong QGIS/ArcGIS là ảnh nằm đúng vị trí.</li>
-      <li>Nút “Lưu ảnh mới vào kho” ở thanh trên lưu ảnh mới nhất của mọi mục tiêu, mỗi ảnh vào đúng thư mục của mục tiêu đó.</li>
+      <li>Đổi đường dẫn kho: sửa dòng <code>set KHO_ANH=D:\KHO_ANH\TD</code> trong run.bat.</li>
+      <li>Tên file: <code>&lt;Ten_muc_tieu&gt;_&lt;YYYYMMDD_HHMM&gt;VN_&lt;S2x&gt;_TCI_L1C_T&lt;ô&gt;.jp2</code>, <code>..._tc.jpg</code> (kèm <code>.jgw</code>/<code>.prj</code> cho QGIS), <code>..._tc.tif</code>.</li>
+      <li>Tab <b>Kho ảnh</b> liệt kê các thư mục mục tiêu trong kho chung (kể cả thư mục do công cụ khác tạo).</li>
+      <li>Mở thẳng index.html (không qua run.bat) thì không có kho chung: có thể chọn thư mục thủ công (Chrome/Edge), hoặc ảnh vào Downloads.</li>
     </ul>
-    <p>Tab Kho ảnh liệt kê các thư mục mục tiêu và ảnh đã lưu. Tính năng này cần Chrome hoặc Edge; nên mở app bằng <code>run.bat</code> (địa chỉ localhost). Trình duyệt khác thì ảnh vào Downloads như thường; riêng file ZIP vẫn chia sẵn mỗi mục tiêu một thư mục.</p>
     <h3>So sánh hai ngày</h3>
     <p>Chọn một lượt chụp, sau đó bấm “So sánh với…” và chọn lượt thứ hai trong dải thời gian; kéo thanh trượt trên ảnh để đối chiếu.</p>
     <h3>Dữ liệu và quyền riêng tư</h3>
@@ -849,7 +849,7 @@ function renderDetail() {
     h('span', { class: 'pill ' + st.cls }, st.label),
     h('button', { class: 'btn sm', onclick: async (e) => { e.target.disabled = true; await scanTarget(t); renderAll(); } }, 'Quét lại'),
     h('a', { class: 'btn sm', href: `https://browser.dataspace.copernicus.eu/?zoom=14&lat=${t.lat}&lng=${t.lon}`, target: '_blank', rel: 'noopener' }, 'Copernicus Browser'),
-    h('button', { class: 'btn sm', title: libraryOn() ? '' : 'Chưa chọn thư mục kho ảnh', onclick: () => { libTarget = folderName(t); showView('library'); } }, 'Kho ảnh mục tiêu'),
+    h('button', { class: 'btn sm', title: libraryOn() ? libName() : 'Chưa kết nối kho ảnh', onclick: () => { libTarget = folderName(t); showView('library'); } }, 'Kho ảnh mục tiêu'),
   );
 
   if (r?.error) head.append(h('div', { class: 'small', style: 'color:var(--bad);width:100%' }, `Lỗi lần quét gần nhất: ${r.error}`));
@@ -1066,19 +1066,6 @@ function renderPickBar() {
     h('button', { class: 'btn primary', id: 'btnTci', onclick: downloadTCI }, 'Tải TCI'),
     h('button', { class: 'btn', onclick: () => { picked.clear(); renderPickBar(); renderList(); renderDetail(); } }, 'Bỏ chọn'));
 }
-// Ghi một URL (dạng luồng) vào kho của mục tiêu; trả về false nếu không ghi được
-async function streamToLibrary(dir, url, name) {
-  try {
-    const r = await fetch(url);
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    await r.body.pipeTo(await (await dir.getFileHandle(name, { create: true })).createWritable());
-    return true;
-  } catch (e) {
-    console.warn('→ kho', name, e);
-    try { await dir.removeEntry(name); } catch {}
-    return false;
-  }
-}
 function openLink(url, name) {
   const a = h('a', { href: url, download: name, target: '_blank', rel: 'noopener' });
   document.body.append(a); a.click(); a.remove();
@@ -1108,14 +1095,18 @@ async function downloadTCI() {
       if (!tci) { miss.push(`${t.name} ${vnParts(a.dt).dm}`); continue; }
       const name = `${stamp}_TCI_L1C_T${tile}.jp2`;
       toast(`${t.name}: TCI ${fmtSize(tci.size)} (${i + 1}/${list.length})…`, 4000);
-      const dir = await libraryDir(t, '', true);
-      if (dir && await streamToLibrary(dir, tci.api, name)) { ok++; refreshLibraryIfOpen(t); }
+      let saved = false;
+      if (await libReady(true)) {
+        try { await libFetch(t, '', name, { url: tci.url, corsUrl: tci.api }); saved = true; refreshLibraryIfOpen(t); }
+        catch (e) { console.warn('TCI → kho', name, e); }
+      }
+      if (saved) ok++;
       else { openLink(tci.url, name); fallback++; await new Promise(r => setTimeout(r, 900)); }
     } catch (e) { miss.push(`${t.name}: ${e.message}`); }
   }
   btn.disabled = false; btn.textContent = 'Tải TCI';
   const msg = [];
-  if (ok) msg.push(`${ok} ảnh đã lưu${libraryOn() ? ' vào kho theo mục tiêu' : ''}`);
+  if (ok) msg.push(`${ok} ảnh đã lưu${libraryOn() ? ` vào ${libName()}` : ''}`);
   if (fallback) msg.push(`${fallback} ảnh tải qua trình duyệt (Downloads)`);
   if (miss.length) msg.push(`chưa có TCI L1C: ${miss.join('; ')}`);
   toast(msg.join(' · ') || 'Không có gì để tải', 8000);
@@ -1152,21 +1143,42 @@ function drawMap(sel, acq) {
 async function downloadBlob(url, name, t, opts = {}) {
   toast('Đang tải ' + name + '…');
   try {
-    const dirP = t ? libraryDir(t, opts.sub || '', true) : null;   // gọi ngay trong thao tác bấm để xin quyền thư mục
-    const r = await fetchRetry(url, { timeout: 180000 }, 2);
-    const blob = await r.blob();
-    const dir = await dirP;
-    if (dir) {
-      await writeFile(dir, name, blob);
-      if (opts.bbox && /\.jpe?g$/i.test(name)) await writeWorldFile(dir, name, blob, opts.bbox);
-      toast(`Đã lưu vào kho: ${await libraryPath(t)}${opts.sub ? '/' + opts.sub : ''}/${name}`, 5000);
-      refreshLibraryIfOpen(t);
-    } else saveBlob(blob, name);
+    const mode = t ? await libReady(true) : null;   // gọi ngay trong thao tác bấm (xin quyền thư mục nếu cần)
+    const sub = opts.sub || '';
+    if (mode === 'server' && !opts.bbox) {
+      // Máy chủ cục bộ tự tải thẳng vào kho, không đi qua trình duyệt
+      await libFetch(t, sub, name, { url });
+    } else {
+      const blob = await (await fetchRetry(url, { timeout: 180000 }, 2)).blob();
+      if (!mode) return saveBlob(blob, name);
+      await libSave(t, sub, name, blob);
+      if (opts.bbox && /\.jpe?g$/i.test(name)) await writeWorldFile(t, sub, name, blob, opts.bbox);
+    }
+    toast(`Đã lưu vào kho: ${libPath(t, sub, name)}`, 5000);
+    refreshLibraryIfOpen(t);
   } catch (e) { toast('Tải thất bại: ' + e.message, 5000); }
 }
 
-/* ===================== Kho ảnh theo mục tiêu (File System Access API) ===================== */
-// Ảnh tải về được ghi thẳng vào <thư mục kho>/<Tên mục tiêu>/..., không rơi vào Downloads.
+/* ===================== Kho ảnh theo mục tiêu ===================== */
+// Thứ tự ưu tiên:
+//  1. Máy chủ cục bộ server.py (mở bằng run.bat): ghi thẳng vào kho chung D:\KHO_ANH\TD\<Ten_muc_tieu>\
+//  2. Thư mục chọn tay trong trình duyệt (File System Access API, Chrome/Edge)
+//  3. Thư mục Downloads như bình thường
+let SRV = null;
+async function detectServer() {
+  if (!/^https?:$/.test(location.protocol)) return;
+  try {
+    const r = await fetch('/api/health', { headers: { 'X-S2M': '1' }, signal: AbortSignal.timeout(3000) });
+    if (r.ok) { const j = await r.json(); if (j.app === 's2m') SRV = j; }
+  } catch {}
+}
+async function srvCall(path, opts = {}) {
+  const r = await fetch(path, { ...opts, headers: { 'X-S2M': '1', ...(opts.headers || {}) } });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok || j.ok === false) throw new Error(j.error || 'HTTP ' + r.status);
+  return j;
+}
+
 const FS_OK = 'showDirectoryPicker' in window;
 const idb = {
   db: null,
@@ -1179,10 +1191,16 @@ const idb = {
   async set(k, v) { const db = await this.open(); return new Promise((res, rej) => { const tx = db.transaction('kv', 'readwrite'); tx.objectStore('kv').put(v, k); tx.oncomplete = () => res(); tx.onerror = () => rej(tx.error); }); },
 };
 let libRoot = null;
-const libraryOn = () => FS_OK && S.library !== false && !!libRoot;
-async function loadLibraryRoot() { if (FS_OK) { try { libRoot = (await idb.get('libRoot')) || null; } catch { libRoot = null; } } updateLibraryUI(); }
+const libraryOn = () => !!SRV || (FS_OK && S.library !== false && !!libRoot);
+const libName = () => SRV ? SRV.root : libRoot?.name || '';
+async function loadLibraryRoot() {
+  await detectServer();
+  if (!SRV && FS_OK) { try { libRoot = (await idb.get('libRoot')) || null; } catch { libRoot = null; } }
+  updateLibraryUI();
+}
 async function pickLibraryRoot() {
-  if (!FS_OK) return toast('Trình duyệt này không hỗ trợ ghi thư mục. Dùng Chrome hoặc Edge.', 6000);
+  if (SRV) return toast(`Đang dùng kho chung ${SRV.root}. Đổi đường dẫn trong run.bat (KHO_ANH).`, 6000);
+  if (!FS_OK) return toast('Trình duyệt này không hỗ trợ ghi thư mục. Dùng Chrome hoặc Edge, hoặc mở bằng run.bat.', 6000);
   try {
     libRoot = await window.showDirectoryPicker({ id: 's2m-kho', mode: 'readwrite' });
     await idb.set('libRoot', libRoot); S.library = true; save(K.settings, S);
@@ -1196,39 +1214,61 @@ async function ensurePermission(handle, interactive) {
 }
 // Tên thư mục không dấu (như tên file) để chắc chắn đúng trên mọi ổ đĩa, ổ mạng, USB
 const folderName = t => slug(t.name);
-async function libraryDir(t, sub, interactive) {
-  // Lần tải đầu tiên: mời chọn thư mục kho (chỉ hỏi một lần)
+// 'server' | 'fs' | null — sẵn sàng ghi vào kho chưa
+async function libReady(interactive) {
+  if (SRV) return 'server';
+  // Không có máy chủ: lần tải đầu tiên mời chọn thư mục kho (chỉ hỏi một lần)
   if (interactive && FS_OK && !libRoot && S.library !== false && !S.libraryAsked) {
     S.libraryAsked = true; save(K.settings, S);
-    if (confirm('Chọn một thư mục làm KHO ẢNH? Ảnh tải về sẽ tự xếp vào thư mục riêng của từng mục tiêu.\n(Bấm Hủy để tải vào Downloads như bình thường; có thể chọn sau ở tab Kho ảnh.)')) await pickLibraryRoot();
+    if (confirm('Chọn một thư mục làm KHO ẢNH (ví dụ D:\\KHO_ANH\\TD)? Ảnh tải về sẽ tự xếp vào thư mục riêng của từng mục tiêu.\n(Mở app bằng run.bat thì app tự dùng kho chung, không cần chọn.)')) await pickLibraryRoot();
   }
   if (!libraryOn()) return null;
   if (!await ensurePermission(libRoot, interactive)) { toast('Chưa được cấp quyền ghi vào kho ảnh; tải về thư mục Downloads.', 5000); return null; }
+  return 'fs';
+}
+async function fsDir(t, sub) {
   let d = await libRoot.getDirectoryHandle(folderName(t), { create: true });
   if (sub) d = await d.getDirectoryHandle(sub, { create: true });
   return d;
 }
-async function libraryPath(t) { return `${libRoot?.name || ''}/${folderName(t)}`; }
-async function writeFile(dir, name, blob) {
-  const w = await (await dir.getFileHandle(name, { create: true })).createWritable();
+function libPath(t, sub, name) { return [libName(), folderName(t), sub, name].filter(Boolean).join(SRV && /\\/.test(SRV.root) ? '\\' : '/'); }
+async function libSave(t, sub, name, blob) {
+  if (SRV) return srvCall(`/api/save?${new URLSearchParams({ folder: folderName(t), sub, name })}`, { method: 'POST', body: blob });
+  const w = await (await (await fsDir(t, sub)).getFileHandle(name, { create: true })).createWritable();
   await w.write(blob); await w.close();
 }
-// File world (.jgw) để JPG đặt đúng vị trí trong QGIS/ArcGIS (hệ WGS84, EPSG:4326)
-async function writeWorldFile(dir, name, blob, b) {
+// Tải một file lớn thẳng vào kho. src.url: địa chỉ gốc; src.corsUrl: địa chỉ có CORS cho trình duyệt (nếu khác)
+async function libFetch(t, sub, name, src) {
+  if (SRV) return srvCall('/api/fetch', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ folder: folderName(t), sub, name, url: src.url }) });
+  const dir = await fsDir(t, sub);
+  try {
+    const r = await fetch(src.corsUrl || src.url);
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    await r.body.pipeTo(await (await dir.getFileHandle(name, { create: true })).createWritable());
+  } catch (e) {
+    try { await dir.removeEntry(name); } catch {}
+    throw e;
+  }
+}
+// File world (.jgw/.prj) để JPG đặt đúng vị trí trong QGIS/ArcGIS (hệ WGS84, EPSG:4326)
+async function writeWorldFile(t, sub, name, blob, b) {
   try {
     const bmp = await createImageBitmap(blob);
     const px = (b[2] - b[0]) / bmp.width, py = (b[3] - b[1]) / bmp.height;
     const base = name.replace(/\.[^.]+$/, '');
-    await writeFile(dir, base + '.jgw', new Blob([[px, 0, 0, -py, b[0] + px / 2, b[3] - py / 2].map(v => v.toFixed(12)).join('\r\n') + '\r\n']));
-    await writeFile(dir, base + '.prj', new Blob(['GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,298.257223563]],PRIMEM["Greenwich",0],UNIT["degree",0.0174532925199433]]']));
+    await libSave(t, sub, base + '.jgw', new Blob([[px, 0, 0, -py, b[0] + px / 2, b[3] - py / 2].map(v => v.toFixed(12)).join('\r\n') + '\r\n']));
+    await libSave(t, sub, base + '.prj', new Blob(['GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,298.257223563]],PRIMEM["Greenwich",0],UNIT["degree",0.0174532925199433]]']));
   } catch (e) { console.warn('world file', e); }
 }
 function updateLibraryUI() {
   const on = libraryOn();
   $('#btnZip').textContent = on ? 'Lưu ảnh mới vào kho' : 'Tải ZIP ảnh mới';
   $('#btnZip').title = on ? 'Lưu ảnh mới nhất của mọi mục tiêu vào thư mục riêng của từng mục tiêu' : 'Tải ZIP ảnh cắt của lượt chụp mới nhất mỗi mục tiêu';
+  $('#btnPickLib').classList.toggle('hidden', !!SRV);
   const lbl = $('#libInfo');
-  if (lbl) lbl.textContent = !FS_OK ? 'Trình duyệt không hỗ trợ (cần Chrome/Edge) — ảnh sẽ vào thư mục Downloads.' : libRoot ? `Thư mục kho: ${libRoot.name}` : 'Chưa chọn thư mục kho.';
+  if (lbl) lbl.textContent = SRV ? `Kho ảnh chung: ${SRV.root} — ảnh tải về tự vào ${SRV.root}${SRV.sep}<Ten_muc_tieu>` :
+    !FS_OK ? 'Chưa kết nối kho chung (hãy mở app bằng run.bat). Trình duyệt này không ghi thư mục được — ảnh vào Downloads.' :
+    libRoot ? `Thư mục kho (chọn tay): ${libRoot.name}. Mở bằng run.bat để dùng kho chung D:\\KHO_ANH\\TD.` : 'Chưa kết nối kho chung (hãy mở app bằng run.bat), hoặc chọn thư mục thủ công.';
 }
 
 let libTarget = null, libUrls = [];
@@ -1237,40 +1277,56 @@ async function listFiles(dir, prefix = '') {
   const out = [];
   for await (const [name, hnd] of dir.entries()) {
     if (hnd.kind === 'directory') out.push(...await listFiles(hnd, prefix + name + '/'));
-    else { const f = await hnd.getFile(); out.push({ path: prefix + name, name, file: f }); }
+    else { const f = await hnd.getFile(); out.push({ path: prefix + name, name, size: f.size, mtime: f.lastModified, file: f }); }
+  }
+  return out;
+}
+// Danh sách thư mục mục tiêu trong kho: [{ name, files: [{ path, name, size, mtime, url }] }]
+async function libList() {
+  if (SRV) {
+    const j = await srvCall('/api/list');
+    return j.folders.map(f => ({ name: f.name, files: f.files.map(x => ({ ...x, url: `/api/file?${new URLSearchParams({ path: f.name + '/' + x.path })}` })) }));
+  }
+  libUrls.forEach(u => URL.revokeObjectURL(u)); libUrls = [];
+  const out = [];
+  for await (const [name, hnd] of libRoot.entries()) {
+    if (hnd.kind !== 'directory') continue;
+    const files = await listFiles(hnd);
+    for (const f of files) { f.url = URL.createObjectURL(f.file); libUrls.push(f.url); }
+    out.push({ name, files });
   }
   return out;
 }
 async function renderLibrary() {
   const box = $('#libBody'); if (!box) return;
   updateLibraryUI();
-  if (!FS_OK) { box.replaceChildren(h('div', { class: 'empty' }, 'Trình duyệt này không cho web ghi vào thư mục. Hãy mở app bằng Chrome hoặc Edge để dùng kho ảnh theo mục tiêu.')); return; }
-  if (!libRoot) { box.replaceChildren(h('div', { class: 'empty' }, h('p', null, 'Chọn một thư mục làm kho ảnh. Mỗi mục tiêu sẽ có một thư mục con; ảnh tải về tự vào đúng thư mục đó.'), h('button', { class: 'btn primary', onclick: pickLibraryRoot }, 'Chọn thư mục kho ảnh'))); return; }
-  if (!await ensurePermission(libRoot, false)) { box.replaceChildren(h('div', { class: 'empty' }, h('p', null, `Cần cấp lại quyền truy cập thư mục “${libRoot.name}”.`), h('button', { class: 'btn primary', onclick: async () => { await ensurePermission(libRoot, true); renderLibrary(); } }, 'Cấp quyền'))); return; }
+  if (!SRV) {
+    if (!FS_OK) { box.replaceChildren(h('div', { class: 'empty' }, 'Mở app bằng run.bat để dùng kho ảnh chung D:\\KHO_ANH\\TD.')); return; }
+    if (!libRoot) { box.replaceChildren(h('div', { class: 'empty' }, h('p', null, 'Mở app bằng run.bat để tự dùng kho ảnh chung D:\\KHO_ANH\\TD. Hoặc chọn thư mục thủ công:'), h('button', { class: 'btn primary', onclick: pickLibraryRoot }, 'Chọn thư mục kho ảnh'))); return; }
+    if (!await ensurePermission(libRoot, false)) { box.replaceChildren(h('div', { class: 'empty' }, h('p', null, `Cần cấp lại quyền truy cập thư mục “${libRoot.name}”.`), h('button', { class: 'btn primary', onclick: async () => { await ensurePermission(libRoot, true); renderLibrary(); } }, 'Cấp quyền'))); return; }
+  }
   box.replaceChildren(h('p', { class: 'muted' }, 'Đang đọc kho…'));
-  const folders = [];
-  for await (const [name, hnd] of libRoot.entries()) if (hnd.kind === 'directory') folders.push({ name, hnd });
+  let folders;
+  try { folders = await libList(); } catch (e) { box.replaceChildren(h('div', { class: 'empty' }, 'Không đọc được kho: ' + e.message)); return; }
   const known = new Map(targets.map(t => [folderName(t), t]));
-  const counts = await Promise.all(folders.map(async f => ({ ...f, files: await listFiles(f.hnd) })));
-  counts.sort((a, b) => Math.max(0, ...b.files.map(x => x.file.lastModified)) - Math.max(0, ...a.files.map(x => x.file.lastModified)));
-  if (!libTarget || !counts.some(c => c.name === libTarget)) libTarget = counts[0]?.name || null;
-  const side = h('div', { class: 'tlist', style: 'max-height:70vh' }, counts.length ? counts.map(c => h('div', { class: 'trow' + (c.name === libTarget ? ' sel' : ''), style: 'grid-template-columns:1fr auto', onclick: () => { libTarget = c.name; renderLibrary(); } },
+  const isAux = n => /\.(jgw|prj|aux\.xml|part)$/i.test(n);
+  folders.sort((a, b) => Math.max(0, ...b.files.map(x => x.mtime)) - Math.max(0, ...a.files.map(x => x.mtime)));
+  if (!libTarget || !folders.some(c => c.name === libTarget)) libTarget = folders[0]?.name || null;
+  const side = h('div', { class: 'tlist', style: 'max-height:70vh' }, folders.length ? folders.map(c => h('div', { class: 'trow' + (c.name === libTarget ? ' sel' : ''), style: 'grid-template-columns:1fr auto', onclick: () => { libTarget = c.name; renderLibrary(); } },
     h('div', { style: 'min-width:0' }, h('div', { class: 'tname' }, c.name), h('div', { class: 'tmeta' }, known.get(c.name)?.group || (known.has(c.name) ? '' : 'không có trong danh sách mục tiêu'))),
-    h('span', { class: 'pill recent' }, `${c.files.filter(f => !/\.(jgw|prj|aux\.xml)$/i.test(f.name)).length} ảnh`))) : h('div', { class: 'empty' }, 'Kho còn trống. Tải ảnh ở tab Theo dõi, ảnh sẽ tự vào đây.'));
-  const cur = counts.find(c => c.name === libTarget);
-  libUrls.forEach(u => URL.revokeObjectURL(u)); libUrls = [];
+    h('span', { class: 'pill recent' }, `${c.files.filter(f => !isAux(f.name)).length} ảnh`))) : h('div', { class: 'empty' }, 'Kho còn trống. Tải ảnh ở tab Theo dõi, ảnh sẽ tự vào đây.'));
+  const cur = folders.find(c => c.name === libTarget);
   const grid = h('div', { style: 'display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px' });
-  for (const f of (cur?.files || []).sort((a, b) => b.file.lastModified - a.file.lastModified)) {
-    if (/\.(jgw|prj|aux\.xml)$/i.test(f.name)) continue;
+  for (const f of (cur?.files || []).sort((a, b) => b.mtime - a.mtime)) {
+    if (isAux(f.name)) continue;
     const isImg = /\.(jpe?g|png)$/i.test(f.name);
-    const url = URL.createObjectURL(f.file); libUrls.push(url);
-    grid.append(h('a', { href: url, target: '_blank', rel: 'noopener', class: 'acq', style: 'width:auto;text-decoration:none;color:inherit', title: f.path },
-      h('div', { class: 'ph', style: 'width:100%;height:150px' }, isImg ? h('img', { src: url, loading: 'lazy', alt: '' }) : f.name.split('.').pop().toUpperCase()),
+    grid.append(h('a', { href: f.url, target: '_blank', rel: 'noopener', class: 'acq', style: 'width:auto;text-decoration:none;color:inherit', title: f.path },
+      h('div', { class: 'ph', style: 'width:100%;height:150px' }, isImg ? h('img', { src: f.url, loading: 'lazy', alt: '' }) : f.name.split('.').pop().toUpperCase()),
       h('div', { class: 'd', style: 'word-break:break-all' }, f.path),
-      h('div', { class: 'm' }, `${fmtSize(f.file.size)} · ${new Date(f.file.lastModified).toLocaleString('vi-VN')}`)));
+      h('div', { class: 'm' }, `${fmtSize(f.size)} · ${new Date(f.mtime).toLocaleString('vi-VN')}`)));
   }
   box.replaceChildren(h('div', { class: 'split' }, h('div', { class: 'card' }, side),
-    h('div', { class: 'card pad' }, h('p', { class: 'section-title' }, cur ? `${libRoot.name} / ${cur.name}` : 'Kho ảnh'), cur ? grid : h('p', { class: 'muted' }, '—'))));
+    h('div', { class: 'card pad' }, h('p', { class: 'section-title' }, cur ? `${libName()} / ${cur.name}` : 'Kho ảnh'), cur ? grid : h('p', { class: 'muted' }, '—'))));
 }
 function saveBlob(blob, name) {
   const a = h('a', { href: URL.createObjectURL(blob), download: name });
@@ -1289,20 +1345,19 @@ async function downloadZip() {
   const list = targets.map(t => ({ t, a: results[t.id]?.acqs?.[0] })).filter(x => x.a);
   if (!list.length) return toast('Chưa có kết quả quét.');
   const btn = $('#btnZip');
-  if (libraryOn() && await ensurePermission(libRoot, true)) {
+  if (await libReady(true)) {
     btn.disabled = true; let done = 0, fail = 0;
     const pool = limiter(S.conc);
     await Promise.all(list.map(({ t, a }) => pool(async () => {
       const vb = viewBbox(t), name = fileName(t, a, 'tc', 'jpg');
       try {
         const blob = await (await fetchRetry(imgUrl(a.itemId, vb, 'tc', 'jpg', nativePx(vb)), { timeout: 180000 }, 2)).blob();
-        const dir = await libraryDir(t, '', false);
-        await writeFile(dir, name, blob); await writeWorldFile(dir, name, blob, vb);
+        await libSave(t, '', name, blob); await writeWorldFile(t, '', name, blob, vb);
       } catch { fail++; }
       btn.textContent = `Kho ${++done}/${list.length}`;
     })));
     btn.disabled = false; updateLibraryUI();
-    toast(`Đã lưu ${list.length - fail} ảnh vào ${libRoot.name}/<mục tiêu>/${fail ? `, ${fail} lỗi` : ''}`, 6000);
+    toast(`Đã lưu ${list.length - fail} ảnh vào ${libName()}/<mục tiêu>/${fail ? `, ${fail} lỗi` : ''}`, 6000);
     refreshLibraryIfOpen(null);
     return;
   }
@@ -1322,7 +1377,7 @@ async function downloadZip() {
     } catch { fail++; }
     btn.textContent = `ZIP ${++done}/${list.length}`;
   })));
-  zip.file('danh_sach.csv', '﻿' + rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\r\n'));
+  zip.file('danh_sach.csv', '\ufeff' + rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\r\n'));
   saveBlob(await zip.generateAsync({ type: 'blob' }), `Sentinel2_${todayKey()}.zip`);
   btn.disabled = false; updateLibraryUI();
   if (fail) toast(`${fail} ảnh không tải được`, 5000);
