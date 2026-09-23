@@ -96,6 +96,21 @@ Kết luận: ở Việt Nam, ảnh “hôm nay” chỉ có sau khoảng **15:3
 - API `/item/bbox/...jp2` của Planetary Computer cũng trả về JP2 (TCI L2A), nhưng **không có tọa độ**, nên app không dùng.
 - Cách làm: `server.py` có thêm `POST /api/crop` (cần `rasterio`; `run.bat` tự cài ở lần chạy đầu). Mất khoảng 10 giây cho mỗi khung 20 km.
 
+### 2.9 Đồng bộ với hệ sinh thái GSAVT
+- Kho chung `D:\KHO_ANH\TD` dùng thư mục dạng `TD-<số> <Tên>`, ví dụ `TD-016 CCKQ Al Udeid`. App trước đây tự đặt tên thư mục không dấu (`Al_Udeid`), nên ảnh bị tách làm hai nơi.
+- Mục tiêu có thêm hai trường:
+  - `folder`: thư mục GSAVT; mọi thao tác ghi vào kho dùng trường này.
+  - `code`: mã `TD-xxx`.
+- Tên mục tiêu có dạng `TD-xxx ...` thì tự nhận `folder` bằng chính tên đó.
+- `GET /api/targets` liệt kê các thư mục trong kho, kèm nội dung file geo (tìm sâu tối đa 2 cấp, mỗi file ≤ 2 MB).
+- `POST /api/merge {from, to}` chuyển tệp từ thư mục lẻ sang thư mục TD. Không ghi đè tệp đã có; thư mục nguồn đã rỗng thì xóa.
+- So khớp tên theo “lõi”: bỏ mã `TD-xxx`, bỏ tiền tố viết tắt như `CCKQ`, bỏ phần đầu theo quy ước Image Hunter, bỏ `_`/`-`. Sau đó so bằng nhau hoặc so phần đuôi. Ví dụ `Al_Dhafra` ~ `TD-017 CCKQ Al-Dhafra`, `Camp_As_Sayliyah` không khớp với thư mục nào.
+- Đã thử trên kho giả lập giống ảnh chụp của người dùng (5 thư mục TD, 6 thư mục lẻ):
+  - Liên kết đúng 5 mục tiêu.
+  - Gộp đúng 5 thư mục lẻ.
+  - `Camp_As_Sayliyah` được giữ nguyên vì chưa có thư mục TD.
+  - Đồng bộ lần hai báo “đã đồng bộ”.
+
 ## 3. Thiết kế bản mới
 
 ### 3.1 Nguyên tắc

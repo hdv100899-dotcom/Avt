@@ -221,6 +221,15 @@ dialog::backdrop { background: rgba(0,0,0,.5); }
 
 <!-- MANAGE -->
 <div class="page hidden" id="view-manage">
+  <div class="card pad" style="margin-bottom:12px">
+    <div class="toolbar">
+      <div style="flex:1;min-width:260px">
+        <p class="section-title" style="margin:0 0 4px">Đồng bộ bộ mục tiêu GSAVT</p>
+        <span class="small muted" id="gsavtInfo">Mỗi thư mục <code>TD-xxx Tên</code> trong kho ảnh chung là một mục tiêu. Tọa độ lấy từ file .geojson/.kml trong thư mục đó; ảnh tải về ghi thẳng vào đúng thư mục.</span>
+      </div>
+      <button class="btn primary" id="btnGsavt">Đồng bộ với GSAVT</button>
+    </div>
+  </div>
   <div class="mgrid">
     <div class="card pad">
       <p class="section-title">Thêm một mục tiêu</p>
@@ -323,6 +332,13 @@ dialog::backdrop { background: rgba(0,0,0,.5); }
       <li>Đổi đường dẫn kho: sửa dòng <code>set KHO_ANH=D:\KHO_ANH\TD</code> trong run.bat.</li>
       <li>Tên file: <code>&lt;Ten_muc_tieu&gt;_&lt;YYYYMMDD_HHMM&gt;VN_&lt;S2x&gt;_TCI_L1C_T&lt;ô&gt;.jp2</code>, <code>..._tc.jpg</code> (kèm <code>.jgw</code>/<code>.prj</code> cho QGIS), <code>..._tc.tif</code>.</li>
       <li>Tab <b>Kho ảnh</b> liệt kê các thư mục mục tiêu trong kho chung (kể cả thư mục do công cụ khác tạo).</li>
+      <li><b>Đồng bộ GSAVT</b> (tab Quản lý mục tiêu): mỗi thư mục <code>TD-xxx Tên</code> trong kho là một mục tiêu.
+        <ul>
+          <li>Tọa độ lấy từ file .geojson/.kml trong thư mục đó. Nếu thư mục chưa có geo, app dùng tọa độ của mục tiêu cùng tên đã có trong app (so khớp “Al_Udeid” ~ “TD-016 CCKQ Al Udeid”).</li>
+          <li>Ảnh tải về ghi thẳng vào đúng thư mục TD.</li>
+          <li>Thư mục lẻ do app tạo trước đây (vd. <code>Al_Udeid</code>) có nút <b>Gộp</b> vào thư mục TD tương ứng; chỉ chuyển tệp, không ghi đè.</li>
+          <li>Mỗi lần mở app, nếu bộ mục tiêu GSAVT có thay đổi, app sẽ báo.</li>
+        </ul></li>
       <li>Mở thẳng index.html (không qua run.bat) thì không có kho chung: có thể chọn thư mục thủ công (Chrome/Edge), hoặc ảnh vào Downloads.</li>
     </ul>
     <h3>So sánh hai ngày</h3>
@@ -426,11 +442,34 @@ function bboxFromPoint(lat, lon, r) {
   const dLat = r / 111.32, dLon = r / (111.32 * Math.cos(lat * Math.PI / 180));
   return [lon - dLon, lat - dLat, lon + dLon, lat + dLat].map(v => round(v));
 }
-function makeTarget({ id, name, group, lat, lon, radius_km, bbox }) {
+function makeTarget({ id, name, group, lat, lon, radius_km, bbox, folder, code }) {
   radius_km = Number(radius_km) || 3;
   if (!bbox) bbox = bboxFromPoint(lat, lon, radius_km);
   if (lat == null || lon == null) { lat = (bbox[1] + bbox[3]) / 2; lon = (bbox[0] + bbox[2]) / 2; }
-  return { id: id || uid(), name: String(name || 'Mục tiêu').trim(), group: String(group || '').trim(), lat: round(lat), lon: round(lon), radius_km: round(radius_km, 1), bbox: bbox.map(v => round(v)) };
+  name = String(name || 'Mục tiêu').trim();
+  // Tên theo quy ước GSAVT "TD-016 CCKQ Al Udeid" thì thư mục kho chính là tên đó
+  const m = name.match(/^(TD-\d+)\s+(.+)$/i);
+  if (!folder && m) folder = name;
+  if (!code && m) code = m[1].toUpperCase();
+  const t = { id: id || uid(), name, group: String(group || '').trim(), lat: round(lat), lon: round(lon), radius_km: round(radius_km, 1), bbox: bbox.map(v => round(v)) };
+  if (folder) t.folder = folder;
+  if (code) t.code = code;
+  return t;
+}
+// "Lõi" tên để khớp các cách viết khác nhau của cùng mục tiêu:
+// "TD-016 CCKQ Al Udeid" ~ "Al_Udeid" ~ "QA_CCKQ_KQ_01_Al_Udeid" ~ "Al Udeid"
+function coreName(s) {
+  let x = slug(s);
+  const ih = x.match(/^[A-Z]{2,}_[A-Z0-9]+_[A-Z0-9]+_\d+_(.+)$/);   // quy ước Image Hunter
+  if (ih) x = ih[1];
+  x = x.replace(/^TD_\d+_/i, '');
+  while (/^[A-Z]{2,6}_./.test(x)) x = x.replace(/^[A-Z]{2,6}_/, '');   // bỏ tiền tố viết tắt: CCKQ_, NSA_…
+  return x.toLowerCase().replace(/[_-]/g, '');
+}
+function sameTarget(a, b) {
+  const x = coreName(a), y = coreName(b);
+  if (x.length < 4 || y.length < 4) return x === y && !!x;
+  return x === y || x.endsWith(y) || y.endsWith(x);
 }
 function bboxPolygon(b) { return { type: 'Polygon', coordinates: [[[b[0], b[1]], [b[2], b[1]], [b[2], b[3]], [b[0], b[3]], [b[0], b[1]]]] }; }
 
@@ -1230,7 +1269,9 @@ async function loadLibraryRoot() {
   if (!SRV && FS_OK) { try { libRoot = (await idb.get('libRoot')) || null; } catch { libRoot = null; } }
   updateLibraryUI();
   renderPickBar();   // cập nhật lựa chọn "cắt TCI L1C" nếu đã tick ảnh trước khi dò xong máy chủ
+  if (SRV && !gsavtChecked) { gsavtChecked = true; syncGSAVT({ quiet: true }); }   // báo nếu bộ mục tiêu GSAVT có thay đổi
 }
+let gsavtChecked = false;
 async function pickLibraryRoot() {
   if (SRV) return toast(`Đang dùng kho chung ${SRV.root}. Đổi đường dẫn trong run.bat (KHO_ANH).`, 6000);
   if (!FS_OK) return toast('Trình duyệt này không hỗ trợ ghi thư mục. Dùng Chrome hoặc Edge, hoặc mở bằng run.bat.', 6000);
@@ -1246,7 +1287,8 @@ async function ensurePermission(handle, interactive) {
   return interactive && await handle.requestPermission(o) === 'granted';
 }
 // Tên thư mục không dấu (như tên file) để chắc chắn đúng trên mọi ổ đĩa, ổ mạng, USB
-const folderName = t => slug(t.name);
+// Thư mục kho của mục tiêu: thư mục GSAVT đã liên kết ("TD-016 CCKQ Al Udeid"), không thì tên không dấu
+const folderName = t => t.folder || slug(t.name);
 // 'server' | 'fs' | null — sẵn sàng ghi vào kho chưa
 async function libReady(interactive) {
   if (SRV) return 'server';
@@ -1499,15 +1541,18 @@ function classifyImport(list) {
   const byName = new Map(targets.map(t => [normName(t.name), t]));
   const seen = new Set();
   return list.map(({ t, src }) => {
-    const k = normName(t.name), old = byName.get(k);
+    const k = normName(t.name);
+    // khớp theo tên, hoặc theo mã TD, hoặc theo lõi tên với mục tiêu đã liên kết GSAVT
+    const old = byName.get(k) || (t.code && targets.find(x => x.code === t.code)) || targets.find(x => x.folder && sameTarget(x.folder, t.name));
+    if (old?.folder && !t.folder) { t.folder = old.folder; t.code = old.code; t.name = old.name; }
     let status = 'new';
     if (seen.has(k)) status = 'dup';
-    else if (old) status = old.bbox.every((v, i) => Math.abs(v - t.bbox[i]) < 1e-4) ? 'same' : 'update';
+    else if (old) status = old.bbox.every((v, i) => Math.abs(v - t.bbox[i]) < 1e-4) ? (old.folder === t.folder || !t.folder ? 'same' : 'link') : 'update';
     seen.add(k);
-    return { t, src, old, status, on: status === 'new' || status === 'update' };
+    return { t, src, old, status, on: status === 'new' || status === 'update' || status === 'link' };
   });
 }
-const STATUS_TXT = { new: ['Mới', 'today'], update: ['Cập nhật tọa độ', 'yesterday'], same: ['Đã có', 'old'], dup: ['Trùng trong lô', 'error'] };
+const STATUS_TXT = { new: ['Mới', 'today'], update: ['Cập nhật tọa độ', 'yesterday'], link: ['Liên kết thư mục GSAVT', 'recent'], same: ['Đã có', 'old'], dup: ['Trùng trong lô', 'error'], nogeo: ['Thiếu geo trong thư mục', 'error'] };
 function showImport(list, errors = [], note = '') {
   importRows = classifyImport(list);
   const info = [];
@@ -1519,20 +1564,21 @@ function showImport(list, errors = [], note = '') {
 }
 function renderImportPreview(errors = []) {
   const card = $('#importCard');
-  card.classList.toggle('hidden', !importRows.length && !errors.length);
-  if (!importRows.length && !errors.length) return card.replaceChildren();
+  const hasOrphans = orphanList().length > 0;
+  card.classList.toggle('hidden', !importRows.length && !errors.length && !hasOrphans);
+  if (!importRows.length && !errors.length && !hasOrphans) return card.replaceChildren();
   const cnt = st => importRows.filter(r => r.status === st).length;
   const nOn = importRows.filter(r => r.on).length;
   const scanChk = h('input', { type: 'checkbox', id: 'importScan', checked: true });
-  const all = h('input', { type: 'checkbox', class: 'pick', checked: nOn === importRows.length && nOn > 0, onchange: e => { importRows.forEach(r => r.on = e.target.checked); renderImportPreview(errors); } });
+  const all = h('input', { type: 'checkbox', class: 'pick', checked: nOn > 0 && importRows.every(r => r.on || r.status === 'nogeo'), onchange: e => { importRows.forEach(r => r.on = e.target.checked && r.status !== 'nogeo'); renderImportPreview(errors); } });
   const tb = h('tbody');
   for (const r of importRows) {
     const [txt, cls] = STATUS_TXT[r.status];
     tb.append(h('tr', null,
-      h('td', null, h('input', { type: 'checkbox', class: 'pick', checked: r.on, onchange: e => { r.on = e.target.checked; renderImportPreview(errors); } })),
+      h('td', null, h('input', { type: 'checkbox', class: 'pick', checked: r.on, disabled: r.status === 'nogeo', onchange: e => { r.on = e.target.checked; renderImportPreview(errors); } })),
       h('td', null, h('b', null, r.t.name)),
       h('td', null, r.t.group || h('span', { class: 'muted' }, '—')),
-      h('td', null, `${r.t.lat}, ${r.t.lon}`),
+      h('td', null, r.status === 'nogeo' ? h('span', { class: 'muted' }, 'chưa có tọa độ') : `${r.t.lat}, ${r.t.lon}`),
       h('td', null, `${r.t.radius_km} km`),
       h('td', null, h('span', { class: 'pill ' + cls, title: r.old ? `Hiện có: ${r.old.lat}, ${r.old.lon}, ${r.old.radius_km} km` : '' }, txt)),
       h('td', { class: 'small muted', style: 'word-break:break-all' }, r.src || '')));
@@ -1540,13 +1586,14 @@ function renderImportPreview(errors = []) {
   card.replaceChildren(...[
     h('div', { class: 'pad toolbar', style: 'border-bottom:1px solid var(--border)' },
       h('b', null, `Xem trước: ${importRows.length} mục tiêu`),
-      h('span', { class: 'small muted' }, [`${cnt('new')} mới`, `${cnt('update')} cập nhật`, `${cnt('same')} đã có`, cnt('dup') ? `${cnt('dup')} trùng trong lô` : ''].filter(Boolean).join(' · ')),
+      h('span', { class: 'small muted' }, [`${cnt('new')} mới`, `${cnt('update')} cập nhật`, cnt('link') ? `${cnt('link')} liên kết GSAVT` : '', `${cnt('same')} đã có`, cnt('dup') ? `${cnt('dup')} trùng trong lô` : '', cnt('nogeo') ? `${cnt('nogeo')} thiếu geo` : ''].filter(Boolean).join(' · ')),
       h('span', { style: 'margin-left:auto' }),
       h('label', { class: 'check', style: 'margin:0' }, scanChk, 'Quét ngay sau khi nhập'),
       h('button', { class: 'btn primary', disabled: !nOn, onclick: () => applyImport(false, scanChk.checked) }, `Nhập ${nOn} mục đã chọn`),
       h('button', { class: 'btn', disabled: !nOn, onclick: () => applyImport(true, scanChk.checked) }, 'Thay toàn bộ danh sách'),
       h('button', { class: 'btn ghost', onclick: () => { importRows = []; renderImportPreview(); $('#importInfo').textContent = ''; } }, 'Hủy')),
     errors.length ? h('div', { class: 'pad small', style: 'color:var(--bad)' }, 'Tệp lỗi: ', errors.join('; ')) : null,
+    orphanBox(),
     importRows.length ? h('div', { class: 'tablewrap', style: 'max-height:50vh' }, h('table', null,
       h('thead', null, h('tr', null, h('th', { style: 'width:28px' }, all), h('th', null, 'Tên'), h('th', null, 'Nhóm'), h('th', null, 'Tâm (vĩ, kinh)'), h('th', null, 'Bán kính'), h('th', null, 'Trạng thái'), h('th', null, 'Nguồn'))), tb)) : null].filter(Boolean));
 }
@@ -1588,15 +1635,20 @@ function applyImport(replace, scanAfter) {
   const touched = [];
   if (replace) {
     if (!confirm(`Thay toàn bộ ${targets.length} mục tiêu hiện có bằng ${rows.length} mục tiêu?`)) return;
-    targets = rows.map(r => r.t); results = {}; save(K.results, results);
+    // giữ id cũ khi liên kết để không mất kết quả quét
+    targets = rows.map(r => r.old ? { ...r.t, id: r.old.id } : r.t);
+    const keep = new Set(targets.map(t => t.id)); for (const id of Object.keys(results)) if (!keep.has(id)) delete results[id];
+    save(K.results, results);
     touched.push(...targets);
   } else {
     for (const r of rows) {
-      if (r.status === 'update' || r.status === 'same') {
-        const o = targets.find(x => normName(x.name) === normName(r.t.name));
+      if (r.status === 'update' || r.status === 'same' || r.status === 'link') {
+        const o = r.old || targets.find(x => normName(x.name) === normName(r.t.name));
         if (!o) continue;
-        Object.assign(o, { lat: r.t.lat, lon: r.t.lon, radius_km: r.t.radius_km, bbox: r.t.bbox, group: r.t.group || o.group });
-        delete results[o.id]; touched.push(o);
+        const moved = o.bbox.some((v, i) => Math.abs(v - r.t.bbox[i]) >= 1e-4);
+        Object.assign(o, { name: r.t.name, lat: r.t.lat, lon: r.t.lon, radius_km: r.t.radius_km, bbox: r.t.bbox, group: r.t.group || o.group });
+        if (r.t.folder) { o.folder = r.t.folder; o.code = r.t.code; }
+        if (moved) { delete results[o.id]; touched.push(o); }
       } else if (r.status === 'new') { targets.push(r.t); touched.push(r.t); }
     }
     save(K.results, results);
@@ -1615,6 +1667,58 @@ async function scanSome(list) {
   await Promise.all(list.map(t => pool(async () => { await scanTarget(t, { quiet: true }); renderSummary(); renderList(); })));
   save(K.results, results); persistSclCache(); renderAll();
   toast(`Đã quét xong ${list.length} mục tiêu vừa nhập.`, 4000);
+}
+/* ---- Đồng bộ với hệ sinh thái GSAVT (thư mục TD-xxx trong kho chung) ---- */
+let gsavtFolders = [];
+async function syncGSAVT({ quiet } = {}) {
+  if (!SRV) { if (!quiet) toast('Cần mở app bằng run.bat để đọc kho chung ' + 'D:\\KHO_ANH\\TD', 6000); return; }
+  let j;
+  try { j = await srvCall('/api/targets'); } catch (e) { if (!quiet) toast('Không đọc được kho: ' + e.message, 6000); return; }
+  gsavtFolders = j.folders;
+  const list = [], nogeo = [];
+  for (const f of j.folders.filter(f => f.code)) {
+    let geoT = null;
+    for (const g of f.geo) { try { geoT = parseAny(g.text, f.folder)[0]; if (geoT) break; } catch {} }
+    const old = targets.find(x => x.folder === f.folder) || targets.find(x => x.code === f.code) || targets.find(x => sameTarget(x.name, f.label));
+    const base = geoT || old;
+    if (!base) { nogeo.push({ t: { name: f.folder, folder: f.folder, code: f.code, group: '', lat: 0, lon: 0, radius_km: 0, bbox: [0, 0, 0, 0] }, src: f.folder, old: null, status: 'nogeo', on: false }); continue; }
+    const t = makeTarget({ id: old?.id, name: f.folder, folder: f.folder, code: f.code, group: geoT?.group || old?.group || '', lat: base.lat, lon: base.lon, radius_km: base.radius_km, bbox: base.bbox });
+    list.push({ t, src: geoT ? `${f.folder}/${f.geo[0].path}` : `${f.folder} (tọa độ từ “${old.name}”)`, old });
+  }
+  const rows = list.map(({ t, src, old }) => {
+    const same = old && old.bbox.every((v, i) => Math.abs(v - t.bbox[i]) < 1e-4);
+    const status = !old ? 'new' : !same ? 'update' : old.folder === t.folder && old.name === t.name ? 'same' : 'link';
+    return { t, src, old, status, on: status !== 'same' };
+  });
+  const pending = rows.filter(r => r.status !== 'same').length + orphanList().length;
+  $('#gsavtInfo').textContent = `Kho ${j.root}: ${j.folders.filter(f => f.code).length} thư mục TD · ${pending ? `${pending} việc cần đồng bộ` : 'đã đồng bộ'}${nogeo.length ? ` · ${nogeo.length} thư mục chưa có geo` : ''}.`;
+  if (quiet) { if (pending) toast(`GSAVT: có ${pending} thay đổi cần đồng bộ (tab Quản lý mục tiêu).`, 6000); return; }
+  importRows = [...rows, ...nogeo];
+  $('#importInfo').textContent = '';
+  renderImportPreview();
+  $('#importCard').scrollIntoView({ behavior: 'smooth' });
+}
+// Thư mục lẻ (không có mã TD) khớp với một thư mục TD → nên gộp vào
+function orphanList() {
+  const tds = gsavtFolders.filter(f => f.code);
+  return gsavtFolders.filter(f => !f.code).map(f => ({ f, to: tds.find(t => sameTarget(t.label, f.folder)) })).filter(x => x.to);
+}
+function orphanBox() {
+  const list = orphanList();
+  if (!list.length) return null;
+  const merge = async (x) => {
+    const r = await srvCall('/api/merge', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ from: x.f.folder, to: x.to.folder }) });
+    gsavtFolders = gsavtFolders.filter(g => g !== x.f || !r.removed);
+    return r;
+  };
+  return h('div', { class: 'pad', style: 'border-top:1px solid var(--border)' },
+    h('p', { class: 'section-title' }, `Thư mục lẻ trong kho cần gộp vào thư mục GSAVT (${list.length})`),
+    h('div', { class: 'toolbar', style: 'flex-direction:column;align-items:stretch;gap:6px' },
+      list.map(x => h('div', { class: 'toolbar' }, h('code', null, x.f.folder), '→', h('b', null, x.to.folder),
+        h('button', { class: 'btn sm', onclick: async () => { try { const r = await merge(x); toast(`Đã chuyển ${r.moved} tệp${r.skipped ? `, bỏ qua ${r.skipped} tệp trùng` : ''}.`); renderImportPreview(); } catch (e) { toast('Lỗi: ' + e.message, 5000); } } }, 'Gộp')))),
+    h('div', { class: 'toolbar', style: 'margin-top:8px' },
+      h('button', { class: 'btn primary', onclick: async () => { let m = 0, sk = 0; for (const x of list) { try { const r = await merge(x); m += r.moved; sk += r.skipped; } catch {} } toast(`Đã gộp ${list.length} thư mục: chuyển ${m} tệp${sk ? `, bỏ qua ${sk} tệp trùng tên` : ''}.`, 6000); renderImportPreview(); } }, 'Gộp tất cả'),
+      h('span', { class: 'small muted' }, 'Chỉ chuyển tệp, không ghi đè tệp đã có; thư mục lẻ rỗng sẽ được xóa.')));
 }
 function exportGeo() {
   const fc = { type: 'FeatureCollection', features: targets.map(t => ({ type: 'Feature', properties: { name: t.name, group: t.group, radius_km: t.radius_km }, geometry: bboxPolygon(t.bbox) })) };
@@ -1698,6 +1802,7 @@ document.addEventListener('keydown', e => {
 });
 
 $('#btnPickLib').addEventListener('click', pickLibraryRoot);
+$('#btnGsavt').addEventListener('click', () => syncGSAVT());
 $('#btnPickLib2').addEventListener('click', pickLibraryRoot);
 $('#btnRefreshLib').addEventListener('click', renderLibrary);
 

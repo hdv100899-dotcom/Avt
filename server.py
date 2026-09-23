@@ -126,6 +126,8 @@ class Handler(SimpleHTTPRequestHandler):
                                      "crop_error": RASTERIO_ERR, "python": sys.version.split()[0]})
         if u.path == "/api/list":
             return self._list()
+        if u.path == "/api/targets":
+            return self._targets()
         if u.path == "/api/file":
             return self._file(urllib.parse.parse_qs(u.query).get("path", [""])[0])
         if u.path in ("/", ""):
@@ -152,6 +154,59 @@ class Handler(SimpleHTTPRequestHandler):
                                       "size": st.st_size, "mtime": int(st.st_mtime * 1000)})
                 folders.append({"name": name, "files": files})
         return self._json(200, {"ok": True, "root": self.kho, "folders": folders})
+
+    # ---- bộ mục tiêu GSAVT: mỗi thư mục "TD-<số> <tên>" trong kho là một mục tiêu ----
+    TD_RE = re.compile(r"^(TD-\d+)\s+(.+)$", re.I)
+    GEO_EXT = (".geojson", ".json", ".kml")
+
+    def _targets(self):
+        out = []
+        if os.path.isdir(self.kho):
+            for name in sorted(os.listdir(self.kho)):
+                top = os.path.join(self.kho, name)
+                if not os.path.isdir(top):
+                    continue
+                m = self.TD_RE.match(name)
+                geos = []
+                # tìm file geo trong thư mục mục tiêu (tối đa 2 cấp, bỏ file lớn)
+                for dirpath, dirnames, fnames in os.walk(top):
+                    if os.path.relpath(dirpath, top).count(os.sep) >= 2:
+                        dirnames[:] = []
+                    for fn in fnames:
+                        if fn.lower().endswith(self.GEO_EXT):
+                            fp = os.path.join(dirpath, fn)
+                            if os.path.getsize(fp) <= 2_000_000:
+                                with open(fp, "r", encoding="utf-8-sig", errors="replace") as f:
+                                    geos.append({"path": os.path.relpath(fp, top).replace(os.sep, "/"), "text": f.read()})
+                out.append({"folder": name, "code": m.group(1).upper() if m else "", "label": m.group(2) if m else name,
+                            "geo": geos[:5]})
+        return self._json(200, {"ok": True, "root": self.kho, "folders": out})
+
+    def _merge(self, req):
+        """Gộp thư mục lẻ (do app tạo trước đây) vào thư mục mục tiêu chuẩn; không ghi đè file đã có."""
+        src = os.path.join(self.kho, safe_part(req.get("from")))
+        dst = os.path.join(self.kho, safe_part(req.get("to")))
+        if not os.path.isdir(src) or not os.path.isdir(dst) or os.path.samefile(src, dst):
+            return self._json(400, {"ok": False, "error": "thư mục không hợp lệ"})
+        moved, skipped = 0, 0
+        for dirpath, _, fnames in os.walk(src):
+            rel = os.path.relpath(dirpath, src)
+            for fn in fnames:
+                target_dir = os.path.normpath(os.path.join(dst, rel))
+                os.makedirs(target_dir, exist_ok=True)
+                t = os.path.join(target_dir, fn)
+                if os.path.exists(t):
+                    skipped += 1
+                    continue
+                shutil.move(os.path.join(dirpath, fn), t)
+                moved += 1
+        # xóa thư mục nguồn nếu đã rỗng
+        for dirpath, _, _ in sorted(os.walk(src), key=lambda x: -len(x[0])):
+            try:
+                os.rmdir(dirpath)
+            except OSError:
+                pass
+        return self._json(200, {"ok": True, "moved": moved, "skipped": skipped, "removed": not os.path.exists(src)})
 
     def _file(self, rel):
         fp = os.path.realpath(os.path.join(self.kho, *[p for p in rel.split("/") if p not in ("", ".", "..")]))
@@ -188,6 +243,8 @@ class Handler(SimpleHTTPRequestHandler):
                 r = urllib.request.urlopen(urllib.request.Request(req["url"], headers={"User-Agent": "S2Monitor/1.0"}), timeout=120)
                 size = self._write_stream(r, dest)
                 return self._json(200, {"ok": True, "path": dest, "size": size})
+            if u.path == "/api/merge":
+                return self._merge(json.loads(self.rfile.read(self._body_len())))
             if u.path == "/api/crop":
                 return self._crop(json.loads(self.rfile.read(self._body_len())))
             return self._json(404, {"ok": False, "error": "không có API này"})
