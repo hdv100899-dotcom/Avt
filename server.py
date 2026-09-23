@@ -36,9 +36,9 @@ try:  # cắt JP2 gốc theo khung, chỉ đọc phần cần (HTTP range) — c
     import rasterio
     from rasterio.warp import transform_bounds
     from rasterio.windows import from_bounds, Window
-    HAS_RASTERIO = True
-except Exception:  # noqa: BLE001
-    HAS_RASTERIO = False
+    HAS_RASTERIO, RASTERIO_ERR = True, ""
+except Exception as _e:  # noqa: BLE001
+    HAS_RASTERIO, RASTERIO_ERR = False, "%s: %s" % (type(_e).__name__, _e)
 
 BAD_CHARS = re.compile(r'[<>:"/\\|?*\x00-\x1f]')
 
@@ -122,7 +122,8 @@ class Handler(SimpleHTTPRequestHandler):
             return self.send_error(403)
         u = urllib.parse.urlparse(self.path)
         if u.path == "/api/health":
-            return self._json(200, {"ok": True, "app": "s2m", "root": self.kho, "sep": os.sep, "crop": HAS_RASTERIO})
+            return self._json(200, {"ok": True, "app": "s2m", "root": self.kho, "sep": os.sep, "crop": HAS_RASTERIO,
+                                     "crop_error": RASTERIO_ERR, "python": sys.version.split()[0]})
         if u.path == "/api/list":
             return self._list()
         if u.path == "/api/file":

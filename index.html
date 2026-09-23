@@ -1059,15 +1059,25 @@ function renderPickBar() {
   if (!list.length) return;
   const cur = tciMode();
   const mode = h('select', { title: 'Loại TCI', onchange: e => { S.tciMode = e.target.value; save(K.settings, S); } },
-    h('option', { value: 'l1c_crop', selected: cur === 'l1c_crop', disabled: !SRV?.crop }, 'TCI L1C cắt theo khung (JP2 gốc, 10 m)' + (SRV?.crop ? '' : ' — cần run.bat + rasterio')),
+    h('option', { value: 'l1c_crop', selected: cur === 'l1c_crop', disabled: !SRV?.crop }, 'TCI L1C cắt theo khung (JP2 gốc, 10 m)' + (SRV?.crop ? '' : ' — chưa dùng được')),
     h('option', { value: 'l1c', selected: cur === 'l1c' }, 'TCI L1C gốc cả ô (JP2, ~120 MB/ảnh)'),
     h('option', { value: 'crop', selected: cur === 'crop' }, 'TCI L2A cắt theo khung (GeoTIFF, 10 m)'));
+  const why = cropUnavailableReason();
   bar.replaceChildren(
     h('b', null, `Đã chọn ${list.length} ảnh`),
     h('span', { class: 'small muted' }, [...new Set(list.map(x => x.t.name))].slice(0, 4).join(', ') + (new Set(list.map(x => x.t.name)).size > 4 ? '…' : '')),
     h('span', { style: 'margin-left:auto' }), mode,
     h('button', { class: 'btn primary', id: 'btnTci', onclick: downloadTCI }, 'Tải TCI'),
-    h('button', { class: 'btn', onclick: () => { picked.clear(); renderPickBar(); renderList(); renderDetail(); } }, 'Bỏ chọn'));
+    h('button', { class: 'btn', onclick: () => { picked.clear(); renderPickBar(); renderList(); renderDetail(); } }, 'Bỏ chọn'),
+    why ? h('div', { class: 'small', style: 'width:100%;color:var(--warn)' }, 'Chưa cắt được TCI L1C: ', why, ' ',
+      h('button', { class: 'btn sm', onclick: async () => { await loadLibraryRoot(); renderPickBar(); toast(SRV?.crop ? 'Đã kết nối máy chủ, cắt TCI L1C dùng được.' : 'Vẫn chưa dùng được: ' + cropUnavailableReason(), 6000); } }, 'Kiểm tra lại')) : null);
+}
+// Vì sao chưa cắt được TCI L1C (JP2) — hiện ngay trên thanh chọn
+function cropUnavailableReason() {
+  if (SRV?.crop) return '';
+  if (location.protocol === 'file:') return 'đang mở thẳng file index.html. Hãy đóng tab này và mở app bằng run.bat (địa chỉ http://localhost:8765/).';
+  if (!SRV) return 'không thấy máy chủ run.bat. Kiểm tra cửa sổ đen của run.bat còn mở không (đóng nó là tắt máy chủ).';
+  return `máy chủ thiếu thư viện rasterio (Python ${SRV.python || '?'}${SRV.crop_error ? ' — ' + SRV.crop_error : ''}). Mở cmd chạy: python -m pip install rasterio, rồi tắt và chạy lại run.bat.`;
 }
 function openLink(url, name) {
   const a = h('a', { href: url, download: name, target: '_blank', rel: 'noopener' });
