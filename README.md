@@ -15,7 +15,13 @@ Cần kết nối Internet để truy cập Microsoft Planetary Computer, Copern
 - **Dự báo ngày bay kế tiếp** dựa trên chu kỳ lặp 10 ngày của S2A, S2B và S2C.
 - Báo “Đã chụp, chờ PC” khi Copernicus đã có ảnh mà Planetary Computer chưa có.
 - Ảnh cắt theo vùng ở 4 kiểu hiển thị: Màu thật, Hồng ngoại, SWIR, NDVI. So sánh hai ngày bằng thanh trượt.
-- Tải JPG vùng, GeoTIFF vùng (có tọa độ), cả ô gốc, hoặc ZIP ảnh mới của mọi mục tiêu kèm file CSV.
+- Khung nhìn mở rộng tới 40 km (không bó trong ô geo). Bản đồ hiện toàn bộ cảnh 110 km.
+- Tải ở **độ phân giải gốc**:
+  - JPG hoặc GeoTIFF 10 m theo khung nhìn.
+  - Từng band **L1C gốc** (JP2 cả ô, 10/20/60 m) lấy từ kho công khai Google Cloud.
+  - Từng band L2A cắt vùng.
+  - Cả ô gốc.
+  - ZIP ảnh mới của mọi mục tiêu kèm file CSV.
 - Bản đồ Leaflet. Nhập mục tiêu từ GeoJSON, KML hoặc CSV; xuất GeoJSON.
 - Tự quét lại định kỳ và gửi thông báo hệ thống khi có ảnh mới.
 

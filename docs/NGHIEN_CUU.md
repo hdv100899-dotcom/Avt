@@ -57,6 +57,19 @@ Kết luận: ở Việt Nam, ảnh “hôm nay” chỉ có sau khoảng **15:3
 - Mỗi vệ tinh lặp lại quỹ đạo tương đối sau đúng **10 ngày**. Hiện có S2A (chiến dịch kéo dài, lệch pha), S2B và S2C. Ví dụ tại Long Thành: S2B 03/09 và 13/09, S2C 08/09 và 18/09, tức một lượt mỗi 5 ngày trên quỹ đạo R075, cộng thêm lượt của S2A.
 - Vì vậy chỉ cần lấy lượt chụp gần nhất của mỗi cặp (vệ tinh, quỹ đạo) rồi cộng bội số của 10 ngày là dự báo được ngày bay kế tiếp, không cần tải dữ liệu quỹ đạo (TLE).
 
+### 2.5 Nguồn tải band gốc
+- **L1C**: kho công khai Google Cloud `gcp-public-data-sentinel-2`.
+  - Lưu theo đường dẫn `tiles/<UTM>/<băng vĩ độ>/<ô>/<SAFE>/GRANULE/<...>/IMG_DATA/*.jp2`.
+  - Tải qua HTTPS không cần tài khoản; API liệt kê file có CORS `*`.
+  - Ví dụ ô 48QYJ ngày 21/09/2026: 14 file JP2 (B01…B12, B8A, TCI), tổng khoảng 683 MB. Band 10 m mỗi file khoảng 90 MB.
+- CDSE cũng có L1C, nhưng link `https` cần đăng nhập OIDC. Earth Search `sentinel-2-l1c` trỏ về bucket S3 kiểu người tải trả phí. Vì vậy bản mới dùng Google Cloud.
+- **L2A theo band, cắt vùng**: dùng `/item/bbox/...tif?assets=Bxx&max_size=<số pixel gốc>`. Đã kiểm tra:
+  - Khung 20 km, band B11 (20 m) → 1002 px.
+  - Khung 20 km, ảnh màu 10 m → 2002 px.
+  - Không bị nội suy.
+- **Giới hạn khung cắt**: JPG 50 km (~5000 px) trả về sau 7 giây. GeoTIFF 50 km (~66 MB) có lúc bị ngắt giữa chừng, nên khung lớn nhất trong app là 40 km.
+- **Xem trọn cảnh**: tile `/item/tiles/WebMercatorQuad/{z}/{x}/{y}@1x.png?...` được dùng làm lớp phủ Leaflet.
+
 ## 3. Thiết kế bản mới
 
 ### 3.1 Nguyên tắc
@@ -76,10 +89,13 @@ Kết luận: ở Việt Nam, ảnh “hôm nay” chỉ có sau khoảng **15:3
 - **Ô tổng hợp** (bấm để lọc): Có ảnh hôm nay, Hôm nay & rõ, Dự kiến bay hôm nay, Đã chụp chờ PC, Lỗi/chưa quét. Kèm một câu tóm tắt tùy theo giờ trong ngày.
 - **Danh sách mục tiêu**: ảnh thu nhỏ đã cắt, thời điểm chụp, ngày bay dự kiến, trạng thái và % mây trong vùng. Có tìm kiếm và 4 kiểu sắp xếp.
 - **Chi tiết mục tiêu**:
-  - Ảnh lớn đã cắt, chuyển được giữa Màu thật, Hồng ngoại, SWIR và NDVI.
+  - Ảnh lớn, chuyển được giữa Màu thật, Hồng ngoại, SWIR và NDVI.
+  - Chọn **khung nhìn**: vùng mục tiêu, ×2, ×4, 10, 20 hoặc 40 km. Viền vàng đánh dấu ô mục tiêu.
   - **So sánh hai ngày** bằng thanh trượt.
-  - Tải JPG vùng, GeoTIFF vùng hoặc cả ô gốc (ký SAS lúc bấm).
-  - Bản đồ Leaflet (nền Esri/OSM) phủ ảnh lên khung mục tiêu; có thể bấm lên bản đồ để thêm mục tiêu.
+  - Tải JPG hoặc GeoTIFF ở độ phân giải gốc 10 m theo khung nhìn.
+  - Tải band L1C gốc (JP2 cả ô) và band L2A cắt vùng (GeoTIFF uint16).
+  - Tải cả ô gốc (ký SAS lúc bấm).
+  - Bản đồ Leaflet (nền Esri/OSM) có lớp **toàn bộ cảnh 110 km**; có thể bấm lên bản đồ để thêm mục tiêu.
   - Thông tin cảnh: giờ VN, vệ tinh, quỹ đạo, ô MGRS, mây trong vùng và mây cả ô, độ phủ. Có liên kết tới “Ảnh rõ gần nhất”.
   - Dải thời gian mọi lượt chụp trong kỳ. Bấm vào lượt chưa đo thì app đo mây ngay. Phím ←/→ để chuyển lượt.
 - **Quản lý mục tiêu**:
