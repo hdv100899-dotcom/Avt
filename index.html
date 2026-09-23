@@ -1070,7 +1070,7 @@ function renderPickBar() {
     h('button', { class: 'btn primary', id: 'btnTci', onclick: downloadTCI }, 'Tải TCI'),
     h('button', { class: 'btn', onclick: () => { picked.clear(); renderPickBar(); renderList(); renderDetail(); } }, 'Bỏ chọn'),
     why ? h('div', { class: 'small', style: 'width:100%;color:var(--warn)' }, 'Chưa cắt được TCI L1C: ', why, ' ',
-      h('button', { class: 'btn sm', onclick: async () => { await loadLibraryRoot(); renderPickBar(); toast(SRV?.crop ? 'Đã kết nối máy chủ, cắt TCI L1C dùng được.' : 'Vẫn chưa dùng được: ' + cropUnavailableReason(), 6000); } }, 'Kiểm tra lại')) : null);
+      h('button', { class: 'btn sm', onclick: async () => { SRV = null; await loadLibraryRoot(); renderPickBar(); toast(SRV?.crop ? 'Đã kết nối máy chủ, cắt TCI L1C dùng được.' : 'Vẫn chưa dùng được: ' + cropUnavailableReason(), 6000); } }, 'Kiểm tra lại')) : null);
 }
 // Vì sao chưa cắt được TCI L1C (JP2) — hiện ngay trên thanh chọn
 function cropUnavailableReason() {
@@ -1193,10 +1193,13 @@ async function downloadBlob(url, name, t, opts = {}) {
 let SRV = null;
 async function detectServer() {
   if (!/^https?:$/.test(location.protocol)) return;
-  try {
-    const r = await fetch('/api/health', { headers: { 'X-S2M': '1' }, signal: AbortSignal.timeout(3000) });
-    if (r.ok) { const j = await r.json(); if (j.app === 's2m') SRV = j; }
-  } catch {}
+  // Trên Windows, kết nối đầu tới "localhost" có thể chậm vài giây (thử IPv6 ::1 trước) — cho đủ thời gian và thử lại
+  for (let i = 0; i < 3 && !SRV; i++) {
+    try {
+      const r = await fetch('/api/health', { headers: { 'X-S2M': '1' }, cache: 'no-store', signal: AbortSignal.timeout(10000) });
+      if (r.ok) { const j = await r.json(); if (j.app === 's2m') SRV = j; }
+    } catch (e) { console.warn('health', e); }
+  }
 }
 async function srvCall(path, opts = {}) {
   const r = await fetch(path, { ...opts, headers: { 'X-S2M': '1', ...(opts.headers || {}) } });
@@ -1223,6 +1226,7 @@ async function loadLibraryRoot() {
   await detectServer();
   if (!SRV && FS_OK) { try { libRoot = (await idb.get('libRoot')) || null; } catch { libRoot = null; } }
   updateLibraryUI();
+  renderPickBar();   // cập nhật lựa chọn "cắt TCI L1C" nếu đã tick ảnh trước khi dò xong máy chủ
 }
 async function pickLibraryRoot() {
   if (SRV) return toast(`Đang dùng kho chung ${SRV.root}. Đổi đường dẫn trong run.bat (KHO_ANH).`, 6000);

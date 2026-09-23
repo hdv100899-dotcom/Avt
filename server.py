@@ -241,6 +241,19 @@ def main():
     Handler.port = a.port
     os.makedirs(Handler.kho, exist_ok=True)
     srv = ThreadingHTTPServer(("127.0.0.1", a.port), Handler)
+    # Nghe thêm ::1 (IPv6 loopback): trình duyệt trên Windows thường thử "localhost" = ::1 trước,
+    # nếu không có ai nghe thì mỗi kết nối mất ~2 giây mới chuyển sang 127.0.0.1
+    try:
+        import socket
+        import threading
+
+        class V6Server(ThreadingHTTPServer):
+            address_family = socket.AF_INET6
+
+        srv6 = V6Server(("::1", a.port), Handler)
+        threading.Thread(target=srv6.serve_forever, daemon=True).start()
+    except Exception:  # noqa: BLE001 — máy không có IPv6 thì thôi
+        pass
     print("Sentinel-2 Monitor: http://localhost:%d/" % a.port)
     print("Kho anh chung    : %s" % Handler.kho)
     print("Cat JP2 L1C      : %s" % ("co (rasterio)" if HAS_RASTERIO else "KHONG - chay: pip install rasterio"))
