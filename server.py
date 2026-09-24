@@ -42,6 +42,25 @@ try:  # cắt JP2 gốc theo khung, chỉ đọc phần cần (HTTP range) — c
 except Exception as _e:  # noqa: BLE001
     HAS_RASTERIO, RASTERIO_ERR = False, "%s: %s" % (type(_e).__name__, _e)
 
+# Đường dẫn người dùng chọn trong app được lưu ở đây, ưu tiên hơn tham số của run.bat
+CONFIG_PATH = os.path.join(APP_DIR, "config.json")
+
+
+def load_config():
+    try:
+        with open(CONFIG_PATH, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:  # noqa: BLE001
+        return {}
+
+
+def save_config(cfg):
+    tmp = CONFIG_PATH + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(cfg, f, ensure_ascii=False, indent=2)
+    os.replace(tmp, CONFIG_PATH)
+
+
 BAD_CHARS = re.compile(r'[<>:"/\\|?*\x00-\x1f]')
 
 
@@ -201,6 +220,43 @@ class Handler(SimpleHTTPRequestHandler):
         return self._json(200, {"ok": True, "root": self.kho, "geo_dir": self.geo_dir,
                                 "geo_ok": os.path.isdir(self.geo_dir), "folders": out, "geo_files": geo_files})
 
+    def _config(self, req):
+        """Đổi thư mục kho ảnh / thư mục geo khi đang chạy và lưu vào config.json."""
+        cfg = load_config()
+        for key, attr, create in (("kho", "kho", True), ("geo", "geo_dir", False)):
+            val = str(req.get(key) or "").strip().strip('"')
+            if not val:
+                continue
+            path = os.path.abspath(os.path.expanduser(val))
+            if not os.path.isabs(os.path.expanduser(val)):
+                return self._json(400, {"ok": False, "error": "cần đường dẫn đầy đủ, vd. D:\\Anh\\Kho"})
+            if create:
+                try:
+                    os.makedirs(path, exist_ok=True)
+                except OSError as e:
+                    return self._json(400, {"ok": False, "error": "không tạo được thư mục %s: %s" % (path, e)})
+            setattr(Handler, attr, path)
+            cfg[key] = path
+        save_config(cfg)
+        return self._json(200, {"ok": True, "root": Handler.kho, "geo_dir": Handler.geo_dir,
+                                "geo_ok": os.path.isdir(Handler.geo_dir), "config": CONFIG_PATH})
+
+    def _pickdir(self, req):
+        """Mở hộp chọn thư mục của hệ điều hành trên chính máy này (tkinter chạy ở tiến trình riêng)."""
+        import subprocess
+        initial = str(req.get("initial") or "")
+        code = ("import sys,tkinter as t,tkinter.filedialog as f;r=t.Tk();r.withdraw();r.attributes('-topmost',True);"
+                "p=f.askdirectory(initialdir=sys.argv[1] or None,title=sys.argv[2]);sys.stdout.write(p or '')")
+        try:
+            out = subprocess.run([sys.executable, "-c", code, initial, str(req.get("title") or "Chọn thư mục")],
+                                 capture_output=True, text=True, encoding="utf-8", timeout=600)
+        except Exception as e:  # noqa: BLE001
+            return self._json(500, {"ok": False, "error": "không mở được hộp chọn thư mục: %s" % e})
+        if out.returncode != 0:
+            return self._json(500, {"ok": False, "error": (out.stderr or "tkinter lỗi").strip().splitlines()[-1]})
+        path = out.stdout.strip()
+        return self._json(200, {"ok": True, "path": os.path.normpath(path) if path else ""})
+
     def _merge(self, req):
         """Gộp thư mục lẻ (do app tạo trước đây) vào thư mục mục tiêu chuẩn; không ghi đè file đã có."""
         src = os.path.join(self.kho, safe_part(req.get("from")))
@@ -263,6 +319,10 @@ class Handler(SimpleHTTPRequestHandler):
                 r = urllib.request.urlopen(urllib.request.Request(req["url"], headers={"User-Agent": "S2Monitor/1.0"}), timeout=120)
                 size = self._write_stream(r, dest)
                 return self._json(200, {"ok": True, "path": dest, "size": size})
+            if u.path == "/api/config":
+                return self._config(json.loads(self.rfile.read(self._body_len())))
+            if u.path == "/api/pickdir":
+                return self._pickdir(json.loads(self.rfile.read(self._body_len())))
             if u.path == "/api/merge":
                 return self._merge(json.loads(self.rfile.read(self._body_len())))
             if u.path == "/api/crop":
@@ -315,8 +375,9 @@ def main():
     ap.add_argument("--geo", default=os.environ.get("GEO_DIR") or DEFAULT_GEO, help="thư mục geojson chung của hệ sinh thái")
     ap.add_argument("--port", type=int, default=int(os.environ.get("PORT") or 8765))
     a = ap.parse_args()
-    Handler.kho = os.path.abspath(a.kho)
-    Handler.geo_dir = os.path.abspath(a.geo)
+    cfg = load_config()   # đường dẫn đã chọn trong app (Cài đặt) ưu tiên hơn run.bat
+    Handler.kho = os.path.abspath(cfg.get("kho") or a.kho)
+    Handler.geo_dir = os.path.abspath(cfg.get("geo") or a.geo)
     Handler.port = a.port
     os.makedirs(Handler.kho, exist_ok=True)
     srv = ThreadingHTTPServer(("127.0.0.1", a.port), Handler)
@@ -334,7 +395,7 @@ def main():
     except Exception:  # noqa: BLE001 — máy không có IPv6 thì thôi
         pass
     print("Sentinel-2 Monitor: http://localhost:%d/" % a.port)
-    print("Kho anh chung    : %s" % Handler.kho)
+    print("Kho anh chung    : %s%s" % (Handler.kho, "  (theo config.json)" if cfg.get("kho") else ""))
     print("Geo muc tieu     : %s%s" % (Handler.geo_dir, "" if os.path.isdir(Handler.geo_dir) else "  (KHONG TIM THAY)"))
     print("Cat JP2 L1C      : %s" % ("co (rasterio)" if HAS_RASTERIO else "KHONG - chay: pip install rasterio"))
     try:

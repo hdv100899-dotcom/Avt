@@ -3,7 +3,8 @@
 Ứng dụng web chạy từ một file duy nhất, dùng để rà soát các mục tiêu xem đã có ảnh Sentinel-2 mới hay chưa. App đo mây trong đúng khung mục tiêu và tải ảnh đã cắt sẵn theo vùng.
 
 ## Chạy
-- **Windows**: bấm đúp `run.bat` (cần Python 3). App mở ở `http://localhost:8765/`; ảnh tải về **tự vào kho chung `D:\KHO_ANH\TD\<Ten_muc_tieu>\`**. Đổi đường dẫn ở dòng `set KHO_ANH=...` trong run.bat.
+- **Windows**: bấm đúp `run.bat` (cần Python 3). App mở ở `http://localhost:8765/`; ảnh tải về tự vào `<thư mục tải ảnh>\<Ten_muc_tieu>\` (mặc định `D:\KHO_ANH\TD`).
+  - **Đổi thư mục tải ảnh / thư mục geo ngay trong app**: Cài đặt → “Thư mục trên máy” → gõ đường dẫn hoặc bấm **Chọn…** → Lưu. Lựa chọn lưu trong `config.json` cạnh `server.py`, ưu tiên hơn `run.bat`.
 - **Linux/macOS**: `./run.sh`
 - Hoặc bấm đúp `index.html`.
 

@@ -363,7 +363,17 @@ dialog::backdrop { background: rgba(0,0,0,.5); }
     <label class="check"><input type="checkbox" id="sCdse"> Dò kho Copernicus khi hôm nay có lượt bay mà Planetary Computer chưa có ảnh</label>
     <label class="check"><input type="checkbox" id="sNotify"> Thông báo trên máy tính khi có ảnh mới</label>
     <label class="check"><input type="checkbox" id="sLibrary"> Tự lưu ảnh tải về vào kho ảnh, mỗi mục tiêu một thư mục</label>
-    <div class="toolbar" style="margin-top:6px"><button class="btn sm" id="btnPickLib2">Chọn thư mục kho ảnh…</button></div>
+    <div id="pathBox" style="margin-top:12px">
+      <p class="section-title">Thư mục trên máy (khi mở bằng run.bat)</p>
+      <div class="form" style="grid-template-columns:1fr auto;align-items:end">
+        <label>Thư mục tải ảnh (kho)<input id="sKho" placeholder="D:\KHO_ANH\TD"></label>
+        <button class="btn sm" type="button" data-pick="sKho" data-title="Chọn thư mục tải ảnh">Chọn…</button>
+        <label>Thư mục geo mục tiêu<input id="sGeo" placeholder="D:\get_Planet\geojson"></label>
+        <button class="btn sm" type="button" data-pick="sGeo" data-title="Chọn thư mục geo">Chọn…</button>
+      </div>
+      <p class="small muted" id="pathNote" style="margin-top:6px"></p>
+    </div>
+    <div class="toolbar hidden" id="fsPickRow" style="margin-top:6px"><button class="btn sm" id="btnPickLib2">Chọn thư mục kho ảnh…</button><span class="small muted">(không có máy chủ run.bat: chọn thư mục qua trình duyệt Chrome/Edge)</span></div>
     <p class="small muted" style="margin-top:12px">Kết quả đo mây được lưu đệm theo từng cảnh, nên quét lại chỉ tốn truy vấn cho cảnh mới.
       <button class="btn sm" id="btnClearCache" style="margin-left:6px">Xóa bộ đệm</button></p>
   </div>
@@ -1755,7 +1765,14 @@ function applyTheme() {
 }
 function openSettings() {
   $('#sLookback').value = S.lookback; $('#sCloud').value = S.cloud; $('#sAnalyze').value = S.analyze; $('#sConc').value = S.conc;
-  $('#sAuto').value = S.auto; $('#sCdse').checked = S.cdse; $('#sNotify').checked = S.notify; $('#sLibrary').checked = S.library !== false; $('#sTheme').value = S.theme;
+  $('#sAuto').value = S.auto; $('#sCdse').checked = S.cdse; $('#sNotify').checked = S.notify; $('#sLibrary').checked = S.library !== false;
+  // đường dẫn thư mục: chỉ sửa được khi có máy chủ run.bat
+  $('#sKho').value = SRV?.root || ''; $('#sGeo').value = SRV?.geo_dir || '';
+  ['#sKho', '#sGeo'].forEach(id => { $(id).disabled = !SRV; });
+  document.querySelectorAll('#pathBox [data-pick]').forEach(b => { b.disabled = !SRV; });
+  $('#fsPickRow').classList.toggle('hidden', !!SRV);
+  $('#pathNote').textContent = SRV ? 'Ảnh tải về vào <thư mục tải ảnh>\\<tên mục tiêu>\\. Lựa chọn được lưu trong config.json cạnh server.py và giữ nguyên ở lần chạy sau.'
+    : 'Đang mở thẳng index.html nên không đổi được đường dẫn. Mở app bằng run.bat để chọn thư mục tải.'; $('#sTheme').value = S.theme;
   $('#dlgSettings').showModal();
 }
 async function saveSettings() {
@@ -1765,6 +1782,17 @@ async function saveSettings() {
     auto: num('#sAuto', 0, 720, 0), cdse: $('#sCdse').checked, notify: $('#sNotify').checked, library: $('#sLibrary').checked, theme: $('#sTheme').value,
   });
   if (S.notify && 'Notification' in window && Notification.permission === 'default') await Notification.requestPermission();
+  if (SRV) {
+    const kho = $('#sKho').value.trim(), geo = $('#sGeo').value.trim();
+    if ((kho && kho !== SRV.root) || (geo && geo !== SRV.geo_dir)) {
+      try {
+        const r = await srvCall('/api/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ kho, geo }) });
+        Object.assign(SRV, { root: r.root, geo_dir: r.geo_dir, geo_ok: r.geo_ok });
+        toast(`Thư mục tải ảnh: ${r.root}${r.geo_ok ? '' : ' · chưa thấy thư mục geo ' + r.geo_dir}`, 6000);
+        gsavtChecked = false; refreshLibraryIfOpen(null);
+      } catch (e) { toast('Không đổi được thư mục: ' + e.message, 7000); return; }
+    }
+  }
   netLimit = limiter(S.conc * 2);
   save(K.settings, S); applyTheme(); scheduleAuto(); updateLibraryUI();
   $('#dlgSettings').close(); renderAll();
@@ -1827,6 +1855,16 @@ document.addEventListener('keydown', e => {
 $('#btnPickLib').addEventListener('click', pickLibraryRoot);
 $('#btnGsavt').addEventListener('click', () => syncGSAVT());
 $('#btnPickLib2').addEventListener('click', pickLibraryRoot);
+// Nút "Chọn…": mở hộp chọn thư mục của Windows trên máy chạy run.bat
+document.querySelectorAll('#pathBox [data-pick]').forEach(b => b.addEventListener('click', async () => {
+  const inp = $('#' + b.dataset.pick);
+  b.disabled = true; b.textContent = 'Đang mở…';
+  try {
+    const r = await srvCall('/api/pickdir', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ initial: inp.value, title: b.dataset.title }) });
+    if (r.path) inp.value = r.path;
+  } catch (e) { toast('Không mở được hộp chọn thư mục: ' + e.message + '. Hãy gõ đường dẫn vào ô.', 7000); }
+  b.disabled = false; b.textContent = 'Chọn…';
+}));
 $('#btnRefreshLib').addEventListener('click', renderLibrary);
 
 applyTheme();
