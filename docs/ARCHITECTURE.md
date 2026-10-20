@@ -87,7 +87,7 @@ Nguồn ─► Collector ─► raw_item (lưu ngay, hiển thị ngay)
 | D — API thương mại/khám phá | GDELT, API tin tức, API X nếu có ngân sách | Phát hiện nguồn mới, phủ rộng | tùy nhà cung cấp |
 
 - Chu kỳ thăm dò **thích ứng**: nguồn đăng dày thì hỏi dày, nguồn thưa thì thưa; có jitter, backoff, tuân thủ robots.txt và giới hạn tốc độ.
-- **Telegram**: khả thi nhất trong ba mạng xã hội trong sơ đồ (kênh công khai qua MTProto, nhận cập nhật đẩy).
+- **Telegram**: khả thi nhất trong ba mạng xã hội trong sơ đồ (kênh công khai qua MTProto, nhận cập nhật đẩy). Thư viện hiện ở chế độ bảo trì nên phải cách ly sau một lớp giao diện, xem mục 7.
 - **X/Twitter**: không có đường vào ổn định, miễn phí và hợp điều khoản. Chỉ khả thi bền vững nếu mua API; còn lại dùng kênh phản chiếu (Telegram/Bluesky/trang tin).
 - **Facebook**: Graph API chỉ cho phép trang mình quản trị; trang/nhóm công khai của bên khác gần như không có API chính thức, scrape trái điều khoản và hay bị khóa. Đề xuất: **không đưa Facebook vào GĐ1**, xem là nguồn "best effort" có thể thêm sau (nhập thủ công/liên kết do người dùng gửi, hoặc nhà cung cấp dữ liệu thương mại nếu chấp nhận chi phí và rủi ro pháp lý).
 - Không dùng tài khoản giả/né cơ chế chống bot. Chỉ nội dung công khai.
@@ -119,8 +119,11 @@ Mô hình dữ liệu: `event_group 1—N evidence 1—1 raw_item`. Hiển thị
 | CSDL | **PostgreSQL 16 + pgvector** | Một CSDL cho dữ liệu, tìm toàn văn, vector, hàng đợi; đủ cho giai đoạn đầu |
 | Hàng đợi | Postgres (`FOR UPDATE SKIP LOCKED`) → Redis Streams/NATS khi cần | Chưa cần Kafka; tránh vận hành thừa |
 | Tìm kiếm | Postgres FTS → Meilisearch/OpenSearch nếu vượt tải | Đa ngữ, có thể thêm sau |
-| Trích xuất nội dung | feedparser, trafilatura, Playwright (khi bắt buộc) | |
-| Telegram | Telethon (MTProto) | Kênh công khai |
+| Trích xuất nội dung | feedparser, trafilatura (Apache-2.0), Playwright (khi bắt buộc) | Không dùng news-please: repo đã bị archive 15/10/2026 |
+| Trang không có RSS | RSSHub (AGPL-3.0) chạy như dịch vụ riêng | Không nhúng mã vào dự án để tránh ràng buộc AGPL |
+| Telegram | Telethon (MIT) lấy từ Codeberg/PyPI; dự phòng: fork Pyrogram (Kurigram/Pyrofork) | Repo GitHub của Telethon đã archive 21/02/2026 và chuyển sang Codeberg. Bọc sau một lớp giao diện riêng để thay thư viện khi cần |
+| Bluesky | Jetstream chính thức (WebSocket JSON) | Máy chủ mã nguồn mở bằng Go, có endpoint công cộng |
+| Tham khảo thiết kế | Taranis AI (EUPL-1.2), World Monitor (AGPL-3.0) | Chỉ tham khảo mô hình dữ liệu/giao diện; chưa dùng làm nền |
 | Lưu thô/media/snapshot | Hệ tệp → MinIO/S3 | Nội dung bất biến, đặt tên theo hash |
 | Lập lịch | worker riêng + bảng `source_schedule` | Cần chu kỳ thích ứng theo từng nguồn |
 | Giao diện | Next.js (React) + TypeScript | Luồng tin, nhóm sự kiện, bản đồ về sau |
