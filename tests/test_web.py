@@ -106,3 +106,66 @@ def test_items_ordered_by_publication_not_insertion(factory, client) -> None:
     assert order.index("Wrongly dated in the future") < order.index("Backfilled old article")
     assert order.index("Fresh article") < order.index("Backfilled old article")
     assert order[-1] == "Backfilled old article"
+
+
+@pytest.fixture
+def grouped_client(factory, temp_database, monkeypatch):
+    from datetime import UTC, datetime, timedelta
+
+    from osint.dedup import group_pending, item_simhash
+    from osint.urls import canonicalize_url, content_hash
+
+    monkeypatch.setenv("OSINT_DATABASE_URL", temp_database)
+    now = datetime.now(UTC)
+    body = " ".join(f"w{i % 90}" for i in range(200))
+    other = " ".join(f"z{i % 70}" for i in range(200))
+    with factory() as session, session.begin():
+        a = add_source(session, kind="rss", locator="https://a.example/f", name="Alpha")
+        b = add_source(session, kind="rss", locator="https://b.example/f", name="Beta")
+        for source, ext, title, text, published in [
+            (b, "b1", "Shared story", body, now - timedelta(hours=1)),
+            (a, "a1", "Shared story", body, now - timedelta(hours=2)),
+            (a, "a2", "Another story", other, now - timedelta(minutes=10)),
+        ]:
+            session.add(
+                RawItem(
+                    source_id=source.id,
+                    external_id=ext,
+                    title=title,
+                    content=text,
+                    url=f"https://{source.name.lower()}.example/{ext}",
+                    url_canonical=canonicalize_url(f"https://{source.name.lower()}.example/{ext}"),
+                    published_at=published,
+                    collected_at=now,
+                    content_hash=content_hash(title, text),
+                    simhash=item_simhash(title, text),
+                    analysis_status="pending",
+                )
+            )
+        session.flush()
+        group_pending(session)
+    with TestClient(create_app()) as c:
+        yield c
+
+
+def test_groups_list_collapses_reposts(grouped_client) -> None:
+    data = grouped_client.get("/api/groups").json()
+    assert [g["title"] for g in data] == ["Another story", "Shared story"]  # newest origin first
+    shared = data[1]
+    assert (shared["items"], shared["sources"], shared["source"]) == (2, 2, "Alpha")
+    assert data[0]["items"] == 1
+
+
+def test_group_evidence_shows_origin_and_delay(grouped_client) -> None:
+    shared = next(g for g in grouped_client.get("/api/groups").json() if g["items"] == 2)
+    detail = grouped_client.get(f"/api/groups/{shared['id']}").json()
+    origin, repost = detail["evidence"]
+    assert (origin["source"], origin["is_origin"], origin["behind_origin_s"]) == ("Alpha", True, 0)
+    assert (repost["source"], repost["is_origin"]) == ("Beta", False)
+    assert repost["behind_origin_s"] == 3600
+
+
+def test_group_filter_and_unknown_group(grouped_client) -> None:
+    hits = grouped_client.get("/api/groups", params={"q": "another"}).json()
+    assert [g["title"] for g in hits] == ["Another story"]
+    assert grouped_client.get("/api/groups/999999").status_code == 404

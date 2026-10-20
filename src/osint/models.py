@@ -94,6 +94,8 @@ class RawItem(Base):
         DateTime(timezone=True), server_default=func.now()
     )
     content_hash: Mapped[str | None] = mapped_column(Text)
+    # 64-bit SimHash of title and body; NULL when the text is too short to compare.
+    simhash: Mapped[int | None] = mapped_column(BigInteger)
     # Pointers into the immutable evidence store: the feed entry as received, and the
     # article page when it was fetched for full text.
     snapshot_ref: Mapped[str | None] = mapped_column(Text)

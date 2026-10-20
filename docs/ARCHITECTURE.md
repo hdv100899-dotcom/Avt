@@ -100,6 +100,12 @@ Ba lớp, mỗi bằng chứng đều được giữ lại:
 2. **Gần trùng**: SimHash/MinHash trên văn bản đã chuẩn hóa — bắt đăng lại, dịch lại nhẹ, cắt xén.
 3. **Ngữ nghĩa**: embedding đa ngữ (bge-m3 hoặc multilingual-e5) + pgvector, gom theo cửa sổ thời gian + thực thể (địa điểm, đơn vị, loại khí tài); đánh giá lại khi có bằng chứng mới.
 
+Đã triển khai lớp 1–2 (`src/osint/dedup.py`, `simhash.py`): cùng URL chuẩn hóa, cùng nội dung (hash), hoặc SimHash 64-bit cách nhau ≤ 3 bit; khớp theo nội dung chỉ xét trong cửa sổ ±7 ngày và chỉ với nội dung từ 80 ký tự (SimHash: từ 40 từ), để tiêu đề ngắn kiểu "Daily briefing" không bị gộp. Tin chỉ có đoạn mở đầu được xét lại sau khi lấy được toàn văn.
+
+Đo thực tế (293 bài dài từ 10 nguồn): 20 cặp trùng khớp hoàn toàn (khoảng cách 0), cặp khác nhau gần nhất cách ≥ 8 bit, nên ngưỡng 3 không gộp nhầm. Thử trên bài giả lập: thêm chân bài hoặc tiền tố "(Reuters)" vẫn bắt được; viết lại một phần (đổi một câu, cắt 10% cuối) cách 6–9 bit nên **không** bắt được. Việc đó thuộc lớp 3 (ngữ nghĩa). Ngưỡng được giữ thấp có chủ ý: gộp nhầm hai tin độc lập làm mất tín hiệu xác nhận độc lập, còn bỏ sót một bản trùng chỉ làm dư một dòng.
+
+Giới hạn: khi hai bản có cùng giờ đăng (feed đồng bộ của cùng một nhóm báo), không phân biệt được bản nào đăng trước, nguồn gốc được chọn theo thứ tự thu thập.
+
 Mô hình dữ liệu: `event_group 1—N evidence 1—1 raw_item`. Hiển thị một nhóm; mở ra thấy đủ 15 nguồn, thứ tự thời gian, **nguồn gốc (người đăng đầu tiên)** tách khỏi bản đăng lại — đây là tín hiệu tin cậy quan trọng nhất, tránh đếm 15 bản sao như 15 xác nhận độc lập.
 
 ## 6. Phân tích bằng AI
@@ -142,7 +148,7 @@ Chỉ số đo từ ngày đầu: độ trễ phát hiện p50/p95 theo tầng n
 |---|---|---|
 | 0 | Khung dự án, CSDL, Source Registry, CI, Docker Compose | Chạy được trên 1 máy, có migration & kiểm thử |
 | 1 | Collector RSS/web (tầng B), Evidence Store, dashboard luồng tin, giám sát nguồn | 50–100 nguồn chạy 24 giờ liên tục, đo được độ trễ. **Đã làm:** collector, snapshot, dashboard, `osint stats`, thử 10 nguồn thật. **Chưa:** cảnh báo nguồn im lặng, chạy 24 giờ, mở rộng lên 50–100 nguồn |
-| 2 | Telegram (tầng A), dedup lớp 1–2 | Đăng lại không tạo tin mới, giữ đủ bằng chứng |
+| 2 | Telegram (tầng A), dedup lớp 1–2 | Đăng lại không tạo tin mới, giữ đủ bằng chứng. **Đã làm:** dedup lớp 1–2 và nhóm sự kiện, hiển thị trên dashboard. **Chưa:** Telegram |
 | 3 | Embedding + gom nhóm sự kiện, nguồn gốc vs đăng lại | Nhóm sự kiện hiển thị đúng trên bộ mẫu có gán nhãn |
 | 4 | AI Analysis (dịch, phân loại, tóm tắt, trích xuất) | Đầu ra có cấu trúc, có trích dẫn, đo độ chính xác trên bộ mẫu |
 | 5 | Bản tin 07:00/11:00/18:00, báo cáo chuyên đề | Bản nháp tự sinh, người duyệt phát hành |

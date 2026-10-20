@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from osint.collectors.rss import fetch_feed, parse_feed
 from osint.config import user_agent
+from osint.dedup import group_item, item_simhash
 from osint.fulltext import RobotsCache, fetch_article
 from osint.ingest import NewItem, ingest_items
 from osint.models import RawItem, Source
@@ -128,6 +129,9 @@ def enrich_fulltext(
                 if article.text and len(article.text) > len(row.content or ""):
                     row.content = article.text
                     row.content_hash = content_hash(row.title, row.content)
+                    row.simhash = item_simhash(row.title, row.content)
+                    session.flush()
+                    group_item(session, item.id)
         except Exception:
             log.exception("full-text enrichment failed for %s", item.url)
 

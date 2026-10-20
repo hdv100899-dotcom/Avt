@@ -8,7 +8,8 @@ from sqlalchemy import func, select
 
 from osint.config import data_dir
 from osint.db import make_engine, make_session_factory
-from osint.models import SOURCE_KINDS, SOURCE_STATUSES, SOURCE_TIERS, RawItem, Source
+from osint.dedup import backfill_simhash, group_pending
+from osint.models import SOURCE_KINDS, SOURCE_STATUSES, SOURCE_TIERS, Evidence, RawItem, Source
 from osint.runner import make_client, run_forever, run_once
 from osint.snapshots import SnapshotStore
 from osint.sources import SourceError, add_source, list_sources, set_status
@@ -153,3 +154,31 @@ def stats() -> None:
     for name, interval, count, median in rows:
         lag = f"{median / 60:.1f} min" if median is not None else "-"
         typer.echo(f"{name}\titems={count}\tinterval={interval}s\tmedian_lag={lag}")
+
+
+@app.command("dedup")
+def dedup(batch: int = typer.Option(500, help="Items grouped per transaction")) -> None:
+    """Catch up: compute missing SimHashes and group every item that has no group yet."""
+    factory = make_session_factory(make_engine())
+    with factory() as session, session.begin():
+        filled = backfill_simhash(session)
+    grouped = 0
+    while True:
+        with factory() as session, session.begin():
+            done = group_pending(session, limit=batch)
+        grouped += done
+        if done == 0:
+            break
+    with factory() as session:
+        per_group = (
+            select(func.count().label("n")).select_from(Evidence).group_by(Evidence.event_group_id)
+        ).subquery()
+        groups, multi, items = session.execute(
+            select(
+                func.count(),
+                func.count().filter(per_group.c.n > 1),
+                func.coalesce(func.sum(per_group.c.n), 0),
+            )
+        ).one()
+    typer.echo(f"simhash filled: {filled}; items grouped now: {grouped}")
+    typer.echo(f"{items} items in {groups} groups; {multi} groups have more than one item")

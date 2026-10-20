@@ -8,7 +8,9 @@ Thiết kế và lộ trình: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 - Giai đoạn 0 xong: schema CSDL, migration, Source Registry, CLI, kiểm thử, CI.
 - Giai đoạn 1 đang làm: Collector RSS/Atom (gọi có điều kiện, chu kỳ tự điều chỉnh, lấy toàn văn có
   tôn trọng robots.txt), kho snapshot bất biến, dashboard luồng tin, thống kê độ trễ.
-- Chưa có: chống trùng (GĐ2), Telegram, AI, bản tin.
+- Giai đoạn 2 (một phần): chống trùng theo URL, nội dung, SimHash; gom nhóm sự kiện, giữ đủ bằng chứng
+  và đánh dấu nguồn gốc; dashboard hiển thị theo nhóm.
+- Chưa có: Telegram, gom nhóm theo ngữ nghĩa (GĐ3), AI, bản tin.
 
 ## Chạy thử
 
@@ -24,12 +26,13 @@ osint collect once                         # thu thập một lượt
 osint collect run                          # chạy liên tục
 osint web                                  # dashboard tại http://127.0.0.1:8000
 osint stats                                # số tin và độ trễ trung vị theo nguồn
+osint dedup                                # gom nhóm các tin chưa có nhóm (tin thu trước GĐ2)
 
 osint source add rss https://example.org/feed.xml --name "Example" --language en
 osint source list
 ```
 
-Dữ liệu snapshot nằm ở `data/` (đổi bằng `OSINT_DATA_DIR`). API: `/api/items`, `/api/sources`.
+Dữ liệu snapshot nằm ở `data/` (đổi bằng `OSINT_DATA_DIR`). API: `/api/groups`, `/api/groups/{id}`, `/api/items`, `/api/sources`.
 
 ### Giới hạn đã biết
 

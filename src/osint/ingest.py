@@ -6,6 +6,7 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import Session
 
 from osint.collectors.rss import ParsedItem
+from osint.dedup import group_item, item_simhash
 from osint.models import RawItem, Source
 from osint.snapshots import SnapshotStore
 from osint.urls import canonicalize_url, content_hash
@@ -21,7 +22,7 @@ class NewItem:
 def ingest_items(
     session: Session, source: Source, items: list[ParsedItem], store: SnapshotStore
 ) -> list[NewItem]:
-    """Insert items not seen before for this source; return only the new ones."""
+    """Insert items not seen before for this source and group them; return the new ones."""
     if not items:
         return []
     by_external_id = {it.external_id: it for it in items}
@@ -38,6 +39,7 @@ def ingest_items(
                 "language": source.language,
                 "published_at": it.published_at,
                 "content_hash": content_hash(it.title, it.content),
+                "simhash": item_simhash(it.title, it.content),
                 "snapshot_ref": store.put(it.raw, "json"),
                 "analysis_status": "pending",
             }
@@ -48,7 +50,10 @@ def ingest_items(
         .on_conflict_do_nothing(constraint="uq_raw_item_source_external")
         .returning(RawItem.id, RawItem.external_id)
     )
-    inserted = session.execute(stmt).all()
+    inserted = sorted(session.execute(stmt).all(), key=lambda row: row.id)
+    # Grouped in the same transaction, so an item is never visible without its group.
+    for row in inserted:
+        group_item(session, row.id)
     return [
         NewItem(
             id=row.id,

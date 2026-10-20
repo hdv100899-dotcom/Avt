@@ -7,7 +7,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session, sessionmaker
 
 from osint.fulltext import RobotsCache
-from osint.models import RawItem, Source
+from osint.models import Evidence, RawItem, Source
 from osint.runner import next_interval, poll_source, run_once
 from osint.snapshots import SnapshotStore
 from osint.sources import add_source
@@ -28,17 +28,25 @@ ARTICLE = (
     + "".join(f"<p>{s}</p>" for s in SENTENCES)
     + "</article><footer>Subscribe to our newsletter</footer></body></html>"
 )
-LONG_BODY = " ".join(SENTENCES * 2)
+SYNDICATED = [
+    "Shipbuilders reported record orders for escort vessels during the latest quarter.",
+    "The navy plans to commission the first hull of the new class within two years.",
+    "Engineers described delays in sourcing propulsion components from overseas suppliers.",
+    "A parliamentary committee will review the programme budget before the end of the year.",
+    "Industry groups welcomed the decision but warned about shortages of skilled welders.",
+    "Training schedules for the first crews have been adjusted to match the new timeline.",
+]
+LONG_BODY = " ".join(SYNDICATED * 3)
 
 
-def feed_xml(*guids: str) -> bytes:
+def feed_xml(*guids: str, link_host: str = "articles.example", body: str | None = None) -> bytes:
     items = ""
     for g in guids:
-        body = LONG_BODY if g == "long" else "Short teaser."
+        text = body or (LONG_BODY if g == "long" else "Short teaser.")
         items += (
-            f"<item><title>Story {g}</title><link>https://articles.example/a/{g}</link>"
+            f"<item><title>Story {g}</title><link>https://{link_host}/a/{g}</link>"
             f"<guid>{g}</guid><pubDate>Mon, 20 Oct 2026 11:00:00 GMT</pubDate>"
-            f"<description>{body}</description></item>"
+            f"<description>{text}</description></item>"
         )
     head = '<?xml version="1.0"?><rss version="2.0"><channel><title>T</title>'
     return f"{head}{items}</channel></rss>".encode()
@@ -52,12 +60,15 @@ class Site:
         self.etag = '"v1"'
         self.feed_status: int | None = None
         self.feed_exception: Exception | None = None
+        self.feed2 = feed_xml("long", link_host="mirror.example")
         self.robots = "User-agent: *\nAllow: /\n"
         self.requested: list[str] = []
 
     def __call__(self, request: httpx.Request) -> httpx.Response:
         url = str(request.url)
         self.requested.append(url)
+        if request.url.host == "feed2.example":
+            return httpx.Response(200, content=self.feed2)
         if request.url.host == "feed.example":
             if self.feed_exception:
                 raise self.feed_exception
@@ -281,3 +292,56 @@ def test_item_count_matches_after_repeated_runs(factory, env, site) -> None:
         poll_source(factory, client, robots, store, sid, NOW + timedelta(minutes=minute))
     with factory() as session:
         assert session.scalar(select(func.count()).select_from(RawItem)) == 2
+
+
+def test_same_story_from_two_feeds_is_one_group_with_both_evidence(factory, env, site) -> None:
+    client, robots, store = env
+    first = make_source(factory)
+    with factory() as session, session.begin():
+        second = add_source(
+            session, kind="rss", locator="https://feed2.example/rss", name="Mirror", language="en"
+        ).id
+    poll_source(factory, client, robots, store, first, NOW)
+    poll_source(factory, client, robots, store, second, NOW)
+
+    with factory() as session:
+        rows = session.execute(
+            select(
+                Evidence.event_group_id, RawItem.external_id, RawItem.source_id, Evidence.is_origin
+            ).join(RawItem, RawItem.id == Evidence.raw_item_id)
+        ).all()
+    by_group: dict[int, list] = {}
+    for gid, ext, src, origin in rows:
+        by_group.setdefault(gid, []).append((ext, src, origin))
+    sizes = sorted(len(v) for v in by_group.values())
+    assert sizes == [1, 2]  # "teaser" alone; "long" from both feeds together
+    (pair,) = [v for v in by_group.values() if len(v) == 2]
+    assert {src for _, src, _ in pair} == {first, second}
+    assert sum(1 for _, _, origin in pair if origin) == 1
+
+
+def test_enriched_teaser_is_regrouped_with_story_it_matches(factory, env, site) -> None:
+    client, robots, store = env
+    first = make_source(factory)
+    with factory() as session, session.begin():
+        second = add_source(
+            session, kind="rss", locator="https://feed2.example/rss", name="Mirror", language="en"
+        ).id
+    # The mirror already carries the full text that the teaser's article page will yield.
+    site.feed2 = feed_xml("teaser", link_host="mirror.example", body=" ".join(SENTENCES))
+    poll_source(factory, client, robots, store, second, NOW)
+
+    poll_source(factory, client, robots, store, first, NOW)  # teaser stored, then enriched
+
+    with factory() as session:
+        rows = session.execute(
+            select(Evidence.event_group_id, RawItem.source_id, RawItem.external_id).join(
+                RawItem, RawItem.id == Evidence.raw_item_id
+            )
+        ).all()
+    groups: dict[int, set] = {}
+    for gid, src, ext in rows:
+        groups.setdefault(gid, set()).add((src, ext))
+    assert {(first, "teaser"), (second, "teaser")} in groups.values()
+    assert {(first, "long")} in groups.values()
+    assert len(groups) == 2
