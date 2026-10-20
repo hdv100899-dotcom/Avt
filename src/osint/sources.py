@@ -4,6 +4,7 @@ Sources found by discovery never go straight into rotation: they start as
 ``probation`` and only a person moves them to ``active``.
 """
 
+from collections.abc import Sequence
 from datetime import datetime
 
 from sqlalchemy import func, select
@@ -93,7 +94,12 @@ def list_sources(session: Session, status: str | None = None) -> list[Source]:
     return list(session.scalars(stmt))
 
 
-def due_sources(session: Session, now: datetime, limit: int | None = None) -> list[Source]:
+def due_sources(
+    session: Session,
+    now: datetime,
+    limit: int | None = None,
+    kinds: Sequence[str] | None = None,
+) -> list[Source]:
     """Sources whose poll interval has elapsed, never-polled first, then longest-waiting."""
     next_due = Source.last_polled_at + func.make_interval(0, 0, 0, 0, 0, 0, Source.poll_interval_s)
     stmt = (
@@ -102,6 +108,8 @@ def due_sources(session: Session, now: datetime, limit: int | None = None) -> li
         .where((Source.last_polled_at.is_(None)) | (next_due <= now))
         .order_by(Source.last_polled_at.asc().nulls_first(), Source.id)
     )
+    if kinds is not None:
+        stmt = stmt.where(Source.kind.in_(kinds))
     if limit is not None:
         stmt = stmt.limit(limit)
     return list(session.scalars(stmt))

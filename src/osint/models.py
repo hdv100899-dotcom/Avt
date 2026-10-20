@@ -94,8 +94,10 @@ class RawItem(Base):
         DateTime(timezone=True), server_default=func.now()
     )
     content_hash: Mapped[str | None] = mapped_column(Text)
-    # Pointer to the immutable snapshot (page HTML, media) in the evidence store.
+    # Pointers into the immutable evidence store: the feed entry as received, and the
+    # article page when it was fetched for full text.
     snapshot_ref: Mapped[str | None] = mapped_column(Text)
+    page_snapshot_ref: Mapped[str | None] = mapped_column(Text)
     analysis_status: Mapped[str] = mapped_column(Text, default="pending")
 
 

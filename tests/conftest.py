@@ -8,7 +8,7 @@ from alembic import command
 from alembic.config import Config
 from sqlalchemy import Engine, create_engine, text
 from sqlalchemy.engine import make_url
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, sessionmaker
 
 ROOT = Path(__file__).resolve().parents[1]
 ADMIN_URL = os.environ.get(
@@ -70,3 +70,14 @@ def session(migrated_engine: Engine) -> Iterator[Session]:
         sess.close()
         outer.rollback()
         connection.close()
+
+
+@pytest.fixture
+def factory(temp_database: str) -> Iterator[sessionmaker[Session]]:
+    """A session factory on a freshly migrated database, for code that commits."""
+    command.upgrade(alembic_config(temp_database), "head")
+    engine = create_engine(temp_database)
+    try:
+        yield sessionmaker(engine, expire_on_commit=False)
+    finally:
+        engine.dispose()

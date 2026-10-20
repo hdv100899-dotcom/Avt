@@ -1,0 +1,12 @@
+[
+  {"kind": "rss", "name": "Breaking Defense", "locator": "https://breakingdefense.com/feed/", "language": "en"},
+  {"kind": "rss", "name": "Defense News", "locator": "https://www.defensenews.com/arc/outboundfeeds/rss/?outputType=xml", "language": "en"},
+  {"kind": "rss", "name": "Military Times", "locator": "https://www.militarytimes.com/arc/outboundfeeds/rss/?outputType=xml", "language": "en"},
+  {"kind": "rss", "name": "Defense One", "locator": "https://www.defenseone.com/rss/all/", "language": "en"},
+  {"kind": "rss", "name": "The War Zone", "locator": "https://www.twz.com/feed", "language": "en"},
+  {"kind": "rss", "name": "USNI News", "locator": "https://news.usni.org/feed", "language": "en"},
+  {"kind": "rss", "name": "War on the Rocks", "locator": "https://warontherocks.com/feed/", "language": "en"},
+  {"kind": "rss", "name": "Bellingcat", "locator": "https://www.bellingcat.com/feed/", "language": "en"},
+  {"kind": "rss", "name": "Oryx (Spioenkop)", "locator": "https://www.oryxspioenkop.com/feeds/posts/default", "language": "en"},
+  {"kind": "rss", "name": "US Department of Defense", "locator": "https://www.defense.gov/DesktopModules/ArticleCS/RSS.ashx?ContentType=1&Site=945&max=10", "language": "en"}
+]

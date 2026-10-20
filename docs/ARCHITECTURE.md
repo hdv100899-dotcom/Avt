@@ -141,7 +141,7 @@ Chỉ số đo từ ngày đầu: độ trễ phát hiện p50/p95 theo tầng n
 | GĐ | Nội dung | Tiêu chí hoàn thành |
 |---|---|---|
 | 0 | Khung dự án, CSDL, Source Registry, CI, Docker Compose | Chạy được trên 1 máy, có migration & kiểm thử |
-| 1 | Collector RSS/web (tầng B), Evidence Store, dashboard luồng tin, giám sát nguồn | 50–100 nguồn chạy 24 giờ liên tục, đo được độ trễ |
+| 1 | Collector RSS/web (tầng B), Evidence Store, dashboard luồng tin, giám sát nguồn | 50–100 nguồn chạy 24 giờ liên tục, đo được độ trễ. **Đã làm:** collector, snapshot, dashboard, `osint stats`, thử 10 nguồn thật. **Chưa:** cảnh báo nguồn im lặng, chạy 24 giờ, mở rộng lên 50–100 nguồn |
 | 2 | Telegram (tầng A), dedup lớp 1–2 | Đăng lại không tạo tin mới, giữ đủ bằng chứng |
 | 3 | Embedding + gom nhóm sự kiện, nguồn gốc vs đăng lại | Nhóm sự kiện hiển thị đúng trên bộ mẫu có gán nhãn |
 | 4 | AI Analysis (dịch, phân loại, tóm tắt, trích xuất) | Đầu ra có cấu trúc, có trích dẫn, đo độ chính xác trên bộ mẫu |
