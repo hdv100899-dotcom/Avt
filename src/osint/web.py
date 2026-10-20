@@ -75,6 +75,12 @@ function gap(s) {
   if (s < 5400) return "+" + Math.round(s / 60) + " phút";
   return "+" + Math.round(s / 3600) + " giờ";
 }
+function why(e) {
+  const labels = { url: "cùng URL", content_hash: "cùng nội dung", simhash: "gần giống văn bản",
+                   semantic: "cùng sự kiện" };
+  const base = labels[e.match_reason] || "";
+  return e.match_score ? base + " (" + e.match_score.toFixed(2) + ")" : base;
+}
 async function toggle(g, li, btn) {
   const open = li.querySelector(".evidence");
   if (open) { open.remove(); return; }
@@ -83,7 +89,7 @@ async function toggle(g, li, btn) {
   const ul = el("ul", null, "evidence");
   for (const e of data.evidence) {
     const item = el("li");
-    const tag = e.is_origin ? "nguồn gốc" : gap(e.behind_origin_s);
+    const tag = e.is_origin ? "nguồn gốc" : gap(e.behind_origin_s) + " · " + why(e);
     item.append(el("span", e.source + " · " + tag + " · "), link(e.title, e.url));
     ul.append(item);
   }
@@ -228,7 +234,14 @@ def create_app() -> FastAPI:
         if group is None:
             raise HTTPException(404, "no such group")
         rows = session.execute(
-            select(Evidence.is_origin, RawItem, Source.name, sort_key().label("at"))
+            select(
+                Evidence.is_origin,
+                Evidence.match_reason,
+                Evidence.match_score,
+                RawItem,
+                Source.name,
+                sort_key().label("at"),
+            )
             .join(RawItem, RawItem.id == Evidence.raw_item_id)
             .join(Source, Source.id == RawItem.source_id)
             .where(Evidence.event_group_id == group_id)
@@ -242,6 +255,8 @@ def create_app() -> FastAPI:
                 {
                     "item_id": item.id,
                     "is_origin": is_origin,
+                    "match_reason": reason,
+                    "match_score": score,
                     "source": name,
                     "title": item.title,
                     "url": item.url,
@@ -249,7 +264,7 @@ def create_app() -> FastAPI:
                     "collected_at": item.collected_at,
                     "behind_origin_s": int((at - origin_at).total_seconds()),
                 }
-                for is_origin, item, name, at in rows
+                for is_origin, reason, score, item, name, at in rows
             ],
         }
 

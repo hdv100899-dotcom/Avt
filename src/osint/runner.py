@@ -12,9 +12,11 @@ from sqlalchemy.orm import Session, sessionmaker
 from osint.collectors.rss import fetch_feed, parse_feed
 from osint.config import user_agent
 from osint.dedup import group_item, item_simhash
+from osint.embeddings import Embedder
 from osint.fulltext import RobotsCache, fetch_article
 from osint.ingest import NewItem, ingest_items
 from osint.models import RawItem, Source
+from osint.semantic import cluster_step
 from osint.snapshots import SnapshotStore
 from osint.sources import due_sources, record_poll
 from osint.urls import content_hash
@@ -176,6 +178,10 @@ def run_once(
         return list(pool.map(work, ids))
 
 
+# Embedding is CPU-bound; cap it per scheduler pass so polling stays responsive.
+CLUSTER_BATCHES_PER_PASS = 4
+
+
 def run_forever(
     factory: sessionmaker[Session],
     client: httpx.Client,
@@ -183,6 +189,7 @@ def run_forever(
     *,
     workers: int = 8,
     tick_s: float = 10,
+    embedder: Embedder | None = None,
 ) -> None:
     while True:
         outcomes = run_once(factory, client, store, workers=workers)
@@ -190,4 +197,19 @@ def run_forever(
             new = sum(o.new_items for o in outcomes)
             errors = sum(o.status == "error" for o in outcomes)
             log.info("polled %d sources: %d new items, %d errors", len(outcomes), new, errors)
+        if embedder is not None:
+            _cluster_some(factory, embedder)
         time.sleep(tick_s)
+
+
+def _cluster_some(factory: sessionmaker[Session], embedder: Embedder) -> None:
+    try:
+        for _ in range(CLUSTER_BATCHES_PER_PASS):
+            embedded, joined = cluster_step(factory, embedder)
+            if embedded:
+                log.info("embedded %d items, %d joined an existing event", embedded, joined)
+            if embedded == 0:
+                break
+    except Exception:
+        # A missing model or a transient failure must not stop collection.
+        log.exception("clustering pass failed; will retry on the next pass")

@@ -34,7 +34,8 @@ def _sort_key():
 
 def find_candidate_groups(
     session: Session, item: RawItem, exclude_group: int | None = None
-) -> set[int]:
+) -> dict[int, str]:
+    """Groups holding an equivalent item, mapped to why ("url", "content_hash" or "simhash")."""
     base = (
         select(Evidence.event_group_id)
         .join(RawItem, RawItem.id == Evidence.raw_item_id)
@@ -44,22 +45,20 @@ def find_candidate_groups(
         base = base.where(Evidence.event_group_id != exclude_group)
     near = RawItem.collected_at.between(item.collected_at - WINDOW, item.collected_at + WINDOW)
 
-    found: set[int] = set()
+    found: dict[int, str] = {}
     if item.url_canonical:
-        found |= set(session.scalars(base.where(RawItem.url_canonical == item.url_canonical)))
+        for gid in session.scalars(base.where(RawItem.url_canonical == item.url_canonical)):
+            found.setdefault(gid, "url")
     if item.content_hash and len(item.content or "") >= MIN_CONTENT_CHARS:
-        found |= set(session.scalars(base.where(RawItem.content_hash == item.content_hash, near)))
+        for gid in session.scalars(base.where(RawItem.content_hash == item.content_hash, near)):
+            found.setdefault(gid, "content_hash")
     if item.simhash is not None:
         differing_bits = cast(RawItem.simhash.op("#")(item.simhash), BIT(64))
-        found |= set(
-            session.scalars(
-                base.where(
-                    RawItem.simhash.is_not(None),
-                    near,
-                    func.bit_count(differing_bits) <= MAX_DISTANCE,
-                )
-            )
+        near_duplicates = base.where(
+            RawItem.simhash.is_not(None), near, func.bit_count(differing_bits) <= MAX_DISTANCE
         )
+        for gid in session.scalars(near_duplicates):
+            found.setdefault(gid, "simhash")
     return found
 
 
@@ -135,15 +134,20 @@ def group_item(session: Session, item_id: int) -> int:
         return group.id
 
     target = min(candidates)
-    for other in sorted(candidates - {target}):
+    reason = candidates[target]
+    for other in sorted(set(candidates) - {target}):
         merge_groups(session, target, other)
     if own is None:
-        session.add(Evidence(event_group_id=target, raw_item_id=item_id, is_origin=False))
+        session.add(
+            Evidence(
+                event_group_id=target, raw_item_id=item_id, is_origin=False, match_reason=reason
+            )
+        )
     else:
         session.execute(
             update(Evidence)
             .where(Evidence.id == existing[0])
-            .values(event_group_id=target, is_origin=False)
+            .values(event_group_id=target, is_origin=False, match_reason=reason)
         )
         session.flush()
         session.execute(delete(EventGroup).where(EventGroup.id == own))

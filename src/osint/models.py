@@ -7,6 +7,7 @@ story reposted by 15 accounts keeps 15 evidence rows under one group.
 
 from datetime import datetime
 
+from pgvector.sqlalchemy import Vector
 from sqlalchemy import (
     BigInteger,
     Boolean,
@@ -28,6 +29,7 @@ SOURCE_KINDS = ("rss", "web", "telegram", "bluesky", "mastodon", "manual")
 SOURCE_TIERS = ("A", "B", "C", "D")
 SOURCE_STATUSES = ("probation", "active", "paused", "rejected")
 ANALYSIS_STATUSES = ("pending", "done", "failed")
+EMBEDDING_DIM = 384  # paraphrase-multilingual-MiniLM-L12-v2
 
 
 def _in(column: str, values: tuple[str, ...]) -> str:
@@ -79,6 +81,12 @@ class RawItem(Base):
         Index("ix_raw_item_content_hash", "content_hash"),
         Index("ix_raw_item_url_canonical", "url_canonical"),
         Index("ix_raw_item_collected_at", text("collected_at DESC")),
+        Index(
+            "ix_raw_item_embedding",
+            "embedding",
+            postgresql_using="hnsw",
+            postgresql_ops={"embedding": "vector_cosine_ops"},
+        ),
     )
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
@@ -96,6 +104,10 @@ class RawItem(Base):
     content_hash: Mapped[str | None] = mapped_column(Text)
     # 64-bit SimHash of title and body; NULL when the text is too short to compare.
     simhash: Mapped[int | None] = mapped_column(BigInteger)
+    # Sentence embedding of title and lede, for grouping reports of the same event that
+    # share no wording. embedding_model records which model produced it.
+    embedding: Mapped[list[float] | None] = mapped_column(Vector(EMBEDDING_DIM))
+    embedding_model: Mapped[str | None] = mapped_column(Text)
     # Pointers into the immutable evidence store: the feed entry as received, and the
     # article page when it was fetched for full text.
     snapshot_ref: Mapped[str | None] = mapped_column(Text)
@@ -133,4 +145,8 @@ class Evidence(Base):
     # A raw_item belongs to exactly one group.
     raw_item_id: Mapped[int] = mapped_column(ForeignKey("raw_item.id"), unique=True)
     is_origin: Mapped[bool] = mapped_column(Boolean, default=False)
+    # How the item joined its group ("url", "content_hash", "simhash", "semantic"); NULL for the
+    # item that started the group. match_score is the cosine similarity for "semantic".
+    match_reason: Mapped[str | None] = mapped_column(Text)
+    match_score: Mapped[float | None] = mapped_column(Float)
     added_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

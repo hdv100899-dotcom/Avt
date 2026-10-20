@@ -9,8 +9,10 @@ from sqlalchemy import func, select
 from osint.config import data_dir
 from osint.db import make_engine, make_session_factory
 from osint.dedup import backfill_simhash, group_pending
+from osint.embeddings import FastEmbedder
 from osint.models import SOURCE_KINDS, SOURCE_STATUSES, SOURCE_TIERS, Evidence, RawItem, Source
 from osint.runner import make_client, run_forever, run_once
+from osint.semantic import cluster_step, reconsider_singletons
 from osint.snapshots import SnapshotStore
 from osint.sources import SourceError, add_source, list_sources, set_status
 
@@ -113,13 +115,21 @@ def collect_once(workers: int = typer.Option(8, help="Concurrent polls")) -> Non
 def collect_run(
     workers: int = typer.Option(8, help="Concurrent polls"),
     tick: float = typer.Option(10, help="Seconds between scheduler passes"),
+    embed: bool = typer.Option(True, help="Also embed new items and group same-event reports"),
 ) -> None:
     """Run the collector continuously until interrupted."""
     _setup_logging()
     factory = make_session_factory(make_engine())
     with make_client() as client:
         try:
-            run_forever(factory, client, SnapshotStore(data_dir()), workers=workers, tick_s=tick)
+            run_forever(
+                factory,
+                client,
+                SnapshotStore(data_dir()),
+                workers=workers,
+                tick_s=tick,
+                embedder=FastEmbedder() if embed else None,
+            )
         except KeyboardInterrupt:
             typer.echo("stopped")
 
@@ -182,3 +192,30 @@ def dedup(batch: int = typer.Option(500, help="Items grouped per transaction")) 
         ).one()
     typer.echo(f"simhash filled: {filled}; items grouped now: {grouped}")
     typer.echo(f"{items} items in {groups} groups; {multi} groups have more than one item")
+
+
+@app.command("cluster")
+def cluster(
+    batch: int = typer.Option(64, help="Items embedded per transaction"),
+    threads: int | None = typer.Option(None, help="CPU threads for the model"),
+    reconsider: bool = typer.Option(
+        False, help="Also re-examine items that are alone in their group (after a threshold change)"
+    ),
+) -> None:
+    """Embed every item that has no embedding and group reports of the same event."""
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+    factory = make_session_factory(make_engine())
+    embedder = FastEmbedder(threads)
+    embedded = joined = 0
+    while True:
+        done, merged = cluster_step(factory, embedder, batch)
+        embedded += done
+        joined += merged
+        if done == 0:
+            break
+        typer.echo(f"embedded {embedded} items so far, {joined} joined an existing event")
+    if reconsider:
+        with factory() as session, session.begin():
+            again = reconsider_singletons(session)
+        typer.echo(f"reconsidered lone items: {again} joined an existing event")
+    typer.echo(f"done: {embedded} embedded, {joined} joined an existing event")

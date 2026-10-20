@@ -10,7 +10,9 @@ Thiết kế và lộ trình: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
   tôn trọng robots.txt), kho snapshot bất biến, dashboard luồng tin, thống kê độ trễ.
 - Giai đoạn 2 (một phần): chống trùng theo URL, nội dung, SimHash; gom nhóm sự kiện, giữ đủ bằng chứng
   và đánh dấu nguồn gốc; dashboard hiển thị theo nhóm.
-- Chưa có: Telegram, gom nhóm theo ngữ nghĩa (GĐ3), AI, bản tin.
+- Giai đoạn 3: embedding cục bộ (MiniLM đa ngữ) và gom nhóm các bản tin cùng sự kiện khác lời, có ghi
+  lý do gộp. Ngưỡng mới được kiểm trên mẫu nhỏ (xem docs/ARCHITECTURE.md mục 5).
+- Chưa có: Telegram, trích xuất thực thể, AI phân tích, bản tin.
 
 ## Chạy thử
 
@@ -23,10 +25,12 @@ alembic upgrade head
 
 osint source seed config/sources.en.json   # 10 nguồn quốc phòng tiếng Anh đã kiểm tra
 osint collect once                         # thu thập một lượt
-osint collect run                          # chạy liên tục
+osint collect run                          # chạy liên tục (kèm nhúng và gom nhóm; --no-embed để tắt)
 osint web                                  # dashboard tại http://127.0.0.1:8000
 osint stats                                # số tin và độ trễ trung vị theo nguồn
 osint dedup                                # gom nhóm các tin chưa có nhóm (tin thu trước GĐ2)
+osint cluster                              # nhúng tin mới và gom các bản cùng sự kiện (tải mô hình ~220 MB lần đầu)
+osint cluster --reconsider                 # xét lại các tin lẻ sau khi đổi ngưỡng
 
 osint source add rss https://example.org/feed.xml --name "Example" --language en
 osint source list

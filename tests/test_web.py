@@ -162,6 +162,7 @@ def test_group_evidence_shows_origin_and_delay(grouped_client) -> None:
     origin, repost = detail["evidence"]
     assert (origin["source"], origin["is_origin"], origin["behind_origin_s"]) == ("Alpha", True, 0)
     assert (repost["source"], repost["is_origin"]) == ("Beta", False)
+    assert (origin["match_reason"], repost["match_reason"]) == (None, "content_hash")
     assert repost["behind_origin_s"] == 3600
 
 
