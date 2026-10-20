@@ -162,7 +162,9 @@ def test_group_evidence_shows_origin_and_delay(grouped_client) -> None:
     origin, repost = detail["evidence"]
     assert (origin["source"], origin["is_origin"], origin["behind_origin_s"]) == ("Alpha", True, 0)
     assert (repost["source"], repost["is_origin"]) == ("Beta", False)
-    assert (origin["match_reason"], repost["match_reason"]) == (None, "content_hash")
+    # match_reason says how an item joined, not whether it is the origin: Beta's copy was
+    # processed first and started the group; Alpha's joined it, then proved the earlier post.
+    assert (origin["match_reason"], repost["match_reason"]) == ("content_hash", None)
     assert repost["behind_origin_s"] == 3600
 
 
