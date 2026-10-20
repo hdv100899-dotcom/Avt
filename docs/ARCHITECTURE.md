@@ -104,7 +104,10 @@ Mô hình dữ liệu: `event_group 1—N evidence 1—1 raw_item`. Hiển thị
 
 ## 6. Phân tích bằng AI
 
-- Mô hình nhỏ/rẻ (họ Haiku) cho phân loại, dịch, trích xuất hàng loạt; mô hình lớn (Sonnet/Opus) cho tổng hợp nhóm sự kiện, bản tin, báo cáo chuyên đề. Dùng Batch API và prompt caching để giảm chi phí ở khối lượng lớn.
+- **Không có ngân sách AI** nên mặc định chạy mô hình cục bộ miễn phí (Ollama hoặc tương đương), không gọi API trả phí. Lớp AI viết sau một giao diện `LLMProvider` để thay được nhà cung cấp (cục bộ, gói miễn phí có giới hạn, hoặc API trả phí nếu sau này có ngân sách) mà không sửa logic nghiệp vụ.
+- Hạn chế cần chấp nhận: mô hình cục bộ trên CPU chậm; tóm tắt/nhận định kém hơn mô hình lớn; dịch đa ngữ kém ở ngôn ngữ ít tài nguyên. Giảm tải bằng cách **lọc rẻ trước, LLM sau**: phát hiện ngôn ngữ, từ khóa/bộ phân loại embedding nhỏ để loại tin không liên quan; LLM chỉ chạy ở cấp *nhóm sự kiện*, không chạy trên từng bài.
+- Embedding: bge-m3 hoặc multilingual-e5 chạy cục bộ trên CPU (đủ cho giai đoạn đầu). Dịch: NLLB-200 / Opus-MT cục bộ, ưu tiên khi nguồn không phải tiếng Anh.
+- Bản tin tiếng Việt vẫn do mô hình sinh; chất lượng cần người duyệt kiểm tra, nhất là thuật ngữ quân sự.
 - Đầu ra có cấu trúc (JSON schema): loại sự kiện, thực thể, địa điểm, thời gian, khí tài/đơn vị, mức độ chắc chắn.
 - Quy tắc nhận định: tách **Dữ kiện** (có trích dẫn id bằng chứng) / **Đánh giá** (suy luận, nêu giả định) / **Khoảng trống thông tin**. Không có trích dẫn thì không được đưa vào bản tin.
 - Thang tin cậy theo chuẩn tình báo (độ tin cậy nguồn × độ tin cậy thông tin, kiểu Admiralty) kèm cờ: chưa xác minh, nguồn đơn, nghi thao túng/tuyên truyền.
@@ -153,12 +156,18 @@ Chỉ số đo từ ngày đầu: độ trễ phát hiện p50/p95 theo tầng n
 - **Bài bị xóa/sửa**: lưu snapshot ngay khi thu thập.
 - **Chi phí AI** tăng theo khối lượng: lọc trước bằng mô hình nhỏ, chỉ tổng hợp ở cấp nhóm sự kiện.
 
-## 10. Câu hỏi cần chủ dự án quyết
+## 10. Quyết định của chủ dự án
 
-1. **X/Twitter**: có ngân sách mua API không, hay dùng kênh phản chiếu?
-2. **Facebook**: chấp nhận hoãn khỏi GĐ1 và chỉ nhận liên kết/nhập thủ công, hay có ngân sách nhà cung cấp dữ liệu?
-3. **Phạm vi địa lý/ngôn ngữ** của nguồn ban đầu (ngôn ngữ nào cần dịch) và **ngôn ngữ đầu ra** (mặc định: tiếng Việt).
-4. **Hạ tầng**: VPS/đám mây/tại chỗ? Dữ liệu có bị ràng buộc nơi lưu trữ không?
-5. **Ngân sách AI** hàng tháng và khối lượng tin dự kiến mỗi ngày.
-6. **Người dùng**: số người, có cần phân quyền theo vai trò/chuyên đề không?
-7. **Danh sách nguồn ban đầu** (để đo độ bao phủ và độ trễ thật ở GĐ1).
+| Vấn đề | Quyết định | Hệ quả |
+|---|---|---|
+| X/Twitter | Dùng kênh phản chiếu, không mua API | Không có Collector X; theo dõi nội dung X thông qua Telegram/Bluesky/trang tin |
+| Ngôn ngữ nguồn | Tất cả ngôn ngữ, **ưu tiên tiếng Anh** | Phát hiện ngôn ngữ ngay khi thu thập; nguồn tiếng Anh vào trước; dịch ở GĐ4 |
+| Ngân sách | Không có | Công cụ miễn phí/mã nguồn mở; AI chạy cục bộ (mục 6); hạ tầng tối thiểu |
+
+Chưa được trả lời, đang dùng giả định (đổi được):
+
+- **Facebook**: hoãn khỏi GĐ1, chỉ nhận liên kết nhập thủ công.
+- **Hạ tầng**: một máy chạy Docker Compose, chưa ràng buộc nơi lưu trữ.
+- **Ngôn ngữ đầu ra**: tiếng Việt.
+- **Người dùng**: một nhóm nhỏ, chưa cần phân quyền theo chuyên đề.
+- **Nguồn ban đầu**: chưa có danh sách; GĐ1 sẽ dùng bộ nguồn mẫu công khai (báo quốc phòng, think tank, bộ quốc phòng các nước, tiếng Anh) để đo độ trễ, và thay bằng danh sách của chủ dự án khi có.
