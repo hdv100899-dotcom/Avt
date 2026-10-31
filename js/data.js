@@ -6,6 +6,8 @@
  * và có thể xuất ra file JSON để thay thế/cập nhật file này.
  */
 window.DEFAULT_DATA_VERSION = "2026-10-31";
+// Tăng số này mỗi khi bổ sung/sửa dữ liệu gốc → trình duyệt đã lưu bản cũ sẽ tự nhận thực thể mới
+window.DEFAULT_DATA_REV = 2;
 
 window.CONTROLLERS = {
   VN: { name: "Việt Nam", color: "#e53935" },
@@ -16,7 +18,7 @@ window.CONTROLLERS = {
   NONE: { name: "Chưa có đồn trú / tranh chấp", color: "#9e9e9e" }
 };
 
-window.FEATURE_TYPES = ["Đảo", "Đá", "Bãi cạn", "Cồn san hô", "Bãi ngầm", "Nhà giàn / Công trình", "Khác"];
+window.FEATURE_TYPES = ["Cụm / Nhóm đảo", "Đảo", "Đá", "Bãi cạn", "Cồn san hô", "Bãi ngầm", "Nhà giàn / Công trình", "Khác"];
 window.GROUPS = ["Trường Sa", "Hoàng Sa", "Khác"];
 
 (function () {
@@ -138,7 +140,7 @@ window.GROUPS = ["Trường Sa", "Hoàng Sa", "Khác"];
       military: { status: "Tiền đồn (bồi đắp)", garrison: "PLA" } }),
 
     /* ================= TRƯỜNG SA – Philippines ================= */
-    F({ name: "Đảo Thị Tứ", nameEn: "Thitu Island (Pag-asa)", nameCn: "中业岛", type: "Đảo", controller: "PH",
+    F({ name: "Đảo Thị Tứ", nameEn: "Thitu Island (Pag-asa Island)", nameCn: "中业岛", type: "Đảo", controller: "PH",
       lat: d(11, 3.3), lng: d(114, 17.1),
       natural: { area: "~0,37 km²", description: "Đảo lớn thứ hai tự nhiên tại Trường Sa." },
       military: { status: "Đồn trú + dân sự", runway: "~1.300 m", garrison: "Philippines" } }),
@@ -182,7 +184,7 @@ window.GROUPS = ["Trường Sa", "Hoàng Sa", "Khác"];
       military: { status: "Đồn trú", garrison: "Malaysia" } }),
 
     /* ================= TRƯỜNG SA – Đài Loan ================= */
-    F({ name: "Đảo Ba Bình", nameEn: "Itu Aba Island (Taiping)", nameCn: "太平岛", type: "Đảo", controller: "TW",
+    F({ name: "Đảo Ba Bình", nameEn: "Itu Aba Island (Taiping Island)", nameCn: "太平岛", type: "Đảo", controller: "TW",
       lat: d(10, 22.6), lng: d(114, 21.9),
       natural: { area: "~0,46 km²", landform: "Đảo tự nhiên lớn nhất Trường Sa", vegetation: "Rừng nhiệt đới", freshwater: "Có giếng nước ngọt", description: "Thuộc cụm Nam Yết." },
       military: { status: "Đồn trú (Tuần duyên)", runway: "~1.200 m", port: "Có", garrison: "Tuần duyên Đài Loan" } }),
@@ -194,7 +196,7 @@ window.GROUPS = ["Trường Sa", "Hoàng Sa", "Khác"];
     F({ name: "Bãi Cỏ Rong", nameEn: "Reed Bank", nameCn: "礼乐滩", type: "Bãi ngầm", controller: "NONE",
       lat: d(11, 27.0), lng: d(116, 54.0),
       natural: { landform: "Bãi ngầm rộng lớn", description: "Có tiềm năng dầu khí." } }),
-    F({ name: "Đá Suối Ngà", nameEn: "Whitsun Reef", nameCn: "牛轭礁", type: "Đá", controller: "NONE",
+    F({ name: "Đá Ba Đầu", nameEn: "Whitsun Reef (Julian Felipe Reef)", nameCn: "牛轭礁", type: "Đá", controller: "NONE",
       lat: d(9, 58.5), lng: d(114, 39.5),
       natural: { description: "Thuộc cụm Sinh Tồn; thường xuyên có tàu dân quân biển neo đậu (theo nguồn mở)." } }),
 
@@ -243,6 +245,76 @@ window.GROUPS = ["Trường Sa", "Hoàng Sa", "Khác"];
     F({ name: "Bãi cạn Scarborough", nameEn: "Scarborough Shoal", nameCn: "黄岩岛", group: "Khác", type: "Bãi cạn", controller: "CN",
       lat: d(15, 11.0), lng: d(117, 46.0),
       natural: { landform: "Rạn vòng hình tam giác có đầm phá" },
-      military: { status: "Tàu hải cảnh Trung Quốc kiểm soát từ 2012 (theo nguồn mở)", notes: "Tranh chấp TQ – Philippines." } })
+      military: { status: "Tàu hải cảnh Trung Quốc kiểm soát từ 2012 (theo nguồn mở)", notes: "Tranh chấp TQ – Philippines." } }),
+    /* ========== BỔ SUNG (rev 2) – thêm vào cuối để giữ nguyên id cũ ========== */
+    /* --- Hoàng Sa: nhóm An Vĩnh --- */
+    F({ name: "Đảo Bắc", nameEn: "North Island", nameCn: "北岛", group: "Hoàng Sa", type: "Đảo", controller: "CN",
+      lat: d(16, 58.0), lng: d(112, 18.3), natural: { description: "Thuộc nhóm An Vĩnh, phía bắc đảo Phú Lâm." }, military: { status: "Tiền đồn / dân quân biển (theo nguồn mở)" } }),
+    F({ name: "Đảo Trung", nameEn: "Middle Island", nameCn: "中岛", group: "Hoàng Sa", type: "Đảo", controller: "CN",
+      lat: d(16, 57.5), lng: d(112, 19.3), natural: { description: "Thuộc nhóm An Vĩnh." } }),
+    F({ name: "Đảo Nam", nameEn: "South Island", nameCn: "南岛", group: "Hoàng Sa", type: "Đảo", controller: "CN",
+      lat: d(16, 56.9), lng: d(112, 20.3), natural: { description: "Thuộc nhóm An Vĩnh." } }),
+    F({ name: "Cồn cát Tây", nameEn: "West Sand", nameCn: "西沙洲", group: "Hoàng Sa", type: "Cồn san hô", controller: "CN",
+      lat: d(16, 58.8), lng: d(112, 12.5), natural: { description: "Cồn cát thuộc nhóm An Vĩnh, phía tây đảo Cây." } }),
+    F({ name: "Đá Tháp (Hòn Tháp)", nameEn: "Pyramid Rock", nameCn: "高尖石", group: "Hoàng Sa", type: "Đá", controller: "CN",
+      lat: d(16, 34.5), lng: d(112, 38.5), natural: { landform: "Mỏm đá núi lửa nhô cao, phía nam đảo Linh Côn" } }),
+    /* --- Hoàng Sa: nhóm Lưỡi Liềm --- */
+    F({ name: "Đá Hải Sâm", nameEn: "Antelope Reef", nameCn: "羚羊礁", group: "Hoàng Sa", type: "Đá", controller: "CN",
+      lat: d(16, 27.5), lng: d(111, 35.0), natural: { landform: "Rạn vòng có đầm phá, nhóm Lưỡi Liềm", description: "Đang bị bồi đắp/cải tạo quy mô lớn." },
+      military: { status: "Đang xây dựng (bồi đắp)", runway: "Đang xây dựng – có thể là sân bay thứ 5 của TQ ở Biển Đông", notes: "Theo báo chí quốc tế 10/2026 (Taipei Times, các phân tích nguồn mở) – cần kiểm chứng bằng ảnh vệ tinh." } }),
+    F({ name: "Đảo Quang Hòa Tây", nameEn: "Palm Island", nameCn: "广金岛", group: "Hoàng Sa", type: "Đảo", controller: "CN",
+      lat: d(16, 26.9), lng: d(111, 41.6), natural: { description: "Cùng đảo Quang Hòa (Đông) tạo thành cụm Quang Hòa, nhóm Lưỡi Liềm." } }),
+    F({ name: "Đá Chim Én", nameEn: "Vuladdore Reef", nameCn: "玉琢礁", group: "Hoàng Sa", type: "Đá", controller: "NONE",
+      lat: d(16, 20.0), lng: d(112, 2.0) }),
+    /* --- Hoàng Sa: cụm --- */
+    F({ name: "Nhóm An Vĩnh", nameEn: "Amphitrite Group", nameCn: "宣德群岛", group: "Hoàng Sa", type: "Cụm / Nhóm đảo", controller: "CN",
+      lat: d(16, 55.0), lng: d(112, 17.0), radiusKm: 16,
+      natural: { description: "Nhóm phía đông bắc Hoàng Sa: Phú Lâm, Cây, Bắc, Trung, Nam, các cồn cát; (theo cách chia rộng gồm cả Linh Côn, Đá Tháp)." } }),
+    F({ name: "Nhóm Lưỡi Liềm", nameEn: "Crescent Group", nameCn: "永乐群岛", group: "Hoàng Sa", type: "Cụm / Nhóm đảo", controller: "CN",
+      lat: d(16, 28.0), lng: d(111, 40.0), radiusKm: 22,
+      natural: { description: "Nhóm phía tây Hoàng Sa: Hoàng Sa, Hữu Nhật, Quang Ảnh, Quang Hòa, Duy Mộng, Đá Hải Sâm, Đá Lồi..." } }),
+
+    /* --- Trường Sa: các cụm --- */
+    F({ name: "Cụm Song Tử", nameEn: "North Danger Reef", nameCn: "双子群礁", type: "Cụm / Nhóm đảo", controller: "NONE",
+      lat: d(11, 25.5), lng: d(114, 20.0), radiusKm: 10, natural: { description: "Gồm Song Tử Tây (VN), Song Tử Đông (PH), Đá Nam (VN) và các rạn khác." } }),
+    F({ name: "Cụm Thị Tứ", nameEn: "Thitu Reefs", nameCn: "中业群礁", type: "Cụm / Nhóm đảo", controller: "NONE",
+      lat: d(11, 3.5), lng: d(114, 15.0), radiusKm: 14, natural: { description: "Gồm đảo Thị Tứ (PH), Đá Hoài Ân và các rạn lân cận; gần Đá Xu Bi (TQ)." } }),
+    F({ name: "Cụm Loại Ta", nameEn: "Loaita Bank", nameCn: "道明群礁", type: "Cụm / Nhóm đảo", controller: "NONE",
+      lat: d(10, 45.0), lng: d(114, 27.0), radiusKm: 18, natural: { description: "Gồm đảo Loại Ta, Cồn san hô Lan Can (PH) và các rạn." } }),
+    F({ name: "Cụm Nam Yết", nameEn: "Tizard Bank", nameCn: "郑和群礁", type: "Cụm / Nhóm đảo", controller: "NONE",
+      lat: d(10, 15.0), lng: d(114, 22.0), radiusKm: 28, natural: { description: "Gồm Nam Yết, Sơn Ca (VN), Ba Bình, Bàn Than (ĐL), Ga Ven (TQ), Núi Thị, Đá Én Đất..." } }),
+    F({ name: "Cụm Sinh Tồn", nameEn: "Union Banks", nameCn: "九章群礁", type: "Cụm / Nhóm đảo", controller: "NONE",
+      lat: d(9, 50.0), lng: d(114, 26.0), radiusKm: 28, natural: { description: "Gồm Sinh Tồn, Sinh Tồn Đông, Cô Lin, Len Đao (VN), Gạc Ma, Tư Nghĩa (TQ), Đá Ba Đầu..." } }),
+    F({ name: "Cụm Trường Sa", nameEn: "London Reefs", nameCn: "尹庆群礁", type: "Cụm / Nhóm đảo", controller: "NONE",
+      lat: d(8, 52.0), lng: d(112, 26.0), radiusKm: 26, natural: { description: "Gồm Đá Tây, Trường Sa Đông, Đá Đông (VN) và Châu Viên (TQ)." } }),
+    /* --- Trường Sa: đá, bãi cạn bổ sung --- */
+    F({ name: "Đá Suối Ngà", nameEn: "Jackson Atoll", nameCn: "五方礁", type: "Đá", controller: "NONE",
+      lat: d(10, 30.0), lng: d(115, 45.0), natural: { landform: "Rạn vòng lớn, ngư trường" } }),
+    F({ name: "Bãi Sa Bin", nameEn: "Sabina Shoal (Escoda Shoal)", nameCn: "仙宾礁", type: "Bãi cạn", controller: "NONE",
+      lat: d(9, 45.0), lng: d(116, 28.0), military: { notes: "Điểm nóng va chạm TQ – Philippines (theo nguồn mở)." } }),
+    F({ name: "Đá Cá Nhám", nameEn: "Irving Reef", nameCn: "火艾礁", type: "Đá", controller: "NONE",
+      lat: d(10, 52.5), lng: d(114, 55.5) }),
+    F({ name: "Đá Hoài Ân", nameEn: "Sandy Cay", nameCn: "铁线礁", type: "Cồn san hô", controller: "NONE",
+      lat: d(11, 3.8), lng: d(114, 13.3), natural: { description: "Các cồn cát nhỏ giữa Thị Tứ và Xu Bi." } }),
+    F({ name: "Cồn san hô Lan Can", nameEn: "Lankiam Cay (Panata)", nameCn: "杨信沙洲", type: "Cồn san hô", controller: "PH",
+      lat: d(10, 43.0), lng: d(114, 31.5), military: { status: "Đồn trú", garrison: "Philippines" } }),
+    F({ name: "Đá Én Đất", nameEn: "Eldad Reef", nameCn: "安达礁", type: "Đá", controller: "NONE",
+      lat: d(10, 21.0), lng: d(114, 42.0) }),
+    /* --- Thềm lục địa phía Nam: các bãi ngầm / nhà giàn DK1 --- */
+    F({ name: "Bãi Vũng Mây (Đá Ba Kè)", nameEn: "Rifleman Bank (Bombay Castle)", nameCn: "南薇滩", group: "Khác", type: "Nhà giàn / Công trình", controller: "VN",
+      lat: d(7, 55.0), lng: d(111, 40.0), military: { status: "Trạm dịch vụ KT-KH-KT (nhà giàn DK1)", garrison: "Hải quân Việt Nam" } }),
+    F({ name: "Bãi Phúc Tần", nameEn: "Prince of Wales Bank", nameCn: "广雅滩", group: "Khác", type: "Nhà giàn / Công trình", controller: "VN",
+      lat: d(8, 7.0), lng: d(110, 32.0), military: { status: "Nhà giàn DK1", garrison: "Hải quân Việt Nam" } }),
+    F({ name: "Bãi Huyền Trân", nameEn: "Alexandra Bank", nameCn: "人骏滩", group: "Khác", type: "Nhà giàn / Công trình", controller: "VN",
+      lat: d(8, 0.0), lng: d(110, 37.0), military: { status: "Nhà giàn DK1", garrison: "Hải quân Việt Nam" } }),
+    F({ name: "Bãi Quế Đường", nameEn: "Grainger Bank", nameCn: "李准滩", group: "Khác", type: "Nhà giàn / Công trình", controller: "VN",
+      lat: d(7, 48.0), lng: d(110, 28.0), military: { status: "Nhà giàn DK1", garrison: "Hải quân Việt Nam" } }),
+    /* --- Khác --- */
+    F({ name: "Bãi Macclesfield", nameEn: "Macclesfield Bank", nameCn: "中沙群岛", group: "Khác", type: "Bãi ngầm", controller: "NONE",
+      lat: d(15, 50.0), lng: d(114, 20.0), radiusKm: 70, natural: { landform: "Rạn vòng chìm rất lớn, hoàn toàn dưới mặt nước" } }),
+    F({ name: "Bãi Luconia", nameEn: "Luconia Shoals", nameCn: "南康暗沙", group: "Khác", type: "Bãi ngầm", controller: "MY",
+      lat: d(5, 0.0), lng: d(112, 35.0), radiusKm: 40, military: { notes: "Tàu hải cảnh TQ thường xuyên hiện diện (theo nguồn mở)." } }),
+    F({ name: "Bãi cạn James", nameEn: "James Shoal", nameCn: "曾母暗沙", group: "Khác", type: "Bãi ngầm", controller: "NONE",
+      lat: d(3, 58.0), lng: d(112, 21.0), natural: { description: "Bãi ngầm sâu ~22 m, gần bờ Sarawak (Malaysia)." } })
   ];
 })();

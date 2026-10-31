@@ -2,7 +2,7 @@
 """
 Thu thập tin tức mới nhất về Biển Đông và các thực thể (đảo, đá, bãi...).
 
-- Nguồn: Google News RSS (tiếng Việt + tiếng Anh) và RSS mục Thế giới của một số báo Việt Nam.
+- Nguồn: Google News RSS tiếng Anh (báo chí quốc tế): truy vấn chung + truy vấn theo tên từng thực thể.
 - Chỉ giữ bài có nhắc tới từ khóa Biển Đông hoặc tên một thực thể trong js/data.js.
 - Gộp với data/news.json hiện có, giữ tối đa MAX_ITEMS bài trong KEEP_DAYS ngày gần nhất.
 - Chỉ dùng thư viện chuẩn Python → chạy được ngay trên GitHub Actions.
@@ -30,36 +30,21 @@ KEEP_DAYS = 45
 MAX_ITEMS = 800
 UA = "Mozilla/5.0 (compatible; BienDongMonitor/1.0; +https://github.com)"
 
-GN_VI = "https://news.google.com/rss/search?q={q}&hl=vi&gl=VN&ceid=VN:vi"
 GN_EN = "https://news.google.com/rss/search?q={q}&hl=en-US&gl=US&ceid=US:en"
 
-QUERIES_VI = [
-    '"Biển Đông" when:7d',
-    '"Trường Sa" when:7d',
-    '"Hoàng Sa" when:7d',
-    '"bãi Tư Chính" OR "nhà giàn DK1" when:14d',
-    '"đá Chữ Thập" OR "đá Vành Khăn" OR "đá Xu Bi" OR "Gạc Ma" when:14d',
-    '"bãi Cỏ Mây" OR "Scarborough" OR "Ba Bình" when:14d',
-    '"cảnh sát biển Việt Nam" OR "hải quân Việt Nam" Biển Đông when:7d',
-]
+# Chỉ lấy tin báo chí quốc tế bằng tiếng Anh.
 QUERIES_EN = [
     '"South China Sea" when:7d',
+    '"West Philippine Sea" when:7d',
     '"Spratly" when:7d',
     '"Paracel" when:7d',
     '"Second Thomas Shoal" OR "Ayungin" when:7d',
-    '"Scarborough Shoal" when:7d',
-    '"Mischief Reef" OR "Fiery Cross" OR "Subi Reef" when:14d',
-    '"Sabina Shoal" OR "Whitsun Reef" OR "Thitu" OR "Pag-asa Island" when:14d',
-    '"Vanguard Bank" OR "Woody Island" OR "Triton Island" when:14d',
+    '"Scarborough Shoal" OR "Bajo de Masinloc" when:7d',
+    '"China coast guard" Philippines OR Vietnam when:7d',
+    '"Vietnam" "South China Sea" when:14d',
 ]
-EXTRA_FEEDS = [
-    ("VnExpress", "https://vnexpress.net/rss/the-gioi.rss", "vi"),
-    ("VnExpress", "https://vnexpress.net/rss/thoi-su.rss", "vi"),
-    ("Tuổi Trẻ", "https://tuoitre.vn/rss/the-gioi.rss", "vi"),
-    ("Tuổi Trẻ", "https://tuoitre.vn/rss/thoi-su.rss", "vi"),
-    ("Thanh Niên", "https://thanhnien.vn/rss/the-gioi.rss", "vi"),
-    ("Thanh Niên", "https://thanhnien.vn/rss/thoi-su.rss", "vi"),
-]
+ENTITY_QUERY_DAYS = 30   # truy vấn theo tên từng thực thể (tự sinh từ js/data.js)
+ENTITY_QUERY_CHUNK = 6   # số tên ghép OR trong một truy vấn
 GENERAL_TERMS = [
     "Biển Đông", "Trường Sa", "Hoàng Sa", "South China Sea", "Spratly", "Paracel",
     "West Philippine Sea", "南海", "南沙", "西沙", "đường lưỡi bò", "nine-dash line",
@@ -67,7 +52,12 @@ GENERAL_TERMS = [
 # Tin thời tiết / thiên tai chỉ nhắc "Biển Đông" như vùng biển → loại bỏ
 NOISE = re.compile(r"thời tiết|\bbão\b|siêu bão|áp thấp|không khí lạnh|gió mùa|mưa lớn|mưa diện rộng|sóng lớn|"
                    r"earthquake|typhoon|tropical storm|tropical depression|weather|magnitude", re.I)
-AMBIGUOUS = {"Rizal", "Parola", "Spratly Island", "Đảo Cây", "Tree Island", "Money Island", "Flat Island"}
+# Bài chỉ khớp theo tên thực thể (không có từ khóa chung) phải có thêm ngữ cảnh Biển Đông
+CONTEXT = re.compile(r"South China Sea|West Philippine Sea|Spratly|Paracel|China|Chinese|Beijing|Philippine|Manila|"
+                     r"Vietnam|Hanoi|Malaysia|Taiwan|coast guard|PLA\b|maritime|militia|AFP\b|PCG\b", re.I)
+GENERAL_RE = re.compile(r"South China Sea|West Philippine Sea|Spratly|Paracel|nine-dash", re.I)
+AMBIGUOUS = {"Rizal", "Parola", "Spratly Island", "Đảo Cây", "Tree Island", "Money Island", "Flat Island",
+             "North Island", "South Island", "Middle Island", "West Sand", "Paracels", "Panata", "Escoda Shoal", "Pag-asa"}
 TYPE_PREFIX = re.compile(r"^(Đảo|Đá|Bãi cạn|Bãi|Cồn san hô|Cồn|Nhà giàn)\s+", re.I)
 
 
@@ -97,6 +87,22 @@ def load_terms():
     # bỏ các từ quá chung chung / dễ trùng
     terms -= AMBIGUOUS
     return sorted(t for t in terms if len(t) >= 4 or re.search(r"[\u4e00-\u9fff]", t))
+
+
+def entity_english_names():
+    """Tên tiếng Anh của các thực thể trong js/data.js (bỏ tên quá chung chung)."""
+    try:
+        src = open(DATA_JS, encoding="utf-8").read()
+        src = src[src.find("DEFAULT_FEATURES"):]
+    except OSError:
+        return []
+    names = []
+    for v in re.findall(r'\bnameEn:\s*"([^"]+)"', src):
+        for part in re.split(r"[()/]", nfc(v)):
+            part = part.strip()
+            if len(part) >= 5 and part not in AMBIGUOUS and part not in names:
+                names.append(part)
+    return names
 
 
 def build_matcher(terms):
@@ -191,25 +197,25 @@ def key_of(a):
 def main():
     match = build_matcher(load_terms())
     collected = []
-    for q in QUERIES_VI:
-        print("VI:", q)
-        raw = fetch(GN_VI.format(q=urllib.parse.quote_plus(q)))
-        if raw:
-            collected += parse_feed(raw, "Google News", "vi", "google-vi")
-        time.sleep(1.5)
-    for q in QUERIES_EN:
+    queries = list(QUERIES_EN)
+    names = entity_english_names()
+    for i in range(0, len(names), ENTITY_QUERY_CHUNK):
+        chunk = names[i:i + ENTITY_QUERY_CHUNK]
+        queries.append(" OR ".join(f'"{n}"' for n in chunk) + f" when:{ENTITY_QUERY_DAYS}d")
+    for q in queries:
         print("EN:", q)
         raw = fetch(GN_EN.format(q=urllib.parse.quote_plus(q)))
         if raw:
             collected += parse_feed(raw, "Google News", "en", "google-en")
         time.sleep(1.5)
-    for name, url, lang in EXTRA_FEEDS:
-        print("RSS:", url)
-        raw = fetch(url)
-        if raw:
-            collected += parse_feed(raw, name, lang, "rss")
 
-    fresh = [a for a in collected if match(a["title"] + " " + a["summary"]) and not NOISE.search(a["title"])]
+    def relevant(a):
+        t = a["title"] + " " + a["summary"]
+        if NOISE.search(a["title"]):
+            return False
+        return bool(GENERAL_RE.search(t)) or (match(t) and bool(CONTEXT.search(t)))
+
+    fresh = [a for a in collected if relevant(a)]
     print(f"Thu được {len(collected)} bài, liên quan: {len(fresh)}")
 
     old = []
@@ -219,7 +225,7 @@ def main():
         except Exception:  # noqa: BLE001
             old = []
     items = {}
-    old = [a for a in old if not NOISE.search(a.get("title", ""))]
+    old = [a for a in old if a.get("lang") == "en" and relevant(a)]
     for a in old + fresh:  # bài mới ghi đè bài cũ cùng tiêu đề
         a["id"] = key_of(a)
         if a["id"] in items:
