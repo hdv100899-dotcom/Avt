@@ -32,6 +32,15 @@ python3 -m http.server 8000   # rồi mở http://localhost:8000
 Có thể triển khai lên GitHub Pages. Cần Internet để tải Leaflet và ảnh vệ tinh.
 Mở thẳng một mục tiêu: `index.html#f023` (theo id).
 
+## Hồ sơ thực thể (Wikipedia / Wikidata)
+```bash
+python3 scripts/build_profiles.py     # → data/profiles.json
+```
+- Một truy vấn SPARQL Wikidata lấy mọi mục có tọa độ trong khung Biển Đông và có bài Wikipedia; ghép với thực thể
+  theo tên (Việt/Anh/Trung) + kiểm tra khoảng cách ≤ 60 km; lấy tóm tắt bài Wikipedia tiếng Việt và tiếng Anh,
+  diện tích, độ cao, ảnh Wikimedia Commons. Hiển thị ở tab **Hồ sơ** (kèm liên kết nguồn, giấy phép CC BY-SA 4.0).
+- Tọa độ đã được đối chiếu bằng ảnh vệ tinh: điểm rơi vào nước sâu được dời vào rạn/đảo gần nhất (`COORD_FIX` trong `js/data.js`).
+
 ## Bản HTML ngoại tuyến (một file, không cần web / Internet)
 ```bash
 python3 scripts/build_offline.py      # → dist/bien-dong-offline.html (~15 MB)

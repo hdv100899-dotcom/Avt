@@ -20,6 +20,7 @@ import re
 import subprocess
 import sys
 import time
+import urllib.parse
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 
@@ -141,7 +142,36 @@ def main():
     html = read("index.html")
     news_path = os.path.join(ROOT, "data", "news.json")
     news = json.load(open(news_path, encoding="utf-8")) if os.path.exists(news_path) else {"articles": []}
-    payload = ("window.OFFLINE_TILES=" + json.dumps(tile_b64, separators=(",", ":")) + ";\n"
+    prof_path = os.path.join(ROOT, "data", "profiles.json")
+    profiles = json.load(open(prof_path, encoding="utf-8")) if os.path.exists(prof_path) else {}
+    prof_imgs = {}
+    for fid, pr in profiles.items():  # ảnh minh họa Wikimedia Commons (thu nhỏ 480px)
+        if not pr.get("image"):
+            continue
+        url = "https://commons.wikimedia.org/wiki/Special:FilePath/" + urllib.parse.quote(pr["image"]) + "?width=500"  # cỡ ảnh thu nhỏ chuẩn của Wikimedia
+        cache = os.path.join(VENDOR, "commons", re.sub(r"[^\w.-]", "_", pr["image"])[:120] + ".img")
+        fresh = not os.path.exists(cache)
+        data = get(url, cache)
+        if fresh:
+            time.sleep(3.0)
+        if data:
+            mime = "image/png" if data[:4] == b"\x89PNG" else "image/jpeg"
+            try:  # nén lại JPEG 480px cho file gọn (nếu có Pillow)
+                import io
+                from PIL import Image
+                im = Image.open(io.BytesIO(data)).convert("RGB")
+                im.thumbnail((480, 480))
+                buf = io.BytesIO()
+                im.save(buf, "JPEG", quality=72, optimize=True)
+                data, mime = buf.getvalue(), "image/jpeg"
+            except Exception:  # noqa: BLE001
+                pass
+            if len(data) < 300_000:
+                prof_imgs[fid] = f"data:{mime};base64,{base64.b64encode(data).decode()}"
+    print(f"Hồ sơ: {len(profiles)} thực thể, {len(prof_imgs)} ảnh minh họa")
+    payload = ("window.EMBEDDED_PROFILES=" + json.dumps(profiles, ensure_ascii=False, separators=(",", ":")) + ";\n"
+               "window.EMBEDDED_PROFILE_IMAGES=" + json.dumps(prof_imgs, separators=(",", ":")) + ";\n"
+               "window.OFFLINE_TILES=" + json.dumps(tile_b64, separators=(",", ":")) + ";\n"
                "window.EMBEDDED_NEWS=" + json.dumps(news, ensure_ascii=False, separators=(",", ":")) + ";\n"
                "window.OFFLINE_BUILT=" + json.dumps(time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())) + ";")
 

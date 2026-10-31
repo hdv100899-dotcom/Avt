@@ -58,7 +58,8 @@
   }
   function toDMS(x, pos, neg) {
     const h = x >= 0 ? pos : neg; x = Math.abs(x);
-    const dd = Math.floor(x), mf = (x - dd) * 60, mm = Math.floor(mf), ss = ((mf - mm) * 60).toFixed(1);
+    const t = Math.round(x * 36000) / 10;  // tổng số giây, làm tròn 0,1″ trước khi tách độ/phút/giây
+    const dd = Math.floor(t / 3600), mm = Math.floor((t - dd * 3600) / 60), ss = (t - dd * 3600 - mm * 60).toFixed(1);
     return `${dd}°${String(mm).padStart(2, "0")}′${String(ss).padStart(4, "0")}″${h}`;
   }
   const dmsLat = (x) => toDMS(x, "N", "S");
@@ -272,15 +273,50 @@
         body.innerHTML = `<table class="kv">
           ${row("Tọa độ", `${dmsLat(f.lat)}  ${dmsLng(f.lng)}`)}
           ${row("Thập phân", `${f.lat.toFixed(5)}, ${f.lng.toFixed(5)}`)}
-          ${row("Diện tích", n.area)}${row("Tình trạng quân sự", m.status)}${row("Đồn trú", m.garrison)}
+          ${row("Diện tích", n.area || (profiles[f.id] && profiles[f.id].area_km2 != null ? profiles[f.id].area_km2 + " km² (Wikidata)" : ""))}${row("Tình trạng quân sự", m.status)}${row("Đồn trú", m.garrison)}
           ${row("Đường băng", m.runway)}${row("Ghi chú", f.notes)}
           ${row("Cập nhật lần cuối", fmtTime(f.updatedAt))}</table>
           <div id="miniMap"></div>
           <div class="muted">${OFFLINE ? "Ảnh Sentinel-2 cloudless (10 m) có sẵn trong file – © EOX, Copernicus." : "Ảnh vệ tinh Esri World Imagery – thời điểm chụp tùy khu vực."}</div>`;
         mountMini(f, 15);
         break;
+      case "profile": {
+        const pr = profiles[f.id];
+        if (!pr) {
+          body.innerHTML = `<div class="muted">${profilesLoaded ? "Chưa có hồ sơ tra cứu cho mục tiêu này (không tìm thấy bài Wikipedia phù hợp, hoặc là mục tiêu tự thêm)." : "Không tải được data/profiles.json."}</div>
+            <div class="links">Tra cứu thủ công:
+              <a target="_blank" rel="noopener" href="https://vi.wikipedia.org/w/index.php?search=${encodeURIComponent(f.name)}">Wikipedia VI</a>
+              <a target="_blank" rel="noopener" href="https://en.wikipedia.org/w/index.php?search=${encodeURIComponent((f.nameEn || f.name).replace(/\s*\(.*?\)/g, ""))}">Wikipedia EN</a></div>`;
+          break;
+        }
+        const img = (window.EMBEDDED_PROFILE_IMAGES || {})[f.id] ||
+          (pr.image ? `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(pr.image)}?width=640` : "");
+        const dist = pr.distanceKm;
+        const sec = (lang, label) => pr[lang] && pr[lang].extract ? `<h4>${label} <a target="_blank" rel="noopener" href="${esc(pr[lang].url)}">↗ ${esc(pr[lang].title)}</a></h4>
+          <div class="prose">${esc(pr[lang].extract).replace(/\n+/g, "<br><br>")}</div>` : "";
+        body.innerHTML = `${img ? `<figure class="pimg"><img src="${esc(img)}" alt="" onerror="this.parentNode.remove()">
+            <figcaption>${esc(pr.image || "")} – Wikimedia Commons</figcaption></figure>` : ""}
+          <table class="kv">
+            ${row("Diện tích (Wikidata)", pr.area_km2 != null ? pr.area_km2 + " km²" : "")}
+            ${row("Độ cao (Wikidata)", pr.elevation_m != null ? pr.elevation_m + " m" : "")}
+            ${row("Tọa độ theo Wikipedia", pr.coord ? `${dmsLat(pr.coord[0])} ${dmsLng(pr.coord[1])}` : "")}
+            ${row("Chênh với tọa độ đang dùng", dist != null ? `${km2(distKm(f.lat, f.lng, pr.coord[0], pr.coord[1]))}` : "")}
+            ${row("Tên tiếng Trung (Wikipedia)", pr.zhTitle)}
+          </table>
+          ${pr.coord && distKm(f.lat, f.lng, pr.coord[0], pr.coord[1]) > 0.3 ? `<button id="btnUseWikiCoord">📍 Dùng tọa độ Wikipedia</button>
+            <div class="muted">Lưu ý: tọa độ Wikipedia/Wikidata thường là <b>tâm rạn</b>; tọa độ đang dùng đã được kiểm tra trên ảnh vệ tinh
+            để nằm trên rạn/đảo/công trình. Chỉ thay khi chắc chắn.</div>` : ""}
+          ${sec("vi", "Wikipedia tiếng Việt")}
+          ${sec("en", "Wikipedia tiếng Anh")}
+          <div class="links">Nguồn: ${pr.wikidata ? `<a target="_blank" rel="noopener" href="https://www.wikidata.org/wiki/${esc(pr.wikidata)}">Wikidata ${esc(pr.wikidata)}</a>` : ""}
+            <a target="_blank" rel="noopener" href="https://amti.csis.org/island-tracker/">AMTI Island Tracker (CSIS)</a></div>
+          <div class="muted">Trích từ Wikipedia (CC BY-SA 4.0), tra cứu ${fmtTime(pr.fetchedAt)}. Nội dung bách khoa mở – nên đối chiếu thêm nguồn chính thức.</div>`;
+        const b = $("#btnUseWikiCoord");
+        if (b) b.onclick = () => { if (confirm("Thay tọa độ hiện tại bằng tọa độ theo Wikipedia/Wikidata?")) applyChange(f.id, { lat: pr.coord[0], lng: pr.coord[1] }, "Cập nhật tọa độ theo Wikipedia/Wikidata"); };
+        break;
+      }
       case "natural":
-        body.innerHTML = `<table class="kv">${row("Diện tích", n.area)}${row("Địa hình", n.landform)}${row("Thảm thực vật", n.vegetation)}
+        body.innerHTML = `<table class="kv">${row("Diện tích", n.area || (profiles[f.id] && profiles[f.id].area_km2 != null ? profiles[f.id].area_km2 + " km² (Wikidata)" : ""))}${row("Địa hình", n.landform)}${row("Thảm thực vật", n.vegetation)}
           ${row("Nước ngọt", n.freshwater)}${row("Mô tả", n.description)}</table>`;
         break;
       case "military":
@@ -594,6 +630,18 @@
     render(); renderNews();
     if (selectedId && activeTab === "news") renderPanel();
   }
+  /* ---------------- Hồ sơ (Wikipedia / Wikidata) ---------------- */
+  let profiles = {}, profilesLoaded = false;
+  const km2 = (d) => (d < 1 ? Math.round(d * 1000) + " m" : d.toFixed(1) + " km");
+  async function loadProfiles() {
+    try {
+      if (window.EMBEDDED_PROFILES) profiles = window.EMBEDDED_PROFILES;
+      else { const r = await fetch("data/profiles.json?t=" + Date.now(), { cache: "no-store" }); if (!r.ok) throw 0; profiles = await r.json(); }
+      profilesLoaded = true;
+    } catch (e) { profilesLoaded = false; }
+    if (selectedId) renderPanel();
+  }
+
   function initNews() {
     $("#btnNews").onclick = () => {
       const p = $("#newsPanel");
@@ -609,6 +657,6 @@
   }
 
   /* ---------------- Khởi động ---------------- */
-  initFilters(); initEditor(); initToolbar(); render(); initNews();
+  initFilters(); initEditor(); initToolbar(); render(); initNews(); loadProfiles();
   const hash = location.hash.slice(1); if (hash && byId(hash)) select(hash, true);
 })();

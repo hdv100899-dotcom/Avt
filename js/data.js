@@ -7,7 +7,7 @@
  */
 window.DEFAULT_DATA_VERSION = "2026-10-31";
 // Tăng số này mỗi khi bổ sung/sửa dữ liệu gốc → trình duyệt đã lưu bản cũ sẽ tự nhận thực thể mới
-window.DEFAULT_DATA_REV = 2;
+window.DEFAULT_DATA_REV = 3;
 
 window.CONTROLLERS = {
   VN: { name: "Việt Nam", color: "#e53935" },
@@ -238,8 +238,8 @@ window.GROUPS = ["Trường Sa", "Hoàng Sa", "Khác"];
       lat: d(16, 2.0), lng: d(112, 31.0) }),
     F({ name: "Đá Bắc", nameEn: "North Reef", nameCn: "北礁", group: "Hoàng Sa", type: "Đá", controller: "NONE",
       lat: d(17, 5.0), lng: d(111, 30.0) }),
-    F({ name: "Bãi Bạch Quy", nameEn: "Passu Keah", nameCn: "盘石屿", group: "Hoàng Sa", type: "Bãi cạn", controller: "NONE",
-      lat: d(16, 3.0), lng: d(111, 46.0) }),
+    F({ name: "Đảo Bạch Quy", nameEn: "Passu Keah", nameCn: "盘石屿", group: "Hoàng Sa", type: "Cồn san hô", controller: "NONE",
+      lat: d(16, 3.0), lng: d(111, 46.0), natural: { description: "Cồn cát trên vành rạn san hô vòng (đá Bạch Quy), nhóm Lưỡi Liềm; cách đá Lồi 8,6 hải lý về phía nam (theo Wikipedia tiếng Việt)." } }),
 
     /* ================= KHÁC ================= */
     F({ name: "Bãi cạn Scarborough", nameEn: "Scarborough Shoal", nameCn: "黄岩岛", group: "Khác", type: "Bãi cạn", controller: "CN",
@@ -288,8 +288,8 @@ window.GROUPS = ["Trường Sa", "Hoàng Sa", "Khác"];
     F({ name: "Cụm Trường Sa", nameEn: "London Reefs", nameCn: "尹庆群礁", type: "Cụm / Nhóm đảo", controller: "NONE",
       lat: d(8, 52.0), lng: d(112, 26.0), radiusKm: 26, natural: { description: "Gồm Đá Tây, Trường Sa Đông, Đá Đông (VN) và Châu Viên (TQ)." } }),
     /* --- Trường Sa: đá, bãi cạn bổ sung --- */
-    F({ name: "Đá Suối Ngà", nameEn: "Jackson Atoll", nameCn: "五方礁", type: "Đá", controller: "NONE",
-      lat: d(10, 30.0), lng: d(115, 45.0), natural: { landform: "Rạn vòng lớn, ngư trường" } }),
+    F({ name: "Bãi Hải Sâm", nameEn: "Jackson Atoll", nameCn: "五方礁", type: "Bãi cạn", controller: "NONE",
+      lat: d(10, 30.0), lng: d(115, 45.0), natural: { landform: "Rạn san hô vòng đường kính ~11 km, thuộc cụm Bình Nguyên; ngư trường", description: "Nằm phía bắc – đông bắc đá Vành Khăn, cách đảo Vĩnh Viễn ~12 hải lý về phía nam (theo Wikipedia tiếng Việt)." } }),
     F({ name: "Bãi Sa Bin", nameEn: "Sabina Shoal (Escoda Shoal)", nameCn: "仙宾礁", type: "Bãi cạn", controller: "NONE",
       lat: d(9, 45.0), lng: d(116, 28.0), military: { notes: "Điểm nóng va chạm TQ – Philippines (theo nguồn mở)." } }),
     F({ name: "Đá Cá Nhám", nameEn: "Irving Reef", nameCn: "火艾礁", type: "Đá", controller: "NONE",
@@ -317,4 +317,9 @@ window.GROUPS = ["Trường Sa", "Hoàng Sa", "Khác"];
     F({ name: "Bãi cạn James", nameEn: "James Shoal", nameCn: "曾母暗沙", group: "Khác", type: "Bãi ngầm", controller: "NONE",
       lat: d(3, 58.0), lng: d(112, 21.0), natural: { description: "Bãi ngầm sâu ~22 m, gần bờ Sarawak (Malaysia)." } })
   ];
+
+  /* Hiệu chỉnh tọa độ (rev 3, 31/10/2026): dời điểm vào đúng rạn/đảo theo kiểm tra ảnh vệ tinh Sentinel-2
+     (điểm cũ rơi vào nước sâu); f077 theo Wikidata. Xem scripts/build_profiles.py và tab "Hồ sơ". */
+  const COORD_FIX = {"f007": [7.89147, 112.92086], "f010": [8.84732, 112.19888], "f011": [8.81456, 112.59892], "f013": [8.16748, 113.30101], "f014": [8.82329, 113.99998], "f015": [8.70973, 114.17606], "f016": [8.86573, 114.6524], "f018": [9.77877, 114.36997], "f020": [10.40735, 114.57921], "f024": [10.9269, 114.07381], "f025": [9.88067, 115.53057], "f033": [10.67334, 114.42448], "f035": [10.73257, 115.8047], "f038": [7.37259, 113.84486], "f039": [7.61236, 113.93233], "f040": [7.99243, 113.88728], "f041": [8.09917, 114.13375], "f049": [16.66544, 112.7296], "f051": [16.53271, 111.60843], "f053": [16.46335, 111.74279], "f056": [16.24887, 111.65484], "f057": [16.0298, 112.51832], "f058": [17.07752, 111.50356], "f064": [16.97857, 112.20854], "f065": [16.57681, 112.64239], "f067": [16.44941, 111.69465], "f068": [16.33775, 112.03255], "f081": [10.71277, 114.53048], "f077": [10.48333, 115.75]};
+  window.DEFAULT_FEATURES.forEach((f) => { if (COORD_FIX[f.id]) { f.lat = COORD_FIX[f.id][0]; f.lng = COORD_FIX[f.id][1]; } });
 })();
