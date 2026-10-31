@@ -4,7 +4,7 @@ Giao diện web giám sát các đảo, đá, bãi cạn và thực thể trên 
 
 ## Tính năng
 - Bản đồ nền **ảnh vệ tinh** (Esri World Imagery), bản đồ hải dương, OSM; thu phóng tới cấp độ chi tiết công trình.
-- ~60 mục tiêu mặc định, tô màu theo bên kiểm soát (VN, TQ chiếm đóng, PH, MY, ĐL, chưa đồn trú).
+- ~90 mục tiêu mặc định (đảo, đá, bãi cạn, bãi ngầm, nhà giàn DK1, các cụm/nhóm đảo có vẽ phạm vi), tô màu theo bên kiểm soát (VN, TQ chiếm đóng, PH, MY, ĐL, chưa đồn trú).
 - Bấm vào mục tiêu (trên bản đồ hoặc danh sách) để xem các tab: **Tổng quan · Tự nhiên · Quân sự · Vị trí · Hình ảnh · Cập nhật**.
   - Vị trí: tọa độ độ-phút-giây & thập phân, khoảng cách tới Cam Ranh, Đà Nẵng, Lý Sơn, đảo Trường Sa (km / hải lý).
   - Hình ảnh: bản đồ vệ tinh trực tiếp, liên kết Google Maps, Sentinel-2 EO Browser, Zoom Earth, NASA Worldview, AMTI; thư viện ảnh tự thêm.
@@ -14,8 +14,9 @@ Giao diện web giám sát các đảo, đá, bãi cạn và thực thể trên 
 
 ## Tin tức tự động
 - Workflow `.github/workflows/news.yml` chạy **mỗi 2 giờ** (và có thể bấm chạy tay ở tab *Actions → Cập nhật tin tức Biển Đông → Run workflow*).
-- Script `scripts/fetch_news.py` thu thập tin từ Google News (tiếng Việt + Anh) và RSS VnExpress, Tuổi Trẻ, Thanh Niên;
-  lọc theo từ khóa Biển Đông / tên các thực thể, loại tin thời tiết; ghi vào `data/news.json` (giữ 45 ngày, tối đa 800 bài).
+- Script `scripts/fetch_news.py` chỉ thu thập **tin tiếng Anh** (báo chí quốc tế) qua Google News: truy vấn chung
+  + truy vấn tự sinh theo tên tiếng Anh của từng thực thể trong `js/data.js`; bài chỉ khớp tên thực thể phải có ngữ cảnh
+  Biển Đông; loại tin thời tiết; ghi vào `data/news.json` (giữ 45 ngày, tối đa 800 bài).
 - Ứng dụng đọc `data/news.json`, tự gắn bài báo vào thực thể được nhắc tên (Việt/Anh/Trung + “Từ khóa tin tức” tự thêm khi sửa mục tiêu):
   - Nút **📰 Tin tức**: danh sách tin, lọc theo thời gian, ngôn ngữ, tìm kiếm; số đỏ = số tin trong 24 giờ.
   - Tab **Tin tức** trong từng mục tiêu + liên kết tìm ngay trên Google News; mục “Tin chung về quần đảo”.
@@ -50,6 +51,8 @@ Cần đưa trang lên một địa chỉ web (repo đang private nên GitHub Pa
 Lưu ý dữ liệu sửa lưu riêng trong Safari của iPad; dùng ⬇️ Xuất JSON (lưu vào app Tệp) / ⬆️ Nhập JSON để đồng bộ với máy khác.
 
 ## Cập nhật dữ liệu gốc
+Thêm thực thể mới vào **cuối** mảng trong `js/data.js` (để giữ nguyên id cũ) và tăng `DEFAULT_DATA_REV`;
+trình duyệt đã lưu dữ liệu cũ sẽ tự bổ sung thực thể mới mà không mất phần đã chỉnh sửa.
 Dữ liệu mặc định nằm ở `js/data.js`. Sau khi chỉnh trên giao diện, dùng **Xuất JSON** để lưu; có thể
 chép mảng `features` vào `js/data.js` để cập nhật dữ liệu gốc cho mọi người dùng.
 

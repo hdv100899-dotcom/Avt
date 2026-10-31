@@ -65,7 +65,7 @@
   <section id="newsPanel" class="hidden">
     <div class="panel-head">
       <div>
-        <h2>📰 Tin tức Biển Đông</h2>
+        <h2>📰 Tin tức Biển Đông <span class="muted">(báo quốc tế – tiếng Anh)</span></h2>
         <div id="newsUpdated" class="muted">Đang tải...</div>
       </div>
       <div class="panel-btns">
@@ -79,7 +79,6 @@
         <option value="24">24 giờ qua</option><option value="72">3 ngày</option>
         <option value="168" selected>7 ngày</option><option value="720">30 ngày</option><option value="0">Tất cả</option>
       </select>
-      <select id="newsLang"><option value="">Mọi ngôn ngữ</option><option value="vi">Tiếng Việt</option><option value="en">Tiếng Anh</option></select>
       <label class="chk"><input type="checkbox" id="newsLinked" /> Chỉ tin gắn với mục tiêu</label>
     </div>
     <div id="newsStats" class="muted"></div>
@@ -102,6 +101,7 @@
         <label>Bên kiểm soát<select name="controller"></select></label>
         <label>Vĩ độ (thập phân hoặc 8°38'36"N)<input name="lat" required /></label>
         <label>Kinh độ (thập phân hoặc 111°55'E)<input name="lng" required /></label>
+        <label>Bán kính vùng (km) – cho cụm / bãi lớn, để trống nếu không<input name="radiusKm" inputmode="decimal" /></label>
       </div>
       <fieldset><legend>Tự nhiên</legend>
         <div class="grid">

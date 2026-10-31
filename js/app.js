@@ -11,7 +11,7 @@
   const fmtTime = (t) => { const d = new Date(t); return isNaN(d) ? esc(t) : d.toLocaleString("vi-VN"); };
 
   /* ---------------- Dữ liệu ---------------- */
-  let features = load();
+  let features = [];
   let selectedId = null;
   let activeTab = "overview";
   let addMode = false;
@@ -19,17 +19,30 @@
   let pendingUploads = [];
   const filter = { q: "", group: "", type: "", ctrl: new Set(Object.keys(C)) };
 
+  const REV_KEY = LS_KEY + "_rev", DEL_KEY = LS_KEY + "_deleted";
+  const lsGet = (k, def) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : def; } catch (e) { return def; } };
   function load() {
-    try {
-      const raw = localStorage.getItem(LS_KEY);
-      if (raw) { const arr = JSON.parse(raw); if (Array.isArray(arr)) return arr; }
-    } catch (e) { console.warn(e); }
-    return clone(window.DEFAULT_FEATURES);
+    const arr = lsGet(LS_KEY, null);
+    if (!Array.isArray(arr)) return clone(window.DEFAULT_FEATURES);
+    // Dữ liệu gốc có bản mới hơn → bổ sung thực thể mới, cập nhật thực thể gốc chưa từng sửa
+    if ((lsGet(REV_KEY, 1) || 1) < (window.DEFAULT_DATA_REV || 1)) {
+      const deleted = new Set(lsGet(DEL_KEY, []));
+      let added = 0;
+      window.DEFAULT_FEATURES.forEach((d) => {
+        const i = arr.findIndex((x) => x.id === d.id);
+        if (i < 0) { if (!deleted.has(d.id)) { arr.push(clone(d)); added++; } }
+        else if (!(arr[i].history || []).length) arr[i] = clone(d);
+      });
+      try { localStorage.setItem(LS_KEY, JSON.stringify(arr)); localStorage.setItem(REV_KEY, JSON.stringify(window.DEFAULT_DATA_REV)); } catch (e) { /* bỏ qua */ }
+      if (added) setTimeout(() => toast(`Đã bổ sung ${added} thực thể mới từ dữ liệu gốc.`), 800);
+    }
+    return arr;
   }
   function save() {
-    try { localStorage.setItem(LS_KEY, JSON.stringify(features)); return true; }
+    try { localStorage.setItem(LS_KEY, JSON.stringify(features)); localStorage.setItem(REV_KEY, JSON.stringify(window.DEFAULT_DATA_REV || 1)); return true; }
     catch (e) { toast("⚠️ Không lưu được (bộ nhớ trình duyệt đầy?). Hãy Xuất JSON để sao lưu."); return false; }
   }
+  features = load();
   const byId = (id) => features.find((f) => f.id === id);
   const newId = () => "u" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 
@@ -75,10 +88,11 @@
   };
   const map = L.map("map", { zoomControl: true, worldCopyJump: true, layers: [bases["🛰️ Ảnh vệ tinh (Esri)"]] })
     .setView([12.5, 113], 6);
+  const zoneLayer = L.layerGroup().addTo(map);
   const markerLayer = L.layerGroup().addTo(map);
   const labelLayer = L.layerGroup().addTo(map);
   const areaLayer = L.layerGroup().addTo(map);
-  L.control.layers(bases, { "Mục tiêu": markerLayer, "Nhãn tên": labelLayer, "Tên khu vực": areaLayer }, { collapsed: true, position: "topleft" }).addTo(map);
+  L.control.layers(bases, { "Mục tiêu": markerLayer, "Phạm vi cụm / bãi": zoneLayer, "Nhãn tên": labelLayer, "Tên khu vực": areaLayer }, { collapsed: true, position: "topleft" }).addTo(map);
   L.control.scale({ metric: true, imperial: false }).addTo(map);
 
   [["QĐ HOÀNG SA", 16.45, 111.9], ["QĐ TRƯỜNG SA", 10.4, 113.2], ["BIỂN ĐÔNG", 13.5, 114.5]].forEach(([t, la, ln]) =>
@@ -103,9 +117,12 @@
   });
 
   const markers = {};
+  const isCluster = (f) => f.type === "Cụm / Nhóm đảo";
   function icon(f) {
     const color = (C[f.controller] || C.NONE).color;
-    const sq = !["Đảo", "Cồn san hô"].includes(f.type);
+    const sq = !["Đảo", "Cồn san hô", "Cụm / Nhóm đảo"].includes(f.type);
+    if (isCluster(f)) return L.divIcon({ className: "", iconSize: [22, 22], iconAnchor: [11, 11],
+      html: `<div class="mk ring ${f.id === selectedId ? "sel" : ""} ${isHot(f.id) ? "hot" : ""}" style="border-color:${color}"></div>` });
     return L.divIcon({ className: "", iconSize: [16, 16], iconAnchor: [8, 8],
       html: `<div class="mk ${sq ? "sq" : ""} ${f.id === selectedId ? "sel" : ""} ${isHot(f.id) ? "hot" : ""}" style="background:${color}"></div>` });
   }
@@ -123,7 +140,7 @@
   function render() {
     matchNews();
     const vis = visible();
-    markerLayer.clearLayers(); labelLayer.clearLayers();
+    markerLayer.clearLayers(); labelLayer.clearLayers(); zoneLayer.clearLayers();
     for (const k in markers) delete markers[k];
     vis.forEach((f) => {
       const m = L.marker([f.lat, f.lng], { icon: icon(f), title: f.name, riseOnHover: true })
@@ -134,6 +151,9 @@
         });
       m.addTo(markerLayer);
       markers[f.id] = m;
+      const r = parseFloat(f.radiusKm);
+      if (r > 0) L.circle([f.lat, f.lng], { radius: r * 1000, color: isCluster(f) ? "#ffffff" : (C[f.controller] || C.NONE).color,
+        weight: 1.5, dashArray: "6 6", fillOpacity: 0.04, interactive: false }).addTo(zoneLayer);
       L.tooltip({ permanent: true, direction: "right", offset: [8, 0], className: "lbl" })
         .setLatLng([f.lat, f.lng]).setContent(esc(f.name)).addTo(labelLayer);
     });
@@ -290,9 +310,8 @@
       }
       case "news": {
         const arts = newsByFeature[f.id] || [];
-        const qVi = `"${shortName(f.name)}"`, qEn = f.nameEn ? `"${f.nameEn.replace(/\s*\(.*?\)/g, "")}"` : "";
+        const qEn = f.nameEn ? `"${f.nameEn.replace(/\s*\(.*?\)/g, "")}"` : "";
         body.innerHTML = `<div class="links">Tìm tin mới nhất ngay:
-            <a target="_blank" rel="noopener" href="https://news.google.com/search?q=${encodeURIComponent(qVi)}&hl=vi&gl=VN&ceid=VN:vi">Google News (VI)</a>
             ${qEn ? `<a target="_blank" rel="noopener" href="https://news.google.com/search?q=${encodeURIComponent(qEn)}&hl=en-US&gl=US&ceid=US:en">Google News (EN)</a>` : ""}
           </div>
           <div class="muted">Tin tự động thu thập${news.updatedAt ? " – cập nhật " + relTime(news.updatedAt) : ""}. Bài được gắn khi nhắc tới tên/từ khóa của mục tiêu.</div>
@@ -344,6 +363,7 @@
     $("#btnDelete").onclick = () => {
       const f = byId(editingId); if (!f) return dlg.close();
       if (!confirm(`Xóa mục tiêu "${f.name}"? (Có thể khôi phục bằng nút Khôi phục gốc nếu là dữ liệu gốc)`)) return;
+      try { const del = lsGet(DEL_KEY, []); del.push(editingId); localStorage.setItem(DEL_KEY, JSON.stringify(del)); } catch (e) { /* bỏ qua */ }
       features = features.filter((x) => x.id !== editingId); save(); dlg.close(); closePanel(); render(); toast("Đã xóa.");
     };
     $("#imgUpload").onchange = async (e) => {
@@ -448,7 +468,7 @@
     };
     $("#btnReset").onclick = () => {
       if (!confirm("Xóa toàn bộ chỉnh sửa và khôi phục dữ liệu gốc? (Nên Xuất JSON sao lưu trước)")) return;
-      localStorage.removeItem(LS_KEY); features = clone(window.DEFAULT_FEATURES); closePanel(); render(); toast("Đã khôi phục dữ liệu gốc.");
+      [LS_KEY, REV_KEY, DEL_KEY].forEach((k) => localStorage.removeItem(k)); features = clone(window.DEFAULT_FEATURES); closePanel(); render(); toast("Đã khôi phục dữ liệu gốc.");
     };
     const tick = () => $("#clock").textContent = new Date().toLocaleString("vi-VN");
     tick(); setInterval(tick, 1000);
@@ -462,7 +482,8 @@
   let newsLoaded = false;
   const HOT_HOURS = 72;
   const PREFIX_RE = /^(Đảo|Đá|Bãi cạn|Bãi|Cồn san hô|Cồn|Nhà giàn)\s+/i;
-  const AMBIGUOUS = new Set(["rizal", "parola", "spratly island", "tree island", "money island", "flat island", "đảo cây", "trường sa", "hoàng sa"]);
+  const AMBIGUOUS = new Set(["rizal", "parola", "spratly island", "tree island", "money island", "flat island", "đảo cây", "trường sa", "hoàng sa",
+    "north island", "south island", "middle island", "west sand", "paracels", "pag-asa", "taiping", "panata"]);
   const GROUP_RE = { "Trường Sa": /Trường Sa|Spratly|南沙/i, "Hoàng Sa": /Hoàng Sa|Paracel|西沙/i };
   const nfc = (s) => String(s || "").normalize("NFC");
   const escRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -513,7 +534,7 @@
     const tags = (a._f || []).filter((id) => id !== exceptId).map((id) => byId(id)).filter(Boolean);
     const isNew = hoursAgo(a.published) <= 24;
     return `<li><a class="ttl" target="_blank" rel="noopener" href="${esc(a.link)}">${esc(a.title)}</a>
-      <div class="meta">${isNew ? "<span class='new'>MỚI · </span>" : ""}${esc(a.source)} · ${relTime(a.published)} · ${a.lang === "en" ? "EN" : "VI"}</div>
+      <div class="meta">${isNew ? "<span class='new'>MỚI · </span>" : ""}${esc(a.source)} · ${relTime(a.published)} · EN</div>
       ${a.summary ? `<div class="sum">${esc(a.summary)}</div>` : ""}
       ${tags.length ? `<div class="tags">${tags.map((f) => `<span class="chip" data-fid="${esc(f.id)}"><span class="dot" style="background:${(C[f.controller] || C.NONE).color}"></span>${esc(f.name)}</span>`).join("")}</div>` : ""}</li>`;
   }
@@ -521,7 +542,7 @@
     $$(".tags .chip", root).forEach((el) => el.onclick = () => { activeTab = "news"; select(el.dataset.fid, true); });
   }
   function renderNews() {
-    const q = nfc($("#newsSearch").value).toLowerCase(), hrs = +$("#newsTime").value, lang = $("#newsLang").value, linked = $("#newsLinked").checked;
+    const q = nfc($("#newsSearch").value).toLowerCase(), hrs = +$("#newsTime").value, lang = "en", linked = $("#newsLinked").checked;
     const list = news.articles.filter((a) => (!hrs || hoursAgo(a.published) <= hrs) && (!lang || a.lang === lang) &&
       (!linked || (a._f || []).length) && (!q || nfc(a.title + " " + a.summary + " " + a.source).toLowerCase().includes(q)));
     $("#newsUpdated").textContent = newsLoaded ? (news.updatedAt ? `Thu thập tự động · cập nhật ${relTime(news.updatedAt)} (${fmtTime(news.updatedAt)})` : "Chưa có dữ liệu tin.")
@@ -538,7 +559,7 @@
       const r = await fetch("data/news.json?t=" + Date.now(), { cache: "no-store" });
       if (!r.ok) throw new Error(r.status);
       const j = await r.json();
-      news = { updatedAt: j.updatedAt, articles: (j.articles || []).sort((a, b) => (a.published < b.published ? 1 : -1)) };
+      news = { updatedAt: j.updatedAt, articles: (j.articles || []).filter((a) => a.lang === "en").sort((a, b) => (a.published < b.published ? 1 : -1)) };
       newsLoaded = true;
       if (manual) toast(`Đã tải ${news.articles.length} bài báo.`);
     } catch (e) { newsLoaded = false; if (manual) toast("Không tải được tin tức."); }
@@ -554,7 +575,7 @@
     };
     $("#btnNewsClose").onclick = () => $("#newsPanel").classList.add("hidden");
     $("#btnNewsRefresh").onclick = () => loadNews(true);
-    ["#newsSearch", "#newsTime", "#newsLang", "#newsLinked"].forEach((s) => $(s).addEventListener("input", renderNews));
+    ["#newsSearch", "#newsTime", "#newsLinked"].forEach((s) => $(s).addEventListener("input", renderNews));
     loadNews();
     setInterval(loadNews, 15 * 60 * 1000); // tự tải lại mỗi 15 phút
   }
