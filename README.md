@@ -20,6 +20,24 @@ python3 -m http.server 8000   # rồi mở http://localhost:8000
 Có thể triển khai lên GitHub Pages. Cần Internet để tải Leaflet và ảnh vệ tinh.
 Mở thẳng một mục tiêu: `index.html#f023` (theo id).
 
+## Mở trên iPad
+Giao diện đã tối ưu cho iPad (dọc: nút ☰ mở danh sách, bảng thông tin trượt từ dưới; ngang: đầy đủ).
+Cần đưa trang lên một địa chỉ web (repo đang private nên GitHub Pages bản miễn phí không dùng được):
+
+**Cách 1 – Vercel (miễn phí, dùng được repo private, làm ngay trên iPad bằng Safari)**
+1. Vào https://vercel.com → *Sign up / Continue with GitHub*.
+2. *Add New… → Project* → chọn repo `Avt` → *Import* (cấp quyền nếu được hỏi).
+3. Framework Preset: **Other**; không cần lệnh build → *Deploy*.
+4. Nhận địa chỉ dạng `https://avt-xxx.vercel.app`. Mỗi lần đẩy code lên nhánh chính, trang tự cập nhật.
+   (Muốn triển khai nhánh khác: *Settings → Git → Production Branch*.)
+   Cloudflare Pages (pages.cloudflare.com) làm tương tự.
+
+**Cách 2 – GitHub Pages**: chuyển repo sang Public (hoặc dùng GitHub Pro) → *Settings → Pages* →
+*Deploy from a branch* → chọn nhánh, thư mục `/ (root)` → địa chỉ `https://hdv100899-dotcom.github.io/Avt/`.
+
+**Trên iPad**: mở địa chỉ bằng Safari → nút Chia sẻ → **Thêm vào MH chính** để dùng toàn màn hình như ứng dụng.
+Lưu ý dữ liệu sửa lưu riêng trong Safari của iPad; dùng ⬇️ Xuất JSON (lưu vào app Tệp) / ⬆️ Nhập JSON để đồng bộ với máy khác.
+
 ## Cập nhật dữ liệu gốc
 Dữ liệu mặc định nằm ở `js/data.js`. Sau khi chỉnh trên giao diện, dùng **Xuất JSON** để lưu; có thể
 chép mảng `features` vào `js/data.js` để cập nhật dữ liệu gốc cho mọi người dùng.

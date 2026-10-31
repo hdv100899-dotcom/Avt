@@ -79,6 +79,7 @@ table.kv td:first-child { color: var(--muted); width: 38%; }
 .mk { width: 14px; height: 14px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 6px #000; }
 .mk.sq { border-radius: 2px; transform: rotate(45deg); width: 12px; height: 12px; }
 .mk.sel { box-shadow: 0 0 0 4px #29b6f6aa, 0 0 12px #29b6f6; }
+.leaflet-touch .leaflet-bar a { width: 36px; height: 36px; line-height: 36px; }
 .leaflet-tooltip.lbl { background: #000b; color: #fff; border: none; box-shadow: none; font-size: 11px; padding: 1px 5px; }
 .leaflet-tooltip.lbl::before { display: none; }
 .area-label { color: #fff; font-weight: 700; font-size: 15px; text-shadow: 0 0 4px #000, 0 0 8px #000; white-space: nowrap; letter-spacing: 2px; }
@@ -99,8 +100,24 @@ legend { color: var(--acc); font-size: 12px; padding: 0 4px; }
 #lightbox { position: fixed; inset: 0; background: #000e; z-index: 4000; display: flex; align-items: center; justify-content: center; cursor: zoom-out; }
 #lightbox img { max-width: 94vw; max-height: 94vh; }
 
-@media (max-width: 900px) {
-  :root { --side: 0px; --panel: calc(100vw - 20px); }
-  #sidebar { display: none; }
-  .brand .sub { display: none; }
+#btnMenu { display: none; font-size: 16px; padding: 4px 10px; margin-right: 6px; }
+#list li { min-height: 44px; }
+
+/* iPad / máy tính bảng */
+@media (max-width: 1180px) {
+  .brand .sub, #clock { display: none; }
+  .actions .txt { display: none; }
+  .actions button, .actions .btn { font-size: 16px; padding: 6px 12px; }
+  #coordbar { display: none; }
 }
+/* iPad dọc / điện thoại: danh sách thành ngăn kéo, bảng thông tin thành tấm trượt dưới */
+@media (max-width: 900px) {
+  :root { --side: 0px; }
+  #btnMenu { display: inline-block; }
+  #sidebar { width: min(340px, 88vw); transform: translateX(-100%); transition: transform .25s; box-shadow: 4px 0 20px #000a; z-index: 1100; }
+  #sidebar.open { transform: none; }
+  #panel { top: auto; left: 6px; right: 6px; bottom: 6px; width: auto; height: 56vh; }
+  .tabs button { padding: 9px 10px; font-size: 14px; }
+  #editForm .grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 520px) { .brand { font-size: 13px; letter-spacing: 0; } }

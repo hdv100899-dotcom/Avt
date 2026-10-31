@@ -2,19 +2,25 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Biển Đông" />
+  <meta name="theme-color" content="#0b1520" />
+  <link rel="apple-touch-icon" href="icon.png" />
   <title>Hệ thống giám sát Biển Đông</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
   <header id="topbar">
-    <div class="brand">🛰️ GIÁM SÁT BIỂN ĐÔNG <span class="sub">Hoàng Sa · Trường Sa · Thực thể trên biển</span></div>
+    <div class="brand"><button id="btnMenu" title="Danh sách mục tiêu">☰</button> 🛰️ GIÁM SÁT BIỂN ĐÔNG <span class="sub">Hoàng Sa · Trường Sa · Thực thể trên biển</span></div>
     <div class="actions">
-      <button id="btnAdd" title="Bấm rồi chọn vị trí trên bản đồ">➕ Thêm mục tiêu</button>
-      <button id="btnExport" title="Tải dữ liệu hiện tại về file JSON">⬇️ Xuất JSON</button>
-      <label class="btn" title="Nạp dữ liệu từ file JSON">⬆️ Nhập JSON<input type="file" id="fileImport" accept=".json,application/json" hidden /></label>
-      <button id="btnReset" class="danger" title="Xóa mọi chỉnh sửa, về dữ liệu gốc">↺ Khôi phục gốc</button>
+      <button id="btnAdd" title="Bấm rồi chọn vị trí trên bản đồ">➕<span class="txt"> Thêm mục tiêu</span></button>
+      <button id="btnExport" title="Tải dữ liệu hiện tại về file JSON">⬇️<span class="txt"> Xuất JSON</span></button>
+      <label class="btn" title="Nạp dữ liệu từ file JSON">⬆️<span class="txt"> Nhập JSON</span><input type="file" id="fileImport" accept=".json,application/json" hidden /></label>
+      <button id="btnReset" class="danger" title="Xóa mọi chỉnh sửa, về dữ liệu gốc">↺<span class="txt"> Khôi phục gốc</span></button>
       <span id="clock"></span>
     </div>
   </header>

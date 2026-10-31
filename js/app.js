@@ -192,10 +192,17 @@
     [prev, id].forEach((k) => { const ff = byId(k); if (ff && markers[k]) markers[k].setIcon(icon(ff)); });
     $$("#list li").forEach((li) => li.classList.remove("sel"));
     renderList(visible());
-    if (fly) map.flyTo([f.lat, f.lng], Math.max(map.getZoom(), 14), { duration: 1.2 });
+    if (isNarrow()) $("#sidebar").classList.remove("open");
+    if (fly) {
+      map.flyTo([f.lat, f.lng], Math.max(map.getZoom(), 14), { duration: 1.2 });
+      // Trên iPad dọc, bảng thông tin che nửa dưới: đẩy mục tiêu lên phần bản đồ còn thấy
+      // bảng thông tin che một phần bản đồ: đẩy mục tiêu ra phần bản đồ còn thấy
+      map.once("moveend", () => isNarrow() ? map.panBy([0, $("#panel").offsetHeight / 2 || 0]) : map.panBy([($("#panel").offsetWidth + 20) / 2 || 0, 0]));
+    }
     $("#panel").classList.remove("hidden");
     renderPanel();
   }
+  const isNarrow = () => window.matchMedia("(max-width: 900px)").matches;
   function closePanel() {
     const prev = selectedId; selectedId = null;
     const ff = byId(prev); if (ff && markers[prev]) { markers[prev].setIcon(icon(ff)); markers[prev].dragging.disable(); }
@@ -389,10 +396,12 @@
     addMode = on;
     $("#map").classList.toggle("picking", on);
     $("#btnAdd").classList.toggle("active-mode", on);
-    $("#btnAdd").textContent = on ? "🎯 Bấm lên bản đồ... (Esc hủy)" : "➕ Thêm mục tiêu";
+    $("#btnAdd").innerHTML = on ? "🎯<span class='txt'> Chạm lên bản đồ để đặt vị trí</span>" : "➕<span class='txt'> Thêm mục tiêu</span>";
+    if (on) toast("Chạm vào vị trí trên bản đồ để đặt mục tiêu mới (chạm lại ➕ để hủy).");
   }
   function initToolbar() {
-    $("#btnAdd").onclick = () => setAddMode(!addMode);
+    $("#btnAdd").onclick = () => { setAddMode(!addMode); if (addMode && isNarrow()) $("#sidebar").classList.remove("open"); };
+    $("#btnMenu").onclick = () => $("#sidebar").classList.toggle("open");
     document.addEventListener("keydown", (e) => { if (e.key === "Escape") { setAddMode(false); } });
     $("#btnClose").onclick = closePanel;
     $("#btnEdit").onclick = () => selectedId && openEditor(selectedId);
