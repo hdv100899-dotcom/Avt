@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hệ thống giám sát Biển Đông</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header id="topbar">
+    <div class="brand">🛰️ GIÁM SÁT BIỂN ĐÔNG <span class="sub">Hoàng Sa · Trường Sa · Thực thể trên biển</span></div>
+    <div class="actions">
+      <button id="btnAdd" title="Bấm rồi chọn vị trí trên bản đồ">➕ Thêm mục tiêu</button>
+      <button id="btnExport" title="Tải dữ liệu hiện tại về file JSON">⬇️ Xuất JSON</button>
+      <label class="btn" title="Nạp dữ liệu từ file JSON">⬆️ Nhập JSON<input type="file" id="fileImport" accept=".json,application/json" hidden /></label>
+      <button id="btnReset" class="danger" title="Xóa mọi chỉnh sửa, về dữ liệu gốc">↺ Khôi phục gốc</button>
+      <span id="clock"></span>
+    </div>
+  </header>
+
+  <aside id="sidebar">
+    <input id="search" type="search" placeholder="🔎 Tìm tên (Việt / Anh / Trung)..." />
+    <div class="filters">
+      <select id="fGroup"><option value="">Tất cả khu vực</option></select>
+      <select id="fType"><option value="">Tất cả loại</option></select>
+    </div>
+    <div id="fCtrl" class="chips"></div>
+    <div id="stats"></div>
+    <ul id="list"></ul>
+  </aside>
+
+  <main id="map"></main>
+
+  <section id="panel" class="hidden">
+    <div class="panel-head">
+      <div>
+        <h2 id="pName"></h2>
+        <div id="pSub" class="muted"></div>
+      </div>
+      <div class="panel-btns">
+        <button id="btnEdit">✏️ Sửa</button>
+        <button id="btnClose">✕</button>
+      </div>
+    </div>
+    <nav class="tabs">
+      <button data-tab="overview" class="active">Tổng quan</button>
+      <button data-tab="natural">Tự nhiên</button>
+      <button data-tab="military">Quân sự</button>
+      <button data-tab="position">Vị trí</button>
+      <button data-tab="images">Hình ảnh</button>
+      <button data-tab="history">Cập nhật</button>
+    </nav>
+    <div id="pBody"></div>
+  </section>
+
+  <div id="coordbar">Vĩ độ/Kinh độ: <span id="mouseCoord">—</span></div>
+  <div id="toast"></div>
+
+  <!-- Hộp thoại chỉnh sửa -->
+  <dialog id="editDlg">
+    <form id="editForm" method="dialog">
+      <h3 id="editTitle">Chỉnh sửa mục tiêu</h3>
+      <div class="grid">
+        <label>Tên (Việt)<input name="name" required /></label>
+        <label>Tên (Anh)<input name="nameEn" /></label>
+        <label>Tên (Trung)<input name="nameCn" /></label>
+        <label>Khu vực<select name="group"></select></label>
+        <label>Loại<select name="type"></select></label>
+        <label>Bên kiểm soát<select name="controller"></select></label>
+        <label>Vĩ độ (thập phân hoặc 8°38'36"N)<input name="lat" required /></label>
+        <label>Kinh độ (thập phân hoặc 111°55'E)<input name="lng" required /></label>
+      </div>
+      <fieldset><legend>Tự nhiên</legend>
+        <div class="grid">
+          <label>Diện tích<input name="natural.area" /></label>
+          <label>Địa hình<input name="natural.landform" /></label>
+          <label>Thảm thực vật<input name="natural.vegetation" /></label>
+          <label>Nước ngọt<input name="natural.freshwater" /></label>
+        </div>
+        <label>Mô tả<textarea name="natural.description" rows="2"></textarea></label>
+      </fieldset>
+      <fieldset><legend>Quân sự</legend>
+        <div class="grid">
+          <label>Tình trạng<input name="military.status" /></label>
+          <label>Lực lượng đồn trú<input name="military.garrison" /></label>
+          <label>Đường băng<input name="military.runway" /></label>
+          <label>Cảng / âu tàu<input name="military.port" /></label>
+          <label>Radar / cảm biến<input name="military.radar" /></label>
+          <label>Công trình<input name="military.facilities" /></label>
+        </div>
+        <label>Ghi chú quân sự<textarea name="military.notes" rows="2"></textarea></label>
+      </fieldset>
+      <fieldset><legend>Hình ảnh (mỗi dòng: URL | chú thích | ngày | nguồn)</legend>
+        <textarea name="images" rows="3" placeholder="https://.../anh.jpg | Ảnh vệ tinh | 2026-10-01 | Sentinel-2"></textarea>
+        <label class="inline">Hoặc tải ảnh từ máy: <input type="file" id="imgUpload" accept="image/*" multiple /></label>
+      </fieldset>
+      <label>Ghi chú chung<textarea name="notes" rows="2"></textarea></label>
+      <label>Nội dung cập nhật (ghi vào nhật ký)<input name="changeNote" placeholder="VD: Phát hiện công trình mới qua ảnh 30/10" /></label>
+      <div class="dlg-btns">
+        <button type="button" id="btnDelete" class="danger">🗑 Xóa mục tiêu</button>
+        <span style="flex:1"></span>
+        <button type="button" id="btnCancel">Hủy</button>
+        <button type="submit" class="primary">💾 Lưu</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
