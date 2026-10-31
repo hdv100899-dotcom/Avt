@@ -1,7 +1,29 @@
 {
- "updatedAt": "2026-10-31T14:15:34Z",
- "count": 150,
+ "updatedAt": "2026-10-31T18:39:28Z",
+ "count": 152,
  "articles": [
+  {
+   "title": "Malaysia’s FA-50M Explained: Radar and Range Upgrades for Its South China Sea Role",
+   "link": "https://news.google.com/rss/articles/CBMiggFBVV95cUxOVUxiX1NHbHE3engycFZoNTQ5cTBLc3NKVFJuRjV2X0VpckpSVk44cHNXS2k0UVNRNWZIVlVON01Fd19RLVNrY19FY01Ua1AwR3hZRUFKbW9OV0lyUFFYY21PdG1yMkNTV2xuRXlWVk80V0pNSHVlYk56LW05ZXlDUTNR?oc=5",
+   "source": "Defence Security Asia",
+   "published": "2026-10-31T15:29:37Z",
+   "summary": "",
+   "lang": "en",
+   "origin": "google-en",
+   "id": "fb1c67fc21d19f6a",
+   "firstSeen": "2026-10-31T18:39:28Z"
+  },
+  {
+   "title": "China says it ran combat patrols around Scarborough Shoal as the Coast Guard examined an unknown device",
+   "link": "https://news.google.com/rss/articles/CBMihgFBVV95cUxQeXMwaXFqODluOUN1ckk4cEE2QTVqTzVMYXJldGNYTTctWk5SYWxxbHlfa3pqWEdQa2JVak1VNEVqZTNmQ09WM0RSU3o3ZV9sTkF6eHYyUGNlWnRPWGlSTS1DQW9QaGtpcU1YSFYwanRuaF8tTXBxTkczbjFVVVdwcU9GcTVPUQ?oc=5",
+   "source": "astig.ph",
+   "published": "2026-10-31T13:39:48Z",
+   "summary": "",
+   "lang": "en",
+   "origin": "google-en",
+   "id": "6d9c4a68f8af41d1",
+   "firstSeen": "2026-10-31T18:39:28Z"
+  },
   {
    "title": "U.S. Raises Pressure on China, Extending Concerns from South China Sea to the Yellow Sea",
    "link": "https://news.google.com/rss/articles/CBMiYkFVX3lxTE9XcWJqRDg5RDYya2Fibm5RXzBFMHRoRTktMWN5OHlsSjVzdTllR2NLOFFoTFdNd0hGbjFZeWlQZW9TTUpEeTJqZVFBNzlSMVNNU2tvcWpDcDFBNzI4SHUwaEdB?oc=5",
@@ -48,7 +70,7 @@
   },
   {
    "title": "China Intensifies Military Activities Near Disputed South China Sea Shoal Amid Manila Tensions",
-   "link": "https://news.google.com/rss/articles/CBMijgNBVV95cUxOaVU1Y0tZWlBZU1Y1SzhnRG52Vy1JczVwbV9lbF95ejBGaUppLWx6WGtCYVdxd2E5UlZ6d3ZfcjZRSkFTM0d5Z0FFRC1XNVh6UUg1Q0Y4UzFlSUloWk8yOUxBczQzUzVGWmxZeXZqTWNHZmVXSUVqeHdJaVVWTk9ZSzRpOFlZWGtOcEw2UmczWXRUMkFLZHJYWHJoVVpTeHhDM3NWcDZKbGlNTmF4ODdrdXNDTnJHaHpmMlB6Z1ZXRkN5LWowc3h5S2NSWmpzQk5CVExJLXFHb0tFRndKTWZhektBR3hyRXV2c3lHNVJUOFBuYUQ0OU1pdlFoWlM2Y1hGQmVkNDFYMDlRSkY5X0NRekIyU1JHTFJpeW1zRFIzcWV2cGpvdUlkS2VoZVVJTnptTG1TWlhfd3ZaLVoxSkdfTXdJTzViUzYyODdKelFYN19XeVVrdE9md3FnT3VTWXJCaU9leklCeXhONnF0YzZUVTdBYkpRQ1RGQkF6ME0xaEpFQlVlSEpNWlBmempWZw?oc=5",
+   "link": "https://news.google.com/rss/articles/CBMi1gFBVV95cUxOM3pqbkNnd1Y3ZllIVThBaVBiZHZEQnFjMk1zX0plREVrOE9UQVgtQk81MmF2VlMyM0ZySkc5UlBIOXB2UlBNTUp6WkFyVXFwN0s5RWQ4UnJZY1hrWFdXSTQxZ3JpeEVpbFZwLUltY1BYQmswZzc1N29FWTRtR09telJhSmZlOW5zMERIZ3JFVl9zamxXaGJPWnZZNGtjSGl3SVg5R3pacFFaS2xUUHZ3Q001b2RTMTlRSlVKekQtOGpIV1Z4WjdIVGZKS2h4S01oOEd3NmlR?oc=5",
    "source": "BusinessToday Malaysia",
    "published": "2026-10-31T04:47:38Z",
    "summary": "",
@@ -312,9 +334,9 @@
   },
   {
    "title": "South China Sea territorial contest a test of Asean’s unity and credibility, says Mohamed Khaled",
-   "link": "https://news.google.com/rss/articles/CBMi5wFBVV95cUxNcHVFek1VMGZjNkg1S0lteDBBOXJvNFllOHpiTmtSWEt6OVJqTE9RUnlMV1RJQWtvem1jMmhEa2hDbEROcXhtRU9yM2RMa1p1ZThSdC1tZnhwWFF6NmlEMnZLc1o1UDFvMDYwcGp2Y1QyQll0OTJ6dWo3eE5IMThKMDBHN0JxbDFvc1A4RHA0NkY4TWVMVkV4MzNSY3Z6bllzQ0hPNmNCakdFeW5EbWRoYThOUTRpblNES21TeEJGWXhXbU95UlZUUmp5cGZ2Zk4zTGlfYW1hb0wtZkFxZnlkT1RKMjh2SFHSAewBQVVfeXFMUHVvWTN4ZUNsa3huQldQT25RNTdNVkoyUTNQci1neTZFeTl6SjlaWFIyRjRwN1ZRUUZtMF9La2hyd2ZhdEtROXVWbmFKak5PTS1vdVZBak5DTUR4aFlITnJKVVhPZ0J2UzFtMmJ0QmM2NVU3dDRXN2RVNHRXSlBWNkxrdzZyMkppOU11TjZ1LW5hTEdFbnRRZWRuQlpmWGU3dTR0R0xxb2dyZ3VsWFk2VnlHc0lzZHF1V0swazh3TTNXZEZTZ0wycUtyUVBmV0dleUVJUFBMcHNwbHU5Y2p3NlVZMGtDeVZLaXc4QW4?oc=5",
-   "source": "Malay Mail",
-   "published": "2026-10-29T08:39:35Z",
+   "link": "https://news.google.com/rss/articles/CBMitwFBVV95cUxQMGNQMWNjOHRVVmFiLWtKZl9OS2hjcU1zWWtRcFZsbFVUTXJlNmR1aUppT3JVRm5pZElXQ0FMYWM4SU5BVDNFaURkMVdJengtSTNGMzJMYkw2MWV4eGo4ZDJQajA2NF9qckNIcWwzOGZzYjVhb2FzaktFVnVuNlZpWXBGcGhROXhnalFQVW8zY21kSHZkZzgxbWhlZk5MbXM2MG1GdkMzS1ZCWldsYlE4TzFfdGppUE0?oc=5",
+   "source": "Newswav",
+   "published": "2026-10-29T08:34:48Z",
    "summary": "",
    "lang": "en",
    "origin": "google-en",
@@ -754,7 +776,7 @@
    "title": "Vietnam's maritime push offers new path for South China Sea cooperation",
    "link": "https://news.google.com/rss/articles/CBMimwFBVV95cUxObF9senp6UEJZRFhxVzFWTW9iVml6N3ZzZzN4V3AyM0lrQWJZY2NuYlR4Q2ZpMDgzcXFWRUVTTjdDMTduUzVWdlVJRUJmbU5jcWkxdTBmYlV2UXJ2NTc2SmNwNXBzWS1nX1RUWjBUdGxuTGZqWmpVVThpallkZmRXVm40MlAzenV5RDJpemZWaHR1ZG80RVpMRk1KSdIBoAFBVV95cUxQWHUtWWp4YWdXZXdxMy1RZ2ZfclVZdy04N3BFNVlNeFhjcHhXNndyUlFfRGd0Sm5KVHFaQl9xendfOUkzNDV2SWU2NzhEVVVHR1pBRGloaS03aFpfS0tsQ3ZrTzFCeG5PUV9CbmpoSXNUalhsaGVMemRTWTBYOFE3dnFQUDBKaGFyZ2dyZUdhZUh5TDFKQUhlUGs1UnpOU0pN?oc=5",
    "source": "upi",
-   "published": "2026-10-22T13:19:05Z",
+   "published": "2026-10-22T07:00:00Z",
    "summary": "",
    "lang": "en",
    "origin": "google-en",
@@ -765,7 +787,7 @@
    "title": "Why the China-US Naval Encounter at Sabina Shoal Is Different",
    "link": "https://news.google.com/rss/articles/CBMimwFBVV95cUxOQ0ptUmpoSFdhX09IeS1qeUJINEVtQzN5eV9pVnBQSWxHU19sdHpQQmU3VklYalVjRGh4emsydGtYc1BRSFM0YnpNcjFTZUU1SGdtNXNBb2VWYVk2QTlSYlRtRUk0SUR3ZzlndmtONHB6eExWWE81UmUzVXV3NVV3X1hua1NSd3J1RFpmYlI0c3dtSm9NT3pJY2t3TQ?oc=5",
    "source": "The Diplomat – Asia-Pacific Current Affairs Magazine",
-   "published": "2026-10-21T19:00:37Z",
+   "published": "2026-10-22T07:00:00Z",
    "summary": "",
    "lang": "en",
    "origin": "google-en",
@@ -1642,10 +1664,10 @@
    "firstSeen": "2026-10-31T14:13:37Z"
   },
   {
-   "title": "Exclusive-Chinese work gathering pace on Antelope Reef in South China Sea, latest satellite images show",
-   "link": "https://news.google.com/rss/articles/CBMiYkFVX3lxTE1CbjhwWUoyenZyeC1jMVlRWkEzcEFMeC1LMGd1RzBDMW1zZy0tOUEtRld3ZFdzTXl0aExrWUh0TThTMWJvX2tOOHBSUnhsM3dXbmpYMkJ0dWdsMjFNOUpLbFhB?oc=5",
-   "source": "Forth.News",
-   "published": "2026-10-02T06:03:41Z",
+   "title": "EXCLUSIVE: Chinese work gathering pace on Antelope Reef in South China Sea, latest satellite images show",
+   "link": "https://news.google.com/rss/articles/CBMivwFBVV95cUxNS1pianEyaEVGbWJVZVgtcFZPX21QM3F3VnVnbEJmMC1rVkxRQWJGN0pUSUhmVzJ4RU5zQTNVZmZJNEVOY085c1hiOGtUMXY3OG9SdHd3TUVTc2U1RTZGYWItUjNTU2pxNG5LZlQ4VFVmT2gzTTRBY0VneldaNUpFMWo2YlJFejlJM1BhdHJiNmtSTTdhMkRKS19TV0VXcWdPSVNOZno0RzhBdWVsVHFVb1NJQ2FhNk9CWmNuRHk5Yw?oc=5",
+   "source": "Reuters",
+   "published": "2026-10-02T07:00:00Z",
    "summary": "",
    "lang": "en",
    "origin": "google-en",
