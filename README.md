@@ -32,6 +32,17 @@ python3 -m http.server 8000   # rồi mở http://localhost:8000
 Có thể triển khai lên GitHub Pages. Cần Internet để tải Leaflet và ảnh vệ tinh.
 Mở thẳng một mục tiêu: `index.html#f023` (theo id).
 
+## Bản HTML ngoại tuyến (một file, không cần web / Internet)
+```bash
+python3 scripts/build_offline.py      # → dist/bien-dong-offline.html (~15 MB)
+```
+- Nhúng sẵn: Leaflet, giao diện, dữ liệu thực thể, tin tức (bản chụp lúc tạo file) và **ảnh vệ tinh Sentinel-2 cloudless 10 m**
+  (EOX, CC BY-NC-SA 4.0 – chỉ dùng phi thương mại): toàn khu vực ở zoom 2–8, quanh từng thực thể ở zoom 10–14.
+- Tùy chọn: `--ring 3` (vùng chi tiết rộng hơn), `--year 2023`, `--detail-zoom 13` (file nhỏ hơn).
+- Thư mục `dist/`, `.tilecache/` không đưa lên Git.
+- iPad: chép file vào app Tệp rồi mở bằng ứng dụng có trình duyệt chạy được JavaScript (VD *Documents by Readdle*);
+  máy tính: bấm đúp để mở bằng trình duyệt.
+
 ## Mở trên iPad
 Giao diện đã tối ưu cho iPad (dọc: nút ☰ mở danh sách, bảng thông tin trượt từ dưới; ngang: đầy đủ).
 Cần đưa trang lên một địa chỉ web (repo đang private nên GitHub Pages bản miễn phí không dùng được):

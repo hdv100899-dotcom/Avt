@@ -79,14 +79,35 @@
   /* ---------------- Bản đồ ---------------- */
   const esriImg = () => L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
     { maxZoom: 19, attribution: "Ảnh vệ tinh © Esri, Maxar, Earthstar Geographics" });
-  const bases = {
-    "🛰️ Ảnh vệ tinh (Esri)": esriImg(),
+  /* Bản HTML ngoại tuyến: ảnh vệ tinh Sentinel-2 nhúng sẵn trong file (window.OFFLINE_TILES = {"z/x/y": base64}).
+     Ô ảnh thiếu ở mức zoom cao sẽ lấy ô cha ở mức thấp hơn rồi phóng to. */
+  const OFFLINE = window.OFFLINE_TILES || null;
+  const OfflineSat = L.GridLayer.extend({
+    createTile(c) {
+      const el = document.createElement("div");
+      el.style.background = "#0a1a2b";
+      let z = c.z, x = c.x, y = c.y, dz = 0;
+      while (z >= 0 && !OFFLINE[z + "/" + x + "/" + y]) { x >>= 1; y >>= 1; z--; dz++; }
+      if (z < 0) return el;
+      const scale = 2 ** dz, size = 256 * scale;
+      el.style.backgroundImage = `url(data:image/jpeg;base64,${OFFLINE[z + "/" + x + "/" + y]})`;
+      el.style.backgroundSize = `${size}px ${size}px`;
+      el.style.backgroundPosition = `-${(c.x - x * scale) * 256}px -${(c.y - y * scale) * 256}px`;
+      return el;
+    }
+  });
+  const OFF_ATTR = "Sentinel-2 cloudless – s2maps.eu © EOX IT Services GmbH (chứa dữ liệu Copernicus Sentinel đã xử lý) – CC BY-NC-SA 4.0";
+  const satLayer = () => (OFFLINE ? new OfflineSat({ maxZoom: 18, attribution: OFF_ATTR }) : esriImg());
+  const bases = {};
+  if (OFFLINE) bases["🛰️ Sentinel-2 (ngoại tuyến, có sẵn trong file)"] = satLayer();
+  Object.assign(bases, {
+    "🛰️ Ảnh vệ tinh (Esri – cần Internet)": esriImg(),
     "🌊 Hải dương (Esri Ocean)": L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}",
       { maxZoom: 13, attribution: "© Esri, GEBCO, NOAA" }),
     "🗺️ Bản đồ đường (OSM)": L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
       { maxZoom: 19, attribution: "© OpenStreetMap" })
-  };
-  const map = L.map("map", { zoomControl: true, worldCopyJump: true, layers: [bases["🛰️ Ảnh vệ tinh (Esri)"]] })
+  });
+  const map = L.map("map", { zoomControl: true, worldCopyJump: !OFFLINE, maxZoom: 18, layers: [Object.values(bases)[0]] })
     .setView([12.5, 113], 6);
   const zoneLayer = L.layerGroup().addTo(map);
   const markerLayer = L.layerGroup().addTo(map);
@@ -255,7 +276,7 @@
           ${row("Đường băng", m.runway)}${row("Ghi chú", f.notes)}
           ${row("Cập nhật lần cuối", fmtTime(f.updatedAt))}</table>
           <div id="miniMap"></div>
-          <div class="muted">Ảnh vệ tinh Esri World Imagery – thời điểm chụp tùy khu vực.</div>`;
+          <div class="muted">${OFFLINE ? "Ảnh Sentinel-2 cloudless (10 m) có sẵn trong file – © EOX, Copernicus." : "Ảnh vệ tinh Esri World Imagery – thời điểm chụp tùy khu vực."}</div>`;
         mountMini(f, 15);
         break;
       case "natural":
@@ -293,9 +314,9 @@
         const ll = `${f.lat},${f.lng}`;
         const imgs = (f.images || []).map((im, i) => `<figure><img src="${esc(im.url)}" data-i="${i}" alt="" loading="lazy" onerror="this.style.opacity=.2">
           <figcaption>${esc(im.caption || "")}${im.date ? " · " + esc(im.date) : ""}${im.source ? " · " + esc(im.source) : ""}</figcaption></figure>`).join("");
-        body.innerHTML = `<b>Ảnh vệ tinh trực tiếp (Esri World Imagery)</b>
+        body.innerHTML = `<b>${OFFLINE ? "Ảnh vệ tinh Sentinel-2 (ngoại tuyến, độ phân giải 10 m)" : "Ảnh vệ tinh trực tiếp (Esri World Imagery)"}</b>
           <div id="miniMap" style="height:280px"></div>
-          <div class="links">Mở ở nguồn khác:
+          <div class="links">${OFFLINE ? "Ảnh mới / chi tiết hơn (cần Internet):" : "Mở ở nguồn khác:"}
             <a target="_blank" rel="noopener" href="https://www.google.com/maps/@${ll},2000m/data=!3m1!1e3">Google Maps</a>
             <a target="_blank" rel="noopener" href="https://apps.sentinel-hub.com/eo-browser/?zoom=14&lat=${f.lat}&lng=${f.lng}&themeId=DEFAULT-THEME">Sentinel-2 (EO Browser)</a>
             <a target="_blank" rel="noopener" href="https://zoom.earth/maps/satellite/#view=${ll},13z">Zoom Earth</a>
@@ -335,7 +356,8 @@
   }
   function mountMini(f, z) {
     const el = $("#miniMap"); if (!el) return;
-    miniMap = L.map(el, { zoomControl: true, attributionControl: false, layers: [esriImg()] }).setView([f.lat, f.lng], z);
+    if (OFFLINE) z = Math.min(z, 14);  // ảnh nhúng có độ phân giải gốc tới zoom 14
+    miniMap = L.map(el, { zoomControl: true, attributionControl: false, layers: [satLayer()] }).setView([f.lat, f.lng], z);
     L.circleMarker([f.lat, f.lng], { radius: 6, color: "#fff", weight: 2, fillColor: (C[f.controller] || C.NONE).color, fillOpacity: 1 }).addTo(miniMap);
     setTimeout(() => miniMap && miniMap.invalidateSize(), 50);
   }
@@ -556,12 +578,18 @@
   }
   async function loadNews(manual) {
     try {
-      const r = await fetch("data/news.json?t=" + Date.now(), { cache: "no-store" });
-      if (!r.ok) throw new Error(r.status);
-      const j = await r.json();
+      let j;
+      if (window.EMBEDDED_NEWS) {  // bản ngoại tuyến: tin đã nhúng sẵn lúc tạo file
+        j = window.EMBEDDED_NEWS;
+        if (manual) toast("Bản ngoại tuyến: tin được chụp lúc tạo file. Tạo lại file để có tin mới.");
+      } else {
+        const r = await fetch("data/news.json?t=" + Date.now(), { cache: "no-store" });
+        if (!r.ok) throw new Error(r.status);
+        j = await r.json();
+      }
       news = { updatedAt: j.updatedAt, articles: (j.articles || []).filter((a) => a.lang === "en").sort((a, b) => (a.published < b.published ? 1 : -1)) };
       newsLoaded = true;
-      if (manual) toast(`Đã tải ${news.articles.length} bài báo.`);
+      if (manual && !window.EMBEDDED_NEWS) toast(`Đã tải ${news.articles.length} bài báo.`);
     } catch (e) { newsLoaded = false; if (manual) toast("Không tải được tin tức."); }
     render(); renderNews();
     if (selectedId && activeTab === "news") renderPanel();
