@@ -107,7 +107,7 @@
     const color = (C[f.controller] || C.NONE).color;
     const sq = !["Đảo", "Cồn san hô"].includes(f.type);
     return L.divIcon({ className: "", iconSize: [16, 16], iconAnchor: [8, 8],
-      html: `<div class="mk ${sq ? "sq" : ""} ${f.id === selectedId ? "sel" : ""}" style="background:${color}"></div>` });
+      html: `<div class="mk ${sq ? "sq" : ""} ${f.id === selectedId ? "sel" : ""} ${isHot(f.id) ? "hot" : ""}" style="background:${color}"></div>` });
   }
 
   /* ---------------- Lọc & danh sách ---------------- */
@@ -121,6 +121,7 @@
   }
 
   function render() {
+    matchNews();
     const vis = visible();
     markerLayer.clearLayers(); labelLayer.clearLayers();
     for (const k in markers) delete markers[k];
@@ -156,7 +157,8 @@
         const li = document.createElement("li");
         if (f.id === selectedId) li.className = "sel";
         li.innerHTML = `<span class="dot" style="background:${(C[f.controller] || C.NONE).color}"></span>
-          <span class="t">${esc(f.name)}<small>${esc(f.nameEn)} · ${esc(f.type)}</small></span>`;
+          <span class="t">${esc(f.name)}<small>${esc(f.nameEn)} · ${esc(f.type)}</small></span>
+          ${(newsByFeature[f.id] || []).length ? `<span class="nb" title="Số tin liên quan">📰 ${newsByFeature[f.id].length}</span>` : ""}`;
         li.onclick = () => select(f.id, true);
         ul.appendChild(li);
       });
@@ -199,6 +201,7 @@
       // bảng thông tin che một phần bản đồ: đẩy mục tiêu ra phần bản đồ còn thấy
       map.once("moveend", () => isNarrow() ? map.panBy([0, $("#panel").offsetHeight / 2 || 0]) : map.panBy([($("#panel").offsetWidth + 20) / 2 || 0, 0]));
     }
+    $("#newsPanel").classList.add("hidden");
     $("#panel").classList.remove("hidden");
     renderPanel();
   }
@@ -218,6 +221,8 @@
       <span class="badge"><span class="dot" style="background:${ctl.color}"></span>${esc(ctl.name)}</span>
       <span class="badge">${esc(f.type)}</span> <span class="badge">${esc(f.group)}</span>`;
     $$(".tabs button").forEach((b) => b.classList.toggle("active", b.dataset.tab === activeTab));
+    const nCount = (newsByFeature[f.id] || []).length;
+    $('.tabs button[data-tab="news"]').textContent = nCount ? `Tin tức (${nCount})` : "Tin tức";
     if (miniMap) { miniMap.remove(); miniMap = null; }
     const n = f.natural || {}, m = f.military || {};
     const body = $("#pBody");
@@ -281,6 +286,23 @@
           <div class="gallery">${imgs || "<span class='muted'>Chưa có ảnh. Bấm ✏️ Sửa để thêm URL hoặc tải ảnh lên.</span>"}</div>`;
         mountMini(f, 16);
         $$(".gallery img").forEach((img) => img.onclick = () => lightbox(img.src));
+        break;
+      }
+      case "news": {
+        const arts = newsByFeature[f.id] || [];
+        const qVi = `"${shortName(f.name)}"`, qEn = f.nameEn ? `"${f.nameEn.replace(/\s*\(.*?\)/g, "")}"` : "";
+        body.innerHTML = `<div class="links">Tìm tin mới nhất ngay:
+            <a target="_blank" rel="noopener" href="https://news.google.com/search?q=${encodeURIComponent(qVi)}&hl=vi&gl=VN&ceid=VN:vi">Google News (VI)</a>
+            ${qEn ? `<a target="_blank" rel="noopener" href="https://news.google.com/search?q=${encodeURIComponent(qEn)}&hl=en-US&gl=US&ceid=US:en">Google News (EN)</a>` : ""}
+          </div>
+          <div class="muted">Tin tự động thu thập${news.updatedAt ? " – cập nhật " + relTime(news.updatedAt) : ""}. Bài được gắn khi nhắc tới tên/từ khóa của mục tiêu.</div>
+          <ul class="arts">${arts.map((a) => artHTML(a, f.id)).join("") || "<li class='muted'>Chưa có bài báo nào nhắc tới riêng mục tiêu này trong dữ liệu tin hiện có. Có thể thêm “Từ khóa tin tức” trong ✏️ Sửa.</li>"}</ul>
+          ${(() => {
+            const re = GROUP_RE[f.group]; if (!re) return "";
+            const g = news.articles.filter((a) => re.test(a.title + " " + a.summary) && !arts.includes(a)).slice(0, 15);
+            return g.length ? `<details><summary><b>Tin chung về quần đảo ${esc(f.group)} (${g.length})</b></summary><ul class="arts">${g.map((a) => artHTML(a)).join("")}</ul></details>` : "";
+          })()}`;
+        bindArtTags(body);
         break;
       }
       case "history": {
@@ -434,7 +456,110 @@
   let tt;
   function toast(msg) { const t = $("#toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(tt); tt = setTimeout(() => t.classList.remove("show"), 2600); }
 
+  /* ---------------- Tin tức ---------------- */
+  let news = { updatedAt: null, articles: [] };
+  let newsByFeature = {};
+  let newsLoaded = false;
+  const HOT_HOURS = 72;
+  const PREFIX_RE = /^(Đảo|Đá|Bãi cạn|Bãi|Cồn san hô|Cồn|Nhà giàn)\s+/i;
+  const AMBIGUOUS = new Set(["rizal", "parola", "spratly island", "tree island", "money island", "flat island", "đảo cây", "trường sa", "hoàng sa"]);
+  const GROUP_RE = { "Trường Sa": /Trường Sa|Spratly|南沙/i, "Hoàng Sa": /Hoàng Sa|Paracel|西沙/i };
+  const nfc = (s) => String(s || "").normalize("NFC");
+  const escRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const shortName = (n) => { const s = n.replace(/\s*\(.*?\)/g, "").trim(); const t = s.replace(PREFIX_RE, ""); return t.split(/\s+/).length >= 2 ? t : s; };
+  const hoursAgo = (t) => (Date.now() - new Date(t).getTime()) / 3600e3;
+  function relTime(t) {
+    const h = hoursAgo(t);
+    if (!isFinite(h)) return "";
+    if (h < 1) return Math.max(1, Math.round(h * 60)) + " phút trước";
+    if (h < 24) return Math.round(h) + " giờ trước";
+    if (h < 24 * 30) return Math.round(h / 24) + " ngày trước";
+    return new Date(t).toLocaleDateString("vi-VN");
+  }
+  // Tạo bộ so khớp tên cho từng mục tiêu (tên Việt/Anh/Trung + từ khóa bổ sung)
+  function matchersOf(f) {
+    const res = [];
+    const add = (t, strict) => {
+      t = nfc(t).trim();
+      if (!t || AMBIGUOUS.has(t.toLowerCase())) return;
+      if (/[\u4e00-\u9fff]/.test(t)) { res.push({ cjk: t }); return; }
+      if (t.length < 4) return;
+      res.push({ re: new RegExp(`(^|[^\\p{L}\\p{N}])${escRe(t)}(?![\\p{L}\\p{N}])`, strict ? "u" : "iu") });
+    };
+    [f.name, f.nameEn, f.nameCn].forEach((v) => String(v || "").split(/[()\/–]/).forEach((part) => {
+      part = part.trim(); if (!part) return;
+      const short = part.replace(PREFIX_RE, "");
+      add(part, short !== part && short.split(/\s+/).length === 1);
+      if (short !== part && short.split(/\s+/).length >= 2) add(short, false);
+    }));
+    String(f.keywords || "").split(",").forEach((k) => add(k, false));
+    return res;
+  }
+  function matchNews() {
+    newsByFeature = {};
+    if (!news.articles.length) return;
+    const ms = features.map((f) => [f.id, matchersOf(f)]);
+    news.articles.forEach((a) => {
+      // "quần đảo Hoàng Sa" là cả quần đảo, không phải "đảo Hoàng Sa" → nối liền để không khớp nhầm
+      const text = nfc(a.title + " " + (a.summary || "")).replace(/quần đảo/giu, "quầnđảo");
+      a._f = [];
+      ms.forEach(([id, list]) => {
+        if (list.some((m) => (m.cjk ? text.includes(m.cjk) : m.re.test(text)))) { a._f.push(id); (newsByFeature[id] = newsByFeature[id] || []).push(a); }
+      });
+    });
+  }
+  const isHot = (id) => (newsByFeature[id] || []).some((a) => hoursAgo(a.published) <= HOT_HOURS);
+  function artHTML(a, exceptId) {
+    const tags = (a._f || []).filter((id) => id !== exceptId).map((id) => byId(id)).filter(Boolean);
+    const isNew = hoursAgo(a.published) <= 24;
+    return `<li><a class="ttl" target="_blank" rel="noopener" href="${esc(a.link)}">${esc(a.title)}</a>
+      <div class="meta">${isNew ? "<span class='new'>MỚI · </span>" : ""}${esc(a.source)} · ${relTime(a.published)} · ${a.lang === "en" ? "EN" : "VI"}</div>
+      ${a.summary ? `<div class="sum">${esc(a.summary)}</div>` : ""}
+      ${tags.length ? `<div class="tags">${tags.map((f) => `<span class="chip" data-fid="${esc(f.id)}"><span class="dot" style="background:${(C[f.controller] || C.NONE).color}"></span>${esc(f.name)}</span>`).join("")}</div>` : ""}</li>`;
+  }
+  function bindArtTags(root) {
+    $$(".tags .chip", root).forEach((el) => el.onclick = () => { activeTab = "news"; select(el.dataset.fid, true); });
+  }
+  function renderNews() {
+    const q = nfc($("#newsSearch").value).toLowerCase(), hrs = +$("#newsTime").value, lang = $("#newsLang").value, linked = $("#newsLinked").checked;
+    const list = news.articles.filter((a) => (!hrs || hoursAgo(a.published) <= hrs) && (!lang || a.lang === lang) &&
+      (!linked || (a._f || []).length) && (!q || nfc(a.title + " " + a.summary + " " + a.source).toLowerCase().includes(q)));
+    $("#newsUpdated").textContent = newsLoaded ? (news.updatedAt ? `Thu thập tự động · cập nhật ${relTime(news.updatedAt)} (${fmtTime(news.updatedAt)})` : "Chưa có dữ liệu tin.")
+      : "Không tải được data/news.json – hãy mở trang qua GitHub Pages hoặc máy chủ web.";
+    $("#newsStats").textContent = `${list.length} bài · ${list.filter((a) => (a._f || []).length).length} bài gắn với mục tiêu cụ thể`;
+    $("#newsList").innerHTML = list.slice(0, 300).map((a) => artHTML(a)).join("") || "<li class='muted'>Không có tin phù hợp bộ lọc.</li>";
+    bindArtTags($("#newsList"));
+    const n24 = news.articles.filter((a) => hoursAgo(a.published) <= 24).length;
+    $("#newsBadge").textContent = n24; $("#newsBadge").classList.toggle("hidden", !n24);
+    $("#newsBadge").title = `${n24} tin trong 24 giờ qua`;
+  }
+  async function loadNews(manual) {
+    try {
+      const r = await fetch("data/news.json?t=" + Date.now(), { cache: "no-store" });
+      if (!r.ok) throw new Error(r.status);
+      const j = await r.json();
+      news = { updatedAt: j.updatedAt, articles: (j.articles || []).sort((a, b) => (a.published < b.published ? 1 : -1)) };
+      newsLoaded = true;
+      if (manual) toast(`Đã tải ${news.articles.length} bài báo.`);
+    } catch (e) { newsLoaded = false; if (manual) toast("Không tải được tin tức."); }
+    render(); renderNews();
+    if (selectedId && activeTab === "news") renderPanel();
+  }
+  function initNews() {
+    $("#btnNews").onclick = () => {
+      const p = $("#newsPanel");
+      if (!p.classList.contains("hidden")) return p.classList.add("hidden");
+      closePanel(); p.classList.remove("hidden"); renderNews();
+      if (isNarrow()) $("#sidebar").classList.remove("open");
+    };
+    $("#btnNewsClose").onclick = () => $("#newsPanel").classList.add("hidden");
+    $("#btnNewsRefresh").onclick = () => loadNews(true);
+    ["#newsSearch", "#newsTime", "#newsLang", "#newsLinked"].forEach((s) => $(s).addEventListener("input", renderNews));
+    loadNews();
+    setInterval(loadNews, 15 * 60 * 1000); // tự tải lại mỗi 15 phút
+  }
+
   /* ---------------- Khởi động ---------------- */
-  initFilters(); initEditor(); initToolbar(); render();
+  initFilters(); initEditor(); initToolbar(); render(); initNews();
   const hash = location.hash.slice(1); if (hash && byId(hash)) select(hash, true);
 })();

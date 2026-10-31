@@ -12,6 +12,17 @@ Giao diện web giám sát các đảo, đá, bãi cạn và thực thể trên 
 - **Chỉnh sửa / cập nhật**: nút ✏️ Sửa, ➕ Thêm mục tiêu (bấm lên bản đồ), kéo thả để dời vị trí, xóa, tải ảnh từ máy, ghi nhật ký cập nhật có thời gian.
 - Dữ liệu chỉnh sửa lưu trong trình duyệt (localStorage); **Xuất/Nhập JSON** để sao lưu, chia sẻ, đồng bộ giữa các máy.
 
+## Tin tức tự động
+- Workflow `.github/workflows/news.yml` chạy **mỗi 2 giờ** (và có thể bấm chạy tay ở tab *Actions → Cập nhật tin tức Biển Đông → Run workflow*).
+- Script `scripts/fetch_news.py` thu thập tin từ Google News (tiếng Việt + Anh) và RSS VnExpress, Tuổi Trẻ, Thanh Niên;
+  lọc theo từ khóa Biển Đông / tên các thực thể, loại tin thời tiết; ghi vào `data/news.json` (giữ 45 ngày, tối đa 800 bài).
+- Ứng dụng đọc `data/news.json`, tự gắn bài báo vào thực thể được nhắc tên (Việt/Anh/Trung + “Từ khóa tin tức” tự thêm khi sửa mục tiêu):
+  - Nút **📰 Tin tức**: danh sách tin, lọc theo thời gian, ngôn ngữ, tìm kiếm; số đỏ = số tin trong 24 giờ.
+  - Tab **Tin tức** trong từng mục tiêu + liên kết tìm ngay trên Google News; mục “Tin chung về quần đảo”.
+  - Mục tiêu có tin trong 72 giờ qua nhấp nháy viền cam trên bản đồ.
+- **Lưu ý**: lịch chạy tự động của GitHub Actions chỉ hoạt động khi workflow nằm trên nhánh mặc định (`main`).
+- Chạy thử tại máy: `python3 scripts/fetch_news.py`.
+
 ## Chạy
 Mở `index.html` bằng trình duyệt, hoặc chạy máy chủ tĩnh:
 ```bash
