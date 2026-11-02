@@ -27,6 +27,7 @@ from lxml import html as lxml_html
 
 from osint.browser import BrowserFetcher
 from osint.collectors.rss import ParsedItem
+from osint.dates import date_from_url
 from osint.fulltext import RobotsCache, fetch_article
 from osint.urls import canonicalize_url
 
@@ -98,7 +99,7 @@ def parse_article(
         return None
     meta = trafilatura.extract_metadata(html, default_url=url)
     title = meta.title if meta else None
-    published = _published(meta.date if meta else None)
+    published = _published(meta.date if meta else None) or date_from_url(url)
     raw = json.dumps(
         {"url": url, "title": title, "date": meta.date if meta else None, "source": "web"},
         sort_keys=True,

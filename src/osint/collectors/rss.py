@@ -4,12 +4,14 @@ import hashlib
 import json
 import re
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import UTC, datetime, tzinfo
 from typing import Literal
 
 import feedparser
 import httpx
 from lxml import html as lxml_html
+
+from osint.dates import date_from_url, parse_loose_date
 
 MAX_FEED_BYTES = 10 * 1024 * 1024
 
@@ -86,14 +88,19 @@ def _to_text(markup: str | None) -> str | None:
     return re.sub(r"\s+", " ", text).strip() or None
 
 
-def _published(entry) -> datetime | None:
+def _published(entry, tz: tzinfo | None = None) -> datetime | None:
+    """When the entry was published: the feed's parsed date, else a looser reading of its date
+    text, else the day written in its URL. None only when nothing says."""
     parsed = entry.get("published_parsed") or entry.get("updated_parsed")
-    if parsed is None:
-        return None
-    return datetime(*parsed[:6], tzinfo=UTC)
+    if parsed is not None:
+        return datetime(*parsed[:6], tzinfo=UTC)
+    for key in ("published", "updated", "created", "dc_date"):
+        if value := parse_loose_date(entry.get(key), tz=tz):
+            return value
+    return date_from_url(entry.get("link"))
 
 
-def parse_feed(body: bytes) -> list[ParsedItem]:
+def parse_feed(body: bytes, tz: tzinfo | None = None) -> list[ParsedItem]:
     """Parse feed bytes. Raises ValueError when the body is not a feed at all."""
     feed = feedparser.parse(body)
     # feedparser is lenient: an HTML challenge page parses without error but has no version.
@@ -105,7 +112,7 @@ def parse_feed(body: bytes) -> list[ParsedItem]:
     for entry in feed.entries:
         link = entry.get("link")
         title = _to_text(entry.get("title"))
-        published = _published(entry)
+        published = _published(entry, tz)
         external_id = entry.get("id") or link
         if not external_id:
             seed = f"{title}|{published}"

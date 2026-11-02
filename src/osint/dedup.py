@@ -224,3 +224,72 @@ def reconsider_exact(session: Session) -> int:
         if group_item(session, item_id) != before:
             joined += 1
     return joined
+
+
+def prune_old_items(session: Session, cutoff, dry_run: bool = False) -> tuple[int, int]:
+    """Remove reports published before ``cutoff``, with their evidence, and tidy the groups they
+    were in (a group left empty is deleted; one that lost its origin gets a new one).
+
+    Reports with no publication date are kept. Returns (reports, groups affected). Snapshot files
+    on disk are content-addressed and shared, so they are left in place.
+    """
+    old = select(RawItem.id).where(RawItem.published_at < cutoff)
+    count = session.scalar(select(func.count()).select_from(old.subquery()))
+    groups = list(
+        session.scalars(
+            select(Evidence.event_group_id).where(Evidence.raw_item_id.in_(old)).distinct()
+        )
+    )
+    if dry_run or not count:
+        return count, len(groups)
+    lock_grouping(session)
+    session.execute(delete(Evidence).where(Evidence.raw_item_id.in_(old)))
+    session.execute(delete(RawItem).where(RawItem.published_at < cutoff))
+    session.flush()
+    for group_id in groups:
+        refresh_group(session, group_id)
+    return count, len(groups)
+
+
+def backfill_published_from_urls(session: Session) -> int:
+    """Give undated reports the day their URL states, so they can be recognised as old."""
+    from osint.dates import date_from_url
+
+    rows = session.execute(
+        select(RawItem.id, RawItem.url).where(
+            RawItem.published_at.is_(None), RawItem.url.is_not(None)
+        )
+    ).all()
+    updated = 0
+    for item_id, url in rows:
+        if value := date_from_url(url):
+            session.execute(update(RawItem).where(RawItem.id == item_id).values(published_at=value))
+            updated += 1
+    return updated
+
+
+def backfill_published_from_entries(session: Session, store) -> int:
+    """Give undated reports the date their saved feed entry holds, in a form the parser missed."""
+    import json
+
+    from osint.dates import parse_loose_date
+
+    rows = session.execute(
+        select(RawItem.id, RawItem.snapshot_ref).where(
+            RawItem.published_at.is_(None), RawItem.snapshot_ref.is_not(None)
+        )
+    ).all()
+    updated = 0
+    for item_id, ref in rows:
+        try:
+            entry = json.loads(store.get(ref))
+        except (OSError, ValueError):
+            continue
+        for key in ("published", "updated", "created", "dc_date", "date"):
+            if value := parse_loose_date(entry.get(key)):
+                session.execute(
+                    update(RawItem).where(RawItem.id == item_id).values(published_at=value)
+                )
+                updated += 1
+                break
+    return updated

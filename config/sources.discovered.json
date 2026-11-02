@@ -629,7 +629,10 @@
   "locator": "https://tuoitre.vn/rss/the-gioi.rss",
   "publisher": "tuoitre.vn",
   "poll_interval_s": 600,
-  "language": "vi"
+  "language": "vi",
+  "config": {
+   "timezone": "Asia/Ho_Chi_Minh"
+  }
  },
  {
   "kind": "rss",
@@ -933,6 +936,9 @@
   "locator": "https://baochinhphu.vn/home.rss",
   "publisher": "baochinhphu.vn",
   "poll_interval_s": 600,
-  "language": "vi"
+  "language": "vi",
+  "config": {
+   "timezone": "Asia/Ho_Chi_Minh"
+  }
  }
 ]

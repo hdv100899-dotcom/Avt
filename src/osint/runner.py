@@ -4,7 +4,8 @@ import logging
 import time
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import httpx
 from sqlalchemy import select
@@ -13,7 +14,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from osint.browser import BrowserFetcher, BrowserUnavailable
 from osint.collectors.rss import ParsedItem, fetch_feed, parse_feed
 from osint.collectors.web import collect_web
-from osint.config import respect_robots, robots_token, user_agent
+from osint.config import max_item_age_days, respect_robots, robots_token, user_agent
 from osint.dedup import group_item, item_simhash
 from osint.embeddings import Embedder
 from osint.fulltext import RobotsCache, fetch_article
@@ -42,6 +43,7 @@ class PollOutcome:
     status: str  # "ok" | "not_modified" | "error"
     new_items: int = 0
     error: str | None = None
+    skipped_old: int = 0
 
 
 def next_interval(
@@ -75,12 +77,22 @@ class Collected:
     http: dict | None = None  # validators to send next time (feeds only)
 
 
+def _timezone(config: dict) -> ZoneInfo | None:
+    """The source's local time zone (``timezone`` in its config, an IANA name), if it has one."""
+    name = config.get("timezone")
+    try:
+        return ZoneInfo(name) if name else None
+    except (ZoneInfoNotFoundError, ValueError):
+        log.warning("unknown timezone %r in source config; reading dates as UTC", name)
+        return None
+
+
 def _collect_rss(client: httpx.Client, locator: str, config: dict) -> Collected:
     result = fetch_feed(client, locator, config.get("http"))
     items, error = [], result.error
     if result.kind == "ok":
         try:
-            items = parse_feed(result.body)
+            items = parse_feed(result.body, _timezone(config))
         except ValueError as exc:
             error = str(exc)
     if error is not None:
@@ -142,12 +154,16 @@ def poll_source(
         result = _collect_rss(client, locator, config)
     items, error = result.items, result.error
     failed = error is not None
+    # Only recent reports are collected. Undated ones are kept: nothing says they are old.
+    age = timedelta(days=config.get("max_age_days", max_item_age_days()))
+    fresh = [it for it in items if it.published_at is None or it.published_at >= now - age]
+    skipped_old = len(items) - len(fresh)
 
     new_items: list[NewItem] = []
     with factory() as session, session.begin():
         source = session.get(Source, source_id)
-        if not failed and items:
-            new_items = ingest_items(session, source, items, store)
+        if not failed and fresh:
+            new_items = ingest_items(session, source, fresh, store)
         if not failed:
             if result.http is not None:
                 config["http"] = result.http
@@ -176,7 +192,9 @@ def poll_source(
         )
 
     status = "error" if failed else result.kind
-    return PollOutcome(source_id, status, len(new_items), error)
+    if skipped_old:
+        log.info("%s: skipped %d reports older than %s", locator, skipped_old, age)
+    return PollOutcome(source_id, status, len(new_items), error, skipped_old)
 
 
 def enrich_fulltext(

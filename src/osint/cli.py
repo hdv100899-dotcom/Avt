@@ -9,7 +9,14 @@ from sqlalchemy import func, select
 from osint.browser import BrowserFetcher
 from osint.config import data_dir
 from osint.db import make_engine, make_session_factory
-from osint.dedup import backfill_simhash, group_pending, reconsider_exact
+from osint.dedup import (
+    backfill_published_from_entries,
+    backfill_published_from_urls,
+    backfill_simhash,
+    group_pending,
+    prune_old_items,
+    reconsider_exact,
+)
 from osint.discover import probe_many, summarise, to_seed_entry
 from osint.embeddings import FastEmbedder
 from osint.models import SOURCE_KINDS, SOURCE_STATUSES, SOURCE_TIERS, Evidence, RawItem, Source
@@ -317,3 +324,30 @@ def translate(
         done += n
         typer.echo(f"translated {done} headlines")
     typer.echo(f"done: {done} headlines handled")
+
+
+@app.command("prune")
+def prune(
+    days: float = typer.Option(
+        None, help="Keep reports from the last N days (default: the collection limit)"
+    ),
+    dry_run: bool = typer.Option(False, help="Only count what would be removed"),
+) -> None:
+    """Remove stored reports older than the collection limit, and fix the groups they were in."""
+    from datetime import UTC, datetime, timedelta
+
+    from osint.config import max_item_age_days
+
+    cutoff = datetime.now(UTC) - timedelta(days=days if days is not None else max_item_age_days())
+    with _session() as session, session.begin():
+        dated = urls = 0
+        if not dry_run:
+            urls = backfill_published_from_urls(session)
+            dated = backfill_published_from_entries(session, SnapshotStore(data_dir()))
+        removed, groups = prune_old_items(session, cutoff, dry_run)
+    if urls or dated:
+        typer.echo(f"dated {urls} reports from their URL and {dated} from their saved feed entry")
+    verb = "would remove" if dry_run else "removed"
+    typer.echo(
+        f"{verb} {removed} reports published before {cutoff:%Y-%m-%d} (touching {groups} groups)"
+    )

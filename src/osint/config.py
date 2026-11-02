@@ -35,3 +35,12 @@ def respect_robots() -> bool:
 
 def robots_token() -> str:
     return os.environ.get("OSINT_ROBOTS_TOKEN", DEFAULT_ROBOTS_TOKEN)
+
+
+DEFAULT_MAX_ITEM_AGE_DAYS = 7
+
+
+def max_item_age_days() -> float:
+    """Reports published longer ago than this are not collected (a first poll of a feed would
+    otherwise pull in years of back catalogue). Override per source with ``max_age_days``."""
+    return float(os.environ.get("OSINT_MAX_ITEM_AGE_DAYS", DEFAULT_MAX_ITEM_AGE_DAYS))

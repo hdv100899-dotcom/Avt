@@ -45,6 +45,7 @@ osint cluster --reconsider                 # xét lại các tin lẻ sau khi đ
 
 osint source discover config/candidates.txt --out moi.json   # thăm dò thêm nguồn ứng viên
 osint relevance --rescore                  # chấm lại điểm liên quan sau khi huấn luyện lại
+osint prune --dry-run                      # xem trước: bao nhiêu bài đã lưu cũ hơn giới hạn (bỏ --dry-run để xóa)
 osint translate                            # dịch tiêu đề sang tiếng Việt (dịch máy, tải mô hình ~620 MB lần đầu)
 osint source add rss https://example.org/feed.xml --name "Example" --language en
 
@@ -67,7 +68,11 @@ Sau đó 130 tin này được đưa vào tập huấn luyện nên cần mẫu 
 
 - Một số nguồn trả 403/429 cho client tự động (27 URL trong `config/blocked_sources.json`). Dự án không vượt
   chặn bot, không vượt tường trả phí và không dùng tài khoản giả; các nguồn đó chỉ được ghi nhận.
-- Feed `xinhuanet.com/mil` chứa bài cũ năm 2019–2020; `qdnd.vn` chuyển hướng vô hạn từ mạng thử nghiệm.
+- `qdnd.vn` chuyển hướng vô hạn từ mạng thử nghiệm.
+- **Chỉ thu tin mới**: bài đăng quá `OSINT_MAX_ITEM_AGE_DAYS` ngày (mặc định 7; riêng từng nguồn: `max_age_days`)
+  bị bỏ qua ngay lúc thu thập; `osint prune` dọn bài cũ đã lưu. Bài không ghi ngày thì đọc ngày từ URL hoặc
+  chuỗi ngày không chuẩn của feed; ngày không kèm múi giờ đọc theo `timezone` của nguồn (mặc định UTC).
+  Bài không có ngày nào vẫn được giữ (không có căn cứ để coi là cũ).
 
 - **SCMP**: feed chỉ có phần tóm tắt khoảng 500 ký tự mỗi bài (không phải toàn văn); robots.txt yêu cầu
   `Crawl-delay: 10` nên tải toàn văn sẽ rất chậm, và nhiều bài có tường trả phí. Chỉ 14–26% bài trong các
