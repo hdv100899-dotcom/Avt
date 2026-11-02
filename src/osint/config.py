@@ -24,5 +24,14 @@ def browser_cdp_url() -> str | None:
     return os.environ.get("OSINT_BROWSER_CDP_URL") or None
 
 
+def respect_robots() -> bool:
+    """Whether robots.txt can stop us fetching a page.
+
+    Off by default (project decision). Set OSINT_RESPECT_ROBOTS=1 to turn it on, or
+    ``respect_robots`` in a source's config to decide for one site.
+    """
+    return os.environ.get("OSINT_RESPECT_ROBOTS", "0").lower() in ("1", "true", "yes")
+
+
 def robots_token() -> str:
     return os.environ.get("OSINT_ROBOTS_TOKEN", DEFAULT_ROBOTS_TOKEN)

@@ -10,6 +10,7 @@ from osint.browser import BrowserFetcher
 from osint.config import data_dir
 from osint.db import make_engine, make_session_factory
 from osint.dedup import backfill_simhash, group_pending, reconsider_exact
+from osint.discover import probe_many, summarise, to_seed_entry
 from osint.embeddings import FastEmbedder
 from osint.models import SOURCE_KINDS, SOURCE_STATUSES, SOURCE_TIERS, Evidence, RawItem, Source
 from osint.relevance import score_pending
@@ -260,3 +261,37 @@ def relevance(
     with _session() as session, session.begin():
         done = score_pending(session, rescore=rescore)
     typer.echo(f"scored {done} items")
+
+
+@source_app.command("discover")
+def source_discover(
+    candidates: Path = typer.Argument(
+        ..., exists=True, dir_okay=False, help="One feed URL per line"
+    ),
+    out: Path = typer.Option(None, help="Write usable feeds here as a seed file"),
+    report: Path = typer.Option(None, help="Write the full probe results here as JSON"),
+    max_age_days: int = typer.Option(45, help="Feeds whose newest item is older are 'stale'"),
+    workers: int = typer.Option(12),
+) -> None:
+    """Probe candidate feeds and list the usable, blocked and broken ones. Never retries blocks."""
+    urls = [
+        line.strip()
+        for line in candidates.read_text().splitlines()
+        if line.strip() and not line.lstrip().startswith("#")
+    ]
+    with make_client() as client:
+        results = probe_many(client, list(dict.fromkeys(urls)), workers, max_age_days)
+    for r in sorted(results, key=lambda r: (r.status != "ok", r.status, r.url)):
+        newest = f"{r.newest:%Y-%m-%d}" if r.newest else "-"
+        typer.echo(
+            f"{r.status:9s} {r.language or '-':3s} {r.entries:3d} items  newest {newest}  "
+            f"{r.url}  {r.detail or ''}"
+        )
+    typer.echo(f"\n{len(results)} probed: {summarise(results)}")
+    if out:
+        out.write_text(
+            json.dumps([to_seed_entry(r) for r in results if r.status == "ok"], indent=1) + "\n"
+        )
+        typer.echo(f"wrote {out}")
+    if report:
+        report.write_text(json.dumps([r.__dict__ for r in results], default=str, indent=1) + "\n")

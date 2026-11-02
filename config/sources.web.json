@@ -1,0 +1,18 @@
+[
+  {
+    "kind": "web",
+    "name": "Janes: Defence News",
+    "locator": "https://www.janes.com/defence-intelligence-insights/all-defence-news",
+    "language": "en",
+    "publisher": "janes.com",
+    "poll_interval_s": 900,
+    "config": {
+      "link_selector": "a.redesign-general-card",
+      "link_pattern": "/defence-news/",
+      "wait_for": "css:a.redesign-general-card",
+      "max_new": 30,
+      "respect_robots": false,
+      "min_chars": 80
+    }
+  }
+]

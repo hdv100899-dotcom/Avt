@@ -2,8 +2,8 @@ import httpx
 import pytest
 
 from osint import fulltext
-from osint.config import DEFAULT_ROBOTS_TOKEN, robots_token
-from osint.fulltext import MAX_CRAWL_DELAY_S, RobotsCache, fetch_article
+from osint.config import DEFAULT_ROBOTS_TOKEN, respect_robots, robots_token
+from osint.fulltext import MAX_CRAWL_DELAY_S, MIN_REQUEST_GAP_S, RobotsCache, fetch_article
 from tests.test_runner import ARTICLE
 
 
@@ -88,3 +88,39 @@ def test_fetch_article_waits_its_turn_between_pages(clock: Clock) -> None:
 
     assert clock.sleeps == [10.0]
     assert requested.count("https://a.example/one") == requested.count("https://a.example/two") == 1
+
+
+def test_robots_are_not_respected_by_default_and_the_switch_is_an_env_var(monkeypatch) -> None:
+    monkeypatch.delenv("OSINT_RESPECT_ROBOTS", raising=False)
+    assert respect_robots() is False
+    monkeypatch.setenv("OSINT_RESPECT_ROBOTS", "1")
+    assert respect_robots() is True
+
+
+def test_without_respect_nothing_is_blocked_and_robots_txt_is_not_fetched(clock: Clock) -> None:
+    requested: list[str] = []
+    client = client_with("User-agent: *\nDisallow: /\n", requested)
+    cache = RobotsCache("AvtOSINT", respect=False)
+
+    assert cache.allowed(client, "https://a.example/story") is True
+    assert not any(u.endswith("/robots.txt") for u in requested)
+    assert fetch_article(client, cache, "https://a.example/story") is not None
+
+
+def test_without_respect_requests_are_still_spaced_by_a_minimum_gap(clock: Clock) -> None:
+    cache = RobotsCache("AvtOSINT", respect=False)
+    cache.wait_turn("https://a.example/1")
+    cache.wait_turn("https://a.example/2")
+    cache.wait_turn("https://b.example/1")  # another site is unaffected
+    assert clock.sleeps == [MIN_REQUEST_GAP_S]
+
+
+def test_with_respect_gives_a_view_with_another_policy_sharing_what_was_learned() -> None:
+    strict = RobotsCache("AvtOSINT", respect=True)
+    client = client_with("User-agent: *\nDisallow: /private/\n")
+    assert strict.allowed(client, "https://a.example/private/x") is False
+
+    loose = strict.with_respect(False)
+    assert loose.allowed(client, "https://a.example/private/x") is True
+    assert loose.with_respect(False) is loose and strict.with_respect(True) is strict
+    assert loose._parsers is strict._parsers  # one shared cache of parsed robots.txt files

@@ -13,7 +13,13 @@ Thiết kế và lộ trình: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 - Giai đoạn 3: embedding cục bộ (MiniLM đa ngữ) và gom nhóm các bản tin cùng sự kiện khác lời, có ghi
   lý do gộp. Ngưỡng mới được kiểm trên mẫu nhỏ (xem docs/ARCHITECTURE.md mục 5).
 - Bộ thu thập `web` (Crawl4AI) cho trang không có RSS hoặc cần JavaScript. Chưa có stealth/proxy.
-- Chưa có: Telegram, trích xuất thực thể, AI phân tích, bản tin.
+- **Bộ lọc liên quan quân sự** (không LLM): hồi quy logistic trên embedding sẵn có, huấn luyện từ 605 tin gán
+  nhãn tay; dashboard mặc định chỉ hiện tin quân sự, quốc phòng (`/api/groups?scope=military|all|other`).
+- **Hơn 130 nguồn, 19 ngôn ngữ** (`config/sources.discovered.json`), tìm bằng `osint source discover`
+  (tự phân loại: dùng được / bị chặn / không phải feed / đã chết / cũ, và tự tìm feed trong trang chủ).
+- robots.txt **không** chặn thu thập theo mặc định (`OSINT_RESPECT_ROBOTS=1` để bật, hoặc `respect_robots`
+  cho từng nguồn). Vẫn giữ khoảng nghỉ 1 giây giữa các yêu cầu tới cùng một trang.
+- Chưa có: Telegram, trích xuất thực thể, AI phân tích (LLM), bản tin.
 
 ## Chạy thử
 
@@ -24,7 +30,9 @@ pip install -e ".[dev]"
 cp .env.example .env && export $(grep -v '^#' .env | xargs)
 alembic upgrade head
 
-osint source seed config/sources.en.json   # 14 nguồn tiếng Anh đã kiểm tra (gồm 4 feed SCMP)
+osint source seed config/sources.en.json          # 14 nguồn tiếng Anh ban đầu (gồm 4 feed SCMP)
+osint source seed config/sources.discovered.json  # ~117 nguồn đa ngôn ngữ do công cụ khám phá tìm được
+osint source seed config/sources.web.json         # nguồn không RSS (Janes), cần Crawl4AI
 osint collect once                         # thu thập một lượt
 osint collect run                          # chạy liên tục (kèm nhúng và gom nhóm; --no-embed để tắt)
 osint web                                  # dashboard tại http://127.0.0.1:8000
@@ -33,6 +41,8 @@ osint dedup                                # gom nhóm các tin chưa có nhóm 
 osint cluster                              # nhúng tin mới và gom các bản cùng sự kiện (tải mô hình ~220 MB lần đầu)
 osint cluster --reconsider                 # xét lại các tin lẻ sau khi đổi ngưỡng
 
+osint source discover config/candidates.txt --out moi.json   # thăm dò thêm nguồn ứng viên
+osint relevance --rescore                  # chấm lại điểm liên quan sau khi huấn luyện lại
 osint source add rss https://example.org/feed.xml --name "Example" --language en
 
 # Trang không có RSS (cần: pip install -e ".[crawl]")
@@ -43,7 +53,18 @@ osint source list
 
 Dữ liệu snapshot nằm ở `data/` (đổi bằng `OSINT_DATA_DIR`). API: `/api/groups`, `/api/groups/{id}`, `/api/items`, `/api/sources`.
 
+### Chất lượng bộ lọc liên quan
+
+Đo ngoài mẫu trên 103 tin ngẫu nhiên chưa từng dùng để huấn luyện (30 tin quân sự; 56 tin từ 16 ngôn ngữ
+khác tiếng Anh): AUROC 0,979 (tiếng Anh 0,962; ngôn ngữ khác 0,993), giữ được 27/30 tin quân sự với độ chính
+xác 0,87. Mẫu nhỏ nên khoảng tin cậy rộng; mục tiêu 95% độ phủ khi huấn luyện chưa đạt ngoài mẫu (90%).
+Sau đó 130 tin này được đưa vào tập huấn luyện nên cần mẫu kiểm tra mới.
+
 ### Giới hạn đã biết
+
+- Một số nguồn trả 403/429 cho client tự động (27 URL trong `config/blocked_sources.json`). Dự án không vượt
+  chặn bot, không vượt tường trả phí và không dùng tài khoản giả; các nguồn đó chỉ được ghi nhận.
+- Feed `xinhuanet.com/mil` chứa bài cũ năm 2019–2020; `qdnd.vn` chuyển hướng vô hạn từ mạng thử nghiệm.
 
 - **SCMP**: feed chỉ có phần tóm tắt khoảng 500 ký tự mỗi bài (không phải toàn văn); robots.txt yêu cầu
   `Crawl-delay: 10` nên tải toàn văn sẽ rất chậm, và nhiều bài có tường trả phí. Chỉ 14–26% bài trong các

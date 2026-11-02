@@ -116,3 +116,9 @@ def test_block_elements_do_not_glue_words_together() -> None:
     )
     (item,) = parse_feed(feed)
     assert item.content == "By Kemal The following list continues Second para"
+
+
+def test_binary_garbage_is_not_a_feed_rather_than_a_crash() -> None:
+    for junk in (b"\x1f\x8b\x08\x00\x00\x00garbage", bytes(range(256)), b"%PDF-1.7 ..."):
+        with pytest.raises(ValueError, match="not a valid feed"):
+            parse_feed(junk)

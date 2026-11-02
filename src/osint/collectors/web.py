@@ -9,7 +9,7 @@ Per-source settings live in ``Source.config``:
 - ``same_domain``: only follow links on the index page's domain (default true)
 - ``render_articles``: render story pages in the browser too (default false: plain HTTP)
 - ``min_chars``: shortest extracted text accepted as a story (default 100)
-- ``respect_robots``: honour robots.txt (default true)
+- ``respect_robots``: honour robots.txt for this source (default: the global setting, off)
 
 Extraction is rule-based (trafilatura), so no LLM is involved and runs are repeatable.
 """
@@ -122,7 +122,8 @@ def collect_web(
     cfg: dict,
     known: Callable[[list[str]], set[str]],
 ) -> WebResult:
-    respect_robots = cfg.get("respect_robots", True)
+    respect_robots = cfg.get("respect_robots", robots.respect)
+    robots = robots.with_respect(respect_robots)
     min_chars = cfg.get("min_chars", MIN_ARTICLE_CHARS)
     page = browser.render(index_url, wait_for=cfg.get("wait_for"), respect_robots=respect_robots)
     if page.error or (page.status or 200) >= 400:
@@ -143,9 +144,7 @@ def collect_web(
             if not article.error and article.html:
                 item = parse_article(article.html, article.url, min_chars=min_chars)
         else:
-            fetched = (
-                fetch_article(client, robots, url) if respect_robots else _fetch_plain(client, url)
-            )
+            fetched = fetch_article(client, robots, url)
             if fetched is not None and fetched.text:
                 item = parse_article(
                     fetched.html.decode(errors="replace"), url, fetched.text, min_chars=min_chars
@@ -155,19 +154,3 @@ def collect_web(
         else:
             items.append(item)
     return WebResult(items, skipped=skipped)
-
-
-def _fetch_plain(client: httpx.Client, url: str):
-    """Fetch a story page without the robots check, for sources that opted out of it."""
-    from osint.fulltext import MAX_PAGE_BYTES, Article
-
-    try:
-        resp = client.get(url)
-    except httpx.HTTPError:
-        return None
-    if resp.status_code >= 400 or len(resp.content) > MAX_PAGE_BYTES:
-        return None
-    text = trafilatura.extract(
-        resp.text, url=url, include_comments=False, include_tables=False, favor_precision=True
-    )
-    return Article(html=resp.content, text=text)

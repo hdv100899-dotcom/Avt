@@ -97,7 +97,7 @@ def parse_feed(body: bytes) -> list[ParsedItem]:
     """Parse feed bytes. Raises ValueError when the body is not a feed at all."""
     feed = feedparser.parse(body)
     # feedparser is lenient: an HTML challenge page parses without error but has no version.
-    if not feed.version:
+    if not feed.get("version"):
         reason = feed.bozo_exception if feed.bozo else "no RSS or Atom root element"
         raise ValueError(f"not a valid feed: {reason}")
 

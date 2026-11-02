@@ -1,0 +1,113 @@
+{
+ "note": "Sources that answered our requests with an access refusal. Recorded, not circumvented; re-run `osint source discover` to check again.",
+ "blocked": [
+  {
+   "url": "https://apnews.com/hub/world-news?output=rss",
+   "http": 403
+  },
+  {
+   "url": "https://ecfr.eu/feed/",
+   "http": 403
+  },
+  {
+   "url": "https://english.alarabiya.net/tools/rss",
+   "http": 403
+  },
+  {
+   "url": "https://english.nv.ua/",
+   "http": 403
+  },
+  {
+   "url": "https://esut.de/feed/",
+   "http": 403
+  },
+  {
+   "url": "https://thebulletin.org/feed/",
+   "http": 403
+  },
+  {
+   "url": "https://vov.vn/",
+   "http": 403
+  },
+  {
+   "url": "https://www.38north.org/feed/",
+   "http": 403
+  },
+  {
+   "url": "https://www.army-technology.com/",
+   "http": 403
+  },
+  {
+   "url": "https://www.atlanticcouncil.org/feed/",
+   "http": 403
+  },
+  {
+   "url": "https://www.chathamhouse.org/rss/all",
+   "http": 403
+  },
+  {
+   "url": "https://www.consilium.europa.eu/",
+   "http": 403
+  },
+  {
+   "url": "https://www.defense-aerospace.com/feed/",
+   "http": 403
+  },
+  {
+   "url": "https://www.defensedaily.com/feed/",
+   "http": 403
+  },
+  {
+   "url": "https://www.defenseworld.net/rss/news.xml",
+   "http": 403
+  },
+  {
+   "url": "https://www.eurasiantimes.com/feed/",
+   "http": 403
+  },
+  {
+   "url": "https://www.heritage.org/rss/commentary",
+   "http": 403
+  },
+  {
+   "url": "https://www.hudson.org/",
+   "http": 403
+  },
+  {
+   "url": "https://www.iiss.org/rss",
+   "http": 403
+  },
+  {
+   "url": "https://www.ispr.gov.pk/",
+   "http": 403
+  },
+  {
+   "url": "https://www.lawfaremedia.org/feed",
+   "http": 403
+  },
+  {
+   "url": "https://www.mod.go.jp/en/rss.xml",
+   "http": 403
+  },
+  {
+   "url": "https://www.rand.org/pubs.xml",
+   "http": 403
+  },
+  {
+   "url": "https://www.rnz.co.nz/rss/world.xml",
+   "http": 403
+  },
+  {
+   "url": "https://www.state.gov/rss-feed/press-releases/feed/",
+   "http": 403
+  },
+  {
+   "url": "https://www.timesofisrael.com/feed/",
+   "http": 403
+  },
+  {
+   "url": "https://www.understandingwar.org/rss.xml",
+   "http": 403
+  }
+ ]
+}

@@ -1,0 +1,938 @@
+[
+ {
+  "kind": "rss",
+  "name": "Naval News",
+  "locator": "https://www.navalnews.com/feed/",
+  "publisher": "navalnews.com",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "The Defence Blog – Military and Defense News",
+  "locator": "https://defence-blog.com/feed/",
+  "publisher": "defence-blog.com",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "Air & Space Forces Magazine",
+  "locator": "https://www.airandspaceforces.com/feed/",
+  "publisher": "airandspaceforces.com",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "C4ISRNet",
+  "locator": "https://www.c4isrnet.com/arc/outboundfeeds/rss/?outputType=xml",
+  "publisher": "c4isrnet.com",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "DefenseScoop",
+  "locator": "https://www.defensescoop.com/feed/",
+  "publisher": "defensescoop.com",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "19FortyFive",
+  "locator": "https://www.19fortyfive.com/feed/",
+  "publisher": "19fortyfive.com",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "The National Interest",
+  "locator": "https://nationalinterest.org/feed",
+  "publisher": "nationalinterest.org",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "European Security & Defence",
+  "locator": "https://euro-sd.com/feed/",
+  "publisher": "euro-sd.com",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "Indian Defence Review",
+  "locator": "https://www.indiandefencereview.com/feed/",
+  "publisher": "indiandefencereview.com",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "idrw.org",
+  "locator": "https://idrw.org/feed/",
+  "publisher": "idrw.org",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "Overt Defense",
+  "locator": "https://www.overtdefense.com/feed/",
+  "publisher": "overtdefense.com",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "FlightGlobal",
+  "locator": "https://www.flightglobal.com/rss",
+  "publisher": "flightglobal.com",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "The Drive",
+  "locator": "https://www.thedrive.com/feed",
+  "publisher": "thedrive.com",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "Task & Purpose",
+  "locator": "https://taskandpurpose.com/feed/",
+  "publisher": "taskandpurpose.com",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "Sandboxx Blog - Military Content Center",
+  "locator": "https://www.sandboxx.us/blog/feed/",
+  "publisher": "sandboxx.us",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "News - Military Times",
+  "locator": "https://www.militarytimes.com/arc/outboundfeeds/rss/category/news/?outputType=xml",
+  "publisher": "militarytimes.com",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "Defense – Federal News Network",
+  "locator": "https://www.federalnewsnetwork.com/category/defense-main/feed/",
+  "publisher": "federalnewsnetwork.com",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "Nextgov/FCW - All Content",
+  "locator": "https://www.nextgov.com/rss/all/",
+  "publisher": "nextgov.com",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "Department of War News Feed",
+  "locator": "https://www.war.gov/DesktopModules/ArticleCS/RSS.ashx?ContentType=1&Site=945&max=10",
+  "publisher": "defense.gov",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "Air Force Link News",
+  "locator": "https://www.af.mil/DesktopModules/ArticleCS/RSS.ashx?ContentType=1&Site=1&max=10",
+  "publisher": "af.mil",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "United States Space Force News",
+  "locator": "https://www.spaceforce.mil/DesktopModules/ArticleCS/RSS.ashx?ContentType=1&Site=1060&max=10",
+  "publisher": "spaceforce.mil",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "DVIDS RSS Feed: News",
+  "locator": "https://www.dvidshub.net/rss/news",
+  "publisher": "dvidshub.net",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "Ministry of Defence - Activity on GOV.UK",
+  "locator": "https://www.gov.uk/government/organisations/ministry-of-defence.atom",
+  "publisher": "gov.uk",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "Press Information Bureau",
+  "locator": "https://www.pib.gov.in/RssMain.aspx?ModId=6&Lang=1&Regid=3",
+  "publisher": "pib.gov.in",
+  "poll_interval_s": 600,
+  "language": "hi"
+ },
+ {
+  "kind": "rss",
+  "name": "Foreign Policy",
+  "locator": "https://www.foreignpolicy.com/feed",
+  "publisher": "foreignpolicy.com",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "The Diplomat",
+  "locator": "https://thediplomat.com/feed/",
+  "publisher": "thediplomat.com",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "Asia Times",
+  "locator": "https://asiatimes.com/feed/",
+  "publisher": "asiatimes.com",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "Arms Control Association - The authoritative source on arms control since 1971.",
+  "locator": "https://www.armscontrol.org/rss.xml",
+  "publisher": "armscontrol.org",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "Eurasia Review",
+  "locator": "https://www.eurasiareview.com/feed/",
+  "publisher": "eurasiareview.com",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "Stimson Center",
+  "locator": "https://www.stimson.org/feed/",
+  "publisher": "stimson.org",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "American Enterprise Institute – AEI",
+  "locator": "https://www.aei.org/feed/",
+  "publisher": "aei.org",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "War on the Rocks",
+  "locator": "https://warontherocks.com/feed/",
+  "publisher": "warontherocks.com",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "Just Security",
+  "locator": "https://www.justsecurity.org/feed/",
+  "publisher": "justsecurity.org",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "FDD's Long War Journal",
+  "locator": "https://www.longwarjournal.org/feed",
+  "publisher": "longwarjournal.org",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "BBC News",
+  "locator": "https://www.bbc.com/news/world/rss.xml",
+  "publisher": "bbc.com",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "NYT > World News",
+  "locator": "https://rss.nytimes.com/services/xml/rss/nyt/World.xml",
+  "publisher": "rss.nytimes.com",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "World news | The Guardian",
+  "locator": "https://www.theguardian.com/world/rss",
+  "publisher": "theguardian.com",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "Al Jazeera – Breaking News, World News and Video from Al Jazeera",
+  "locator": "https://www.aljazeera.com/xml/rss/all.xml",
+  "publisher": "aljazeera.com",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "World",
+  "locator": "https://www.ft.com/world?format=rss",
+  "publisher": "ft.com",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "International",
+  "locator": "https://www.economist.com/international/rss.xml",
+  "publisher": "economist.com",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "World News - Breaking international news and headlines | Sky News",
+  "locator": "https://feeds.skynews.com/feeds/rss/world.xml",
+  "publisher": "feeds.skynews.com",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "France 24 - International breaking news, top stories and headlines",
+  "locator": "https://www.france24.com/en/rss",
+  "publisher": "france24.com",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "News - South China Morning Post",
+  "locator": "https://www.scmp.com/rss/91/feed",
+  "publisher": "scmp.com",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "The Straits Times World News",
+  "locator": "https://www.straitstimes.com/news/world/rss.xml",
+  "publisher": "straitstimes.com",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "Latest News",
+  "locator": "https://www.channelnewsasia.com/rssfeeds/8395986",
+  "publisher": "channelnewsasia.com",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "Latest articles - The Japan Times",
+  "locator": "https://www.japantimes.co.jp/feed/",
+  "publisher": "japantimes.co.jp",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "Yonhap News Agency | All News",
+  "locator": "https://en.yna.co.kr/RSS/news.xml",
+  "publisher": "en.yna.co.kr",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "The korea Herald News Rss",
+  "locator": "https://www.koreaherald.com/rss/newsAll",
+  "publisher": "koreaherald.com",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "Korea Times News",
+  "locator": "https://www.koreatimes.co.kr/www/rss/nation.xml",
+  "publisher": "koreatimes.co.kr",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "Taipei Times",
+  "locator": "https://www.taipeitimes.com/xml/index.rss",
+  "publisher": "taipeitimes.com",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "outbrain",
+  "locator": "https://www.globaltimes.cn/rss/outbrain.xml",
+  "publisher": "globaltimes.cn",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "TASS",
+  "locator": "https://tass.com/rss/v2.xml",
+  "publisher": "tass.com",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "The Kyiv Independent",
+  "locator": "https://www.kyivindependent.com/news-archive/rss",
+  "publisher": "kyivindependent.com",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "Ukrainska Pravda",
+  "locator": "https://www.pravda.com.ua/eng/rss/",
+  "publisher": "pravda.com.ua",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "Latest news",
+  "locator": "https://www.ukrinform.net/rss/block-lastnews",
+  "publisher": "ukrinform.net",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "Anadolu Ajansı Güncel Haberler",
+  "locator": "https://www.aa.com.tr/en/rss/default?cat=world",
+  "publisher": "aa.com.tr",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "Section Feed",
+  "locator": "https://www.middleeasteye.net/rss",
+  "publisher": "middleeasteye.net",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "Arab News",
+  "locator": "https://www.arabnews.com/rss.xml",
+  "publisher": "arabnews.com",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "World News: Latest International News & Updates | The Hindu",
+  "locator": "https://www.thehindu.com/news/international/feeder/default.rss",
+  "publisher": "thehindu.com",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "World News, Today World News, Latest International News, World Breaking News, Trending News of World - Times of India",
+  "locator": "https://timesofindia.indiatimes.com/rssfeeds/296589292.cms",
+  "publisher": "timesofindia.indiatimes.com",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "Dawn - Home",
+  "locator": "https://www.dawn.com/feeds/home",
+  "publisher": "dawn.com",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "The Moscow Times - Independent News From Russia",
+  "locator": "https://www.themoscowtimes.com/rss/news",
+  "publisher": "themoscowtimes.com",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "Radio Free Europe / Radio Liberty",
+  "locator": "https://www.rferl.org/api/epiqq",
+  "publisher": "rferl.org",
+  "poll_interval_s": 600,
+  "language": "en"
+ },
+ {
+  "kind": "rss",
+  "name": "ТАСС",
+  "locator": "https://tass.ru/rss/v2.xml",
+  "publisher": "tass.ru",
+  "poll_interval_s": 600,
+  "language": "ru"
+ },
+ {
+  "kind": "rss",
+  "name": "РИА Новости",
+  "locator": "https://ria.ru/export/rss2/archive/index.xml",
+  "publisher": "ria.ru",
+  "poll_interval_s": 600,
+  "language": "ru"
+ },
+ {
+  "kind": "rss",
+  "name": "Lenta.ru : Новости",
+  "locator": "https://lenta.ru/rss/news",
+  "publisher": "lenta.ru",
+  "poll_interval_s": 600,
+  "language": "ru"
+ },
+ {
+  "kind": "rss",
+  "name": "Коммерсантъ. Лента новостей",
+  "locator": "https://www.kommersant.ru/RSS/news.xml",
+  "publisher": "kommersant.ru",
+  "poll_interval_s": 600,
+  "language": "ru"
+ },
+ {
+  "kind": "rss",
+  "name": "АО «ТРК ВС РФ «ЗВЕЗДА»",
+  "locator": "https://tvzvezda.ru/export/rss.xml",
+  "publisher": "tvzvezda.ru",
+  "poll_interval_s": 600,
+  "language": "ru"
+ },
+ {
+  "kind": "rss",
+  "name": "Российская газета",
+  "locator": "https://rg.ru/xml/index.xml",
+  "publisher": "rg.ru",
+  "poll_interval_s": 600,
+  "language": "ru"
+ },
+ {
+  "kind": "rss",
+  "name": "Интерфакс",
+  "locator": "https://www.interfax.ru/rss.asp",
+  "publisher": "interfax.ru",
+  "poll_interval_s": 600,
+  "language": "ru"
+ },
+ {
+  "kind": "rss",
+  "name": "Українська правда",
+  "locator": "https://www.pravda.com.ua/rss/",
+  "publisher": "pravda.com.ua",
+  "poll_interval_s": 600,
+  "language": "uk"
+ },
+ {
+  "kind": "rss",
+  "name": "АрміяInform",
+  "locator": "https://armyinform.com.ua/feed/",
+  "publisher": "armyinform.com.ua",
+  "poll_interval_s": 600,
+  "language": "uk"
+ },
+ {
+  "kind": "rss",
+  "name": "Останні новини",
+  "locator": "https://www.ukrinform.ua/rss/block-lastnews",
+  "publisher": "ukrinform.ua",
+  "poll_interval_s": 600,
+  "language": "ua"
+ },
+ {
+  "kind": "rss",
+  "name": "军事频道_新华网",
+  "locator": "http://www.xinhuanet.com/mil/news_mil.xml",
+  "publisher": "xinhuanet.com",
+  "poll_interval_s": 600,
+  "language": "zh"
+ },
+ {
+  "kind": "rss",
+  "name": "BBC Chinese",
+  "locator": "https://www.bbc.com/zhongwen/simp/index.xml",
+  "publisher": "bbc.com",
+  "poll_interval_s": 600,
+  "language": "zh"
+ },
+ {
+  "kind": "rss",
+  "name": "中央社即時新聞 國內政治",
+  "locator": "https://feeds.feedburner.com/rsscna/politics",
+  "publisher": "feeds.feedburner.com",
+  "poll_interval_s": 600,
+  "language": "zh"
+ },
+ {
+  "kind": "rss",
+  "name": "Thế giới - VnExpress RSS",
+  "locator": "https://vnexpress.net/rss/the-gioi.rss",
+  "publisher": "vnexpress.net",
+  "poll_interval_s": 600,
+  "language": "vi"
+ },
+ {
+  "kind": "rss",
+  "name": "Thời sự - VnExpress RSS",
+  "locator": "https://vnexpress.net/rss/thoi-su.rss",
+  "publisher": "vnexpress.net",
+  "poll_interval_s": 600,
+  "language": "vi"
+ },
+ {
+  "kind": "rss",
+  "name": "TUOI TRE ONLINE - Thế giới - RSS Feed",
+  "locator": "https://tuoitre.vn/rss/the-gioi.rss",
+  "publisher": "tuoitre.vn",
+  "poll_interval_s": 600,
+  "language": "vi"
+ },
+ {
+  "kind": "rss",
+  "name": "Thế giới | Báo Thanh Niên",
+  "locator": "https://thanhnien.vn/rss/the-gioi.rss",
+  "publisher": "thanhnien.vn",
+  "poll_interval_s": 600,
+  "language": "vi"
+ },
+ {
+  "kind": "rss",
+  "name": "Tin tức thế giới 24h - Kinh tế, An ninh quân sự thế giới",
+  "locator": "https://dantri.com.vn/rss/the-gioi.rss",
+  "publisher": "dantri.com.vn",
+  "poll_interval_s": 600,
+  "language": "vi"
+ },
+ {
+  "kind": "rss",
+  "name": "Thế giới - Tin thế giới và thời sự quốc tế, tin tức quân sự thế giới",
+  "locator": "https://vietnamnet.vn/rss/the-gioi.rss",
+  "publisher": "vietnamnet.vn",
+  "poll_interval_s": 600,
+  "language": "vi"
+ },
+ {
+  "kind": "rss",
+  "name": "Thế giới",
+  "locator": "https://nhandan.vn/rss/thegioi-1231.rss",
+  "publisher": "nhandan.vn",
+  "poll_interval_s": 600,
+  "language": "vi"
+ },
+ {
+  "kind": "rss",
+  "name": "Thế giới",
+  "locator": "https://www.vietnamplus.vn/rss/thegioi.rss",
+  "publisher": "vietnamplus.vn",
+  "poll_interval_s": 600,
+  "language": "vi"
+ },
+ {
+  "kind": "rss",
+  "name": "朝日新聞",
+  "locator": "https://www.asahi.com/rss/asahi/newsheadlines.rdf",
+  "publisher": "asahi.com",
+  "poll_interval_s": 600,
+  "language": "ja"
+ },
+ {
+  "kind": "rss",
+  "name": "ニュース速報（総合）",
+  "locator": "https://mainichi.jp/rss/etc/mainichi-flash.rss",
+  "publisher": "mainichi.jp",
+  "poll_interval_s": 600,
+  "language": "ja"
+ },
+ {
+  "kind": "rss",
+  "name": "연합뉴스 최신기사",
+  "locator": "https://www.yna.co.kr/rss/news.xml",
+  "publisher": "yna.co.kr",
+  "poll_interval_s": 600,
+  "language": "ko"
+ },
+ {
+  "kind": "rss",
+  "name": "조선일보",
+  "locator": "https://www.chosun.com/arc/outboundfeeds/rss/?outputType=xml",
+  "publisher": "chosun.com",
+  "poll_interval_s": 600,
+  "language": "ko"
+ },
+ {
+  "kind": "rss",
+  "name": "전체기사 : 뉴스 : 한겨레 뉴스 - 인터넷한겨레",
+  "locator": "https://www.hani.co.kr/rss/",
+  "publisher": "hani.co.kr",
+  "poll_interval_s": 600,
+  "language": "ko"
+ },
+ {
+  "kind": "rss",
+  "name": "Zone Militaire",
+  "locator": "https://www.opex360.com/feed/",
+  "publisher": "opex360.com",
+  "poll_interval_s": 600,
+  "language": "fr"
+ },
+ {
+  "kind": "rss",
+  "name": "International : Toute l’actualité sur Le Monde.fr.",
+  "locator": "https://www.lemonde.fr/international/rss_full.xml",
+  "publisher": "lemonde.fr",
+  "poll_interval_s": 600,
+  "language": "fr"
+ },
+ {
+  "kind": "rss",
+  "name": "Le Figaro - International : Actualité internationale en direct",
+  "locator": "https://www.lefigaro.fr/rss/figaro_international.xml",
+  "publisher": "lefigaro.fr",
+  "poll_interval_s": 600,
+  "language": "fr"
+ },
+ {
+  "kind": "rss",
+  "name": "RFI - Actualités, info, news en direct - Radio France Internationale",
+  "locator": "https://www.rfi.fr/fr/rss",
+  "publisher": "rfi.fr",
+  "poll_interval_s": 600,
+  "language": "fr"
+ },
+ {
+  "kind": "rss",
+  "name": "hartpunkt",
+  "locator": "https://www.hartpunkt.de/feed/",
+  "publisher": "hartpunkt.de",
+  "poll_interval_s": 600,
+  "language": "de"
+ },
+ {
+  "kind": "rss",
+  "name": "DER SPIEGEL - Ausland",
+  "locator": "https://www.spiegel.de/ausland/index.rss",
+  "publisher": "spiegel.de",
+  "poll_interval_s": 600,
+  "language": "de"
+ },
+ {
+  "kind": "rss",
+  "name": "tagesschau.de - Die Nachrichten der ARD",
+  "locator": "https://www.tagesschau.de/xml/rss2/",
+  "publisher": "tagesschau.de",
+  "poll_interval_s": 600,
+  "language": "de"
+ },
+ {
+  "kind": "rss",
+  "name": "RSS di Mondo - ANSA.it",
+  "locator": "https://www.ansa.it/sito/notizie/mondo/mondo_rss.xml",
+  "publisher": "ansa.it",
+  "poll_interval_s": 600,
+  "language": "it"
+ },
+ {
+  "kind": "rss",
+  "name": "Defence24",
+  "locator": "https://defence24.pl/rss",
+  "publisher": "defence24.pl",
+  "poll_interval_s": 600,
+  "language": "pl"
+ },
+ {
+  "kind": "rss",
+  "name": "www.rp.pl",
+  "locator": "https://www.rp.pl/rss_main",
+  "publisher": "rp.pl",
+  "poll_interval_s": 600,
+  "language": "pl"
+ },
+ {
+  "kind": "rss",
+  "name": "SavunmaSanayiST",
+  "locator": "https://www.savunmasanayist.com/feed/",
+  "publisher": "savunmasanayist.com",
+  "poll_interval_s": 600,
+  "language": "tr"
+ },
+ {
+  "kind": "rss",
+  "name": "TRT Haber Dünya Haberleri",
+  "locator": "https://www.trthaber.com/dunya_articles.rss",
+  "publisher": "trthaber.com",
+  "poll_interval_s": 600,
+  "language": "tr"
+ },
+ {
+  "kind": "rss",
+  "name": "الجزيرة نت",
+  "locator": "https://www.aljazeera.net/aljazeerarss/a7c186be-1baa-4bd4-9d80-a84db769f779/73d0e1b4-532f-45ef-b135-bfdff8b8cab9",
+  "publisher": "aljazeera.net",
+  "poll_interval_s": 600,
+  "language": "ar"
+ },
+ {
+  "kind": "rss",
+  "name": "RT Arabic",
+  "locator": "https://arabic.rt.com/rss/",
+  "publisher": "arabic.rt.com",
+  "poll_interval_s": 600,
+  "language": "ar"
+ },
+ {
+  "kind": "rss",
+  "name": "BBC Arabic",
+  "locator": "https://www.bbc.com/arabic/index.xml",
+  "publisher": "bbc.com",
+  "poll_interval_s": 600,
+  "language": "ar"
+ },
+ {
+  "kind": "rss",
+  "name": "BBC &#8238;فارسی",
+  "locator": "https://www.bbc.com/persian/index.xml",
+  "publisher": "bbc.com",
+  "poll_interval_s": 600,
+  "language": "fa"
+ },
+ {
+  "kind": "rss",
+  "name": "BBC News हिंदी",
+  "locator": "https://www.bbc.com/hindi/index.xml",
+  "publisher": "bbc.com",
+  "poll_interval_s": 600,
+  "language": "hi"
+ },
+ {
+  "kind": "rss",
+  "name": "BBC News ไทย",
+  "locator": "https://www.bbc.com/thai/index.xml",
+  "publisher": "bbc.com",
+  "poll_interval_s": 600,
+  "language": "th"
+ },
+ {
+  "kind": "rss",
+  "name": "BBC Brasil",
+  "locator": "https://www.bbc.com/portuguese/index.xml",
+  "publisher": "bbc.com",
+  "poll_interval_s": 600,
+  "language": "pt"
+ },
+ {
+  "kind": "rss",
+  "name": "BBC Mundo",
+  "locator": "https://www.bbc.com/mundo/index.xml",
+  "publisher": "bbc.com",
+  "poll_interval_s": 600,
+  "language": "es"
+ },
+ {
+  "kind": "rss",
+  "name": "BBC Russian",
+  "locator": "https://www.bbc.com/russian/index.xml",
+  "publisher": "bbc.com",
+  "poll_interval_s": 600,
+  "language": "ru"
+ },
+ {
+  "kind": "rss",
+  "name": "BBC News Україна",
+  "locator": "https://www.bbc.com/ukrainian/index.xml",
+  "publisher": "bbc.com",
+  "poll_interval_s": 600,
+  "language": "uk"
+ },
+ {
+  "kind": "rss",
+  "name": "BBC Turkish",
+  "locator": "https://www.bbc.com/turkce/index.xml",
+  "publisher": "bbc.com",
+  "poll_interval_s": 600,
+  "language": "tr"
+ },
+ {
+  "kind": "rss",
+  "name": "An ninh thế giới",
+  "locator": "https://cand.vn/rss/an-ninh-the-gioi-1383.rss",
+  "publisher": "cand.vn",
+  "poll_interval_s": 600,
+  "language": "vi"
+ },
+ {
+  "kind": "rss",
+  "name": "Công an Nhân dân - Hệ sinh thái truyền thông đa nền tảng",
+  "locator": "https://cand.vn/rss/home.rss",
+  "publisher": "cand.vn",
+  "poll_interval_s": 600,
+  "language": "vi"
+ },
+ {
+  "kind": "rss",
+  "name": "BAO DIEN TU VTV",
+  "locator": "https://vtv.vn/rss/home.rss",
+  "publisher": "vtv.vn",
+  "poll_interval_s": 600,
+  "language": "vi"
+ },
+ {
+  "kind": "rss",
+  "name": "Báo điện tử Tiền Phong",
+  "locator": "https://tienphong.vn/rss/home.rss",
+  "publisher": "tienphong.vn",
+  "poll_interval_s": 600,
+  "language": "vi"
+ },
+ {
+  "kind": "rss",
+  "name": "Trang chủ - RSS Feed",
+  "locator": "https://baochinhphu.vn/home.rss",
+  "publisher": "baochinhphu.vn",
+  "poll_interval_s": 600,
+  "language": "vi"
+ }
+]

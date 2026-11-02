@@ -345,3 +345,17 @@ def test_enriched_teaser_is_regrouped_with_story_it_matches(factory, env, site) 
     assert {(first, "teaser"), (second, "teaser")} in groups.values()
     assert {(first, "long")} in groups.values()
     assert len(groups) == 2
+
+
+def test_fulltext_is_fetched_only_for_the_newest_items_of_a_poll(factory, env, site) -> None:
+    client, robots, store = env
+    site.feed = feed_xml("t1", "t2", "t3")  # three teasers, newest first
+    sid = make_source(factory, config={"fulltext_limit": 2})
+
+    poll_source(factory, client, robots, store, sid, NOW)
+
+    fetched = [u for u in site.requested if "/a/" in u]
+    assert [u.rsplit("/", 1)[1] for u in fetched] == ["t1", "t2"]
+    stored = items(factory)
+    assert stored["t1"].page_snapshot_ref and stored["t2"].page_snapshot_ref
+    assert stored["t3"].page_snapshot_ref is None and stored["t3"].content == "Short teaser."

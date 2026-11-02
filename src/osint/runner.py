@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from osint.browser import BrowserFetcher, BrowserUnavailable
 from osint.collectors.rss import ParsedItem, fetch_feed, parse_feed
 from osint.collectors.web import collect_web
-from osint.config import robots_token, user_agent
+from osint.config import respect_robots, robots_token, user_agent
 from osint.dedup import group_item, item_simhash
 from osint.embeddings import Embedder
 from osint.fulltext import RobotsCache, fetch_article
@@ -31,6 +31,9 @@ MIN_INTERVAL_S = 60
 MAX_INTERVAL_S = 1800
 # Feed bodies shorter than this are treated as teasers and the article page is fetched.
 TEASER_CHARS = 400
+# Full text is fetched for at most this many of a poll's newest items (feeds list newest first), so
+# a first poll of a large feed does not turn into hundreds of page requests to one site.
+FULLTEXT_PER_POLL = 15
 
 
 @dataclass
@@ -163,7 +166,14 @@ def poll_source(
         record_poll(session, source_id, now=now, success=not failed, newest_item_at=newest)
 
     if new_items and kind == "rss" and config.get("fulltext", True):
-        enrich_fulltext(factory, client, robots, store, new_items)
+        policy = robots.with_respect(config.get("respect_robots", robots.respect))
+        enrich_fulltext(
+            factory,
+            client,
+            policy,
+            store,
+            new_items[: config.get("fulltext_limit", FULLTEXT_PER_POLL)],
+        )
 
     status = "error" if failed else result.kind
     return PollOutcome(source_id, status, len(new_items), error)
@@ -224,7 +234,7 @@ def run_once(
         ids = [s.id for s in due_sources(session, now, limit, kinds=SUPPORTED_KINDS)]
     if not ids:
         return []
-    robots = RobotsCache(robots_token())
+    robots = RobotsCache(robots_token(), respect=respect_robots())
 
     def work(source_id: int) -> PollOutcome:
         try:
