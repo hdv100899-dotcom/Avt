@@ -74,7 +74,7 @@ def main() -> None:
 
     rows = conn.execute(
         f"""SELECT g.id, o.title, o.url, s.name, coalesce(o.language, s.language), {EFFECTIVE}, o.content,
-                  t.items, t.outlets, t.rel, s.locator
+                  t.items, t.outlets, t.rel, s.locator, o.title_vi
             FROM event_group g
             JOIN evidence eo ON eo.event_group_id = g.id AND eo.is_origin
             JOIN raw_item o ON o.id = eo.raw_item_id JOIN source s ON s.id = o.source_id
@@ -86,13 +86,14 @@ def main() -> None:
             ORDER BY 6 DESC, g.id DESC"""
     ).fetchall()
     groups = []
-    for gid, title, url, source, lang, eff, content, items, outlets, rel, locator in rows:
+    for gid, title, url, source, lang, eff, content, items, outlets, rel, locator, title_vi in rows:
         found: set[str] = set()
         for m_title, m_content, _ in members[gid]:
             found.update(tag(m_title, m_content))
         regions = [r for r in DISPLAY_ORDER if r in found] or tag_report(None, None, host(locator))
         groups.append({
-            "id": gid, "title": clean(title) or "(không có tiêu đề)", "url": url, "source": source,
+            "id": gid, "title": clean(title) or "(không có tiêu đề)", "title_vi": clean(title_vi) or None,
+            "url": url, "source": source,
             "language": lang, "day": eff.date().isoformat(), "time": eff.strftime("%Y-%m-%d %H:%M"),
             "lede": clean(content, 150), "items": int(items), "outlets": int(outlets),
             "relevance": None if rel is None else round(float(rel), 2), "regions": " ".join(regions),
@@ -100,10 +101,10 @@ def main() -> None:
     dump(args.out / "groups.json", groups)
 
     evidence, first = [], {}
-    for eid, (gid, src, title, url, eff, origin, reason, score) in enumerate(
+    for eid, (gid, src, title, url, eff, origin, reason, score, title_vi) in enumerate(
         conn.execute(
             f"""SELECT e.event_group_id, s.name, coalesce(r.title, ''), r.url, {EFFECTIVE}, e.is_origin,
-                      e.match_reason, e.match_score
+                      e.match_reason, e.match_score, r.title_vi
                 FROM evidence e JOIN raw_item r ON r.id = e.raw_item_id JOIN source s ON s.id = r.source_id
                 WHERE e.event_group_id IN (SELECT event_group_id FROM evidence GROUP BY 1 HAVING count(*) > 1)
                 ORDER BY e.event_group_id, {EFFECTIVE}, r.id"""
@@ -113,6 +114,7 @@ def main() -> None:
         first.setdefault(gid, eff)
         evidence.append({
             "eid": eid, "group_id": gid, "source": src, "title": clean(title) or "(không có tiêu đề)",
+            "title_vi": clean(title_vi) or None,
             "url": url, "time": eff.strftime("%Y-%m-%d %H:%M"),
             "behind_min": int((eff - first[gid]).total_seconds() // 60),
             "origin": "gốc" if origin else "đăng lại",

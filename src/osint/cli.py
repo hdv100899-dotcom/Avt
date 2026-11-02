@@ -18,6 +18,7 @@ from osint.runner import make_client, run_forever, run_once
 from osint.semantic import cluster_step, reconsider_singletons
 from osint.snapshots import SnapshotStore
 from osint.sources import SourceError, add_source, list_sources, set_status
+from osint.translate import NllbTranslator, translate_pending
 
 app = typer.Typer(no_args_is_help=True, help="OSINT dashboard command line.")
 source_app = typer.Typer(no_args_is_help=True, help="Manage the source registry.")
@@ -295,3 +296,24 @@ def source_discover(
         typer.echo(f"wrote {out}")
     if report:
         report.write_text(json.dumps([r.__dict__ for r in results], default=str, indent=1) + "\n")
+
+
+@app.command("translate")
+def translate(
+    limit: int = typer.Option(0, help="Stop after this many headlines (0 = all)"),
+    batch: int = typer.Option(64, help="Headlines per batch"),
+    threads: int = typer.Option(4, help="CPU threads for the model"),
+) -> None:
+    """Machine-translate untranslated headlines into Vietnamese, most military-relevant first."""
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+    factory = make_session_factory(make_engine())
+    translator = NllbTranslator(threads=threads)
+    done = 0
+    while not limit or done < limit:
+        with factory() as session, session.begin():
+            n = translate_pending(session, translator, min(batch, limit - done) if limit else batch)
+        if n == 0:
+            break
+        done += n
+        typer.echo(f"translated {done} headlines")
+    typer.echo(f"done: {done} headlines handled")

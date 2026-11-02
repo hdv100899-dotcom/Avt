@@ -114,6 +114,11 @@ class RawItem(Base):
     # Margin of the military-relevance classifier (>= 0 means relevant); NULL until scored.
     relevance: Mapped[float | None] = mapped_column(Float)
     relevance_version: Mapped[str | None] = mapped_column(Text)
+    # Machine translation of the headline into Vietnamese (see osint.translate). NULL when the
+    # title is already Vietnamese, the language is unsupported, or the output was rejected;
+    # title_vi_model records that the item was handled either way.
+    title_vi: Mapped[str | None] = mapped_column(Text)
+    title_vi_model: Mapped[str | None] = mapped_column(Text)
     # Pointers into the immutable evidence store: the feed entry as received, and the
     # article page when it was fetched for full text.
     snapshot_ref: Mapped[str | None] = mapped_column(Text)

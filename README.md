@@ -45,6 +45,7 @@ osint cluster --reconsider                 # xét lại các tin lẻ sau khi đ
 
 osint source discover config/candidates.txt --out moi.json   # thăm dò thêm nguồn ứng viên
 osint relevance --rescore                  # chấm lại điểm liên quan sau khi huấn luyện lại
+osint translate                            # dịch tiêu đề sang tiếng Việt (dịch máy, tải mô hình ~620 MB lần đầu)
 osint source add rss https://example.org/feed.xml --name "Example" --language en
 
 # Trang không có RSS (cần: pip install -e ".[crawl]")
