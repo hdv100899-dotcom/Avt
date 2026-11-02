@@ -52,6 +52,17 @@ python3 scripts/build_offline.py      # → dist/bien-dong-offline.html (~15 MB)
 - iPad: chép file vào app Tệp rồi mở bằng ứng dụng có trình duyệt chạy được JavaScript (VD *Documents by Readdle*);
   máy tính: bấm đúp để mở bằng trình duyệt.
 
+## Triển khai riêng tư: Cloudflare Pages + Cloudflare Access
+Chỉ những email được phép mới mở được trang (đăng nhập bằng mã gửi qua email). Miễn phí.
+1. **Cloudflare Pages**: dash.cloudflare.com → *Workers & Pages → Create → Pages → Connect to Git* → chọn repo `Avt`.
+   Production branch `main`, Framework preset *None*, Build command để trống, Build output directory `/`.
+2. **Cloudflare Access**: *Zero Trust → Access → Applications → Add an application → Self-hosted*:
+   tạo cho cả `ten-du-an.pages.dev` và `*.ten-du-an.pages.dev`; policy *Allow* → *Emails* = email của bạn;
+   phương thức đăng nhập *One-time PIN*.
+3. **GitHub**: tắt GitHub Pages (*Settings → Pages*), chuyển repo sang *Private* (*Settings → General → Danger Zone*).
+- `_headers` và `robots.txt` chặn công cụ tìm kiếm, tắt lưu tạm file dữ liệu để thấy tin mới ngay.
+- Mỗi lần GitHub Actions cập nhật tin (mỗi 2 giờ) Cloudflare tự triển khai lại (~360 lần/tháng, trong hạn mức miễn phí 500).
+
 ## Mở trên iPad
 Giao diện đã tối ưu cho iPad (dọc: nút ☰ mở danh sách, bảng thông tin trượt từ dưới; ngang: đầy đủ).
 Cần đưa trang lên một địa chỉ web (repo đang private nên GitHub Pages bản miễn phí không dùng được):

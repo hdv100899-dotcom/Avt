@@ -1,0 +1,12 @@
+# Cấu hình HTTP header cho Cloudflare Pages
+/*
+  X-Robots-Tag: noindex, nofollow, noarchive
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: no-referrer
+
+# Dữ liệu cập nhật thường xuyên: không lưu tạm để luôn thấy tin mới
+/data/*
+  Cache-Control: no-cache
+/js/*
+  Cache-Control: no-cache
