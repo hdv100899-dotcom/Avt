@@ -56,6 +56,9 @@ class Source(Base):
     # Feed URL, channel handle, DID, ... depending on kind.
     locator: Mapped[str] = mapped_column(Text)
     name: Mapped[str] = mapped_column(Text)
+    # Outlet behind this feed. Feeds sharing a publisher are one source when counting independent
+    # reports; NULL means the source is its own publisher.
+    publisher: Mapped[str | None] = mapped_column(Text)
     tier: Mapped[str] = mapped_column(Text, default="B")
     language: Mapped[str | None] = mapped_column(Text)
     status: Mapped[str] = mapped_column(Text, default="active")

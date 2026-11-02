@@ -121,3 +121,11 @@ def test_record_poll_success_and_failure(session: Session) -> None:
 def test_record_poll_unknown_source(session: Session) -> None:
     with pytest.raises(SourceError, match="no source"):
         record_poll(session, 999_999, now=NOW, success=True)
+
+
+def test_publisher_is_stored(session: Session) -> None:
+    src = add_source(
+        session, kind="rss", locator="https://scmp.example/f", name="SCMP", publisher="scmp"
+    )
+    assert src.publisher == "scmp"
+    assert _rss(session, 9).publisher is None

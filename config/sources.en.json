@@ -8,5 +8,9 @@
   {"kind": "rss", "name": "War on the Rocks", "locator": "https://warontherocks.com/feed/", "language": "en"},
   {"kind": "rss", "name": "Bellingcat", "locator": "https://www.bellingcat.com/feed/", "language": "en"},
   {"kind": "rss", "name": "Oryx (Spioenkop)", "locator": "https://www.oryxspioenkop.com/feeds/posts/default", "language": "en"},
-  {"kind": "rss", "name": "US Department of Defense", "locator": "https://www.defense.gov/DesktopModules/ArticleCS/RSS.ashx?ContentType=1&Site=945&max=10", "language": "en"}
+  {"kind": "rss", "name": "US Department of Defense", "locator": "https://www.defense.gov/DesktopModules/ArticleCS/RSS.ashx?ContentType=1&Site=945&max=10", "language": "en"},
+  {"kind": "rss", "name": "SCMP: Diplomacy", "locator": "https://www.scmp.com/rss/318199/feed", "language": "en", "publisher": "scmp.com", "poll_interval_s": 600},
+  {"kind": "rss", "name": "SCMP: China", "locator": "https://www.scmp.com/rss/4/feed", "language": "en", "publisher": "scmp.com", "poll_interval_s": 600},
+  {"kind": "rss", "name": "SCMP: Asia", "locator": "https://www.scmp.com/rss/3/feed", "language": "en", "publisher": "scmp.com", "poll_interval_s": 600},
+  {"kind": "rss", "name": "SCMP: This Week in Asia: Geopolitics", "locator": "https://www.scmp.com/rss/323047/feed", "language": "en", "publisher": "scmp.com", "poll_interval_s": 600}
 ]

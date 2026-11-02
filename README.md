@@ -24,7 +24,7 @@ pip install -e ".[dev]"
 cp .env.example .env && export $(grep -v '^#' .env | xargs)
 alembic upgrade head
 
-osint source seed config/sources.en.json   # 10 nguồn quốc phòng tiếng Anh đã kiểm tra
+osint source seed config/sources.en.json   # 14 nguồn tiếng Anh đã kiểm tra (gồm 4 feed SCMP)
 osint collect once                         # thu thập một lượt
 osint collect run                          # chạy liên tục (kèm nhúng và gom nhóm; --no-embed để tắt)
 osint web                                  # dashboard tại http://127.0.0.1:8000
@@ -44,6 +44,13 @@ osint source list
 Dữ liệu snapshot nằm ở `data/` (đổi bằng `OSINT_DATA_DIR`). API: `/api/groups`, `/api/groups/{id}`, `/api/items`, `/api/sources`.
 
 ### Giới hạn đã biết
+
+- **SCMP**: feed chỉ có phần tóm tắt khoảng 500 ký tự mỗi bài (không phải toàn văn); robots.txt yêu cầu
+  `Crawl-delay: 10` nên tải toàn văn sẽ rất chậm, và nhiều bài có tường trả phí. Chỉ 14–26% bài trong các
+  feed SCMP nhắc đến từ khóa quân sự (đo thô bằng từ khóa), còn lại là tin tổng hợp: cần bộ lọc liên quan.
+  Các feed của cùng một tờ báo khai báo chung `publisher` nên không bị tính là nhiều nguồn độc lập.
+- **Janes** chưa thu thập: robots.txt của janes.com cấm mọi crawler thường (`User-agent: *` / `Disallow: /`),
+  chỉ cho phép các công cụ tìm kiếm nêu tên, trang tin không có RSS, và nội dung chính là sản phẩm trả phí.
 
 - Một số trang (ví dụ Army/Naval/Airforce Technology) chặn client Python bằng 403 dù feed công khai.
   Dự án không giả dạng trình duyệt để né chặn, nên các nguồn này không có trong bộ seed.

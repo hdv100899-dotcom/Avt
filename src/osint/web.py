@@ -5,7 +5,7 @@ from datetime import UTC, datetime
 
 from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.responses import HTMLResponse
-from sqlalchemy import func, select
+from sqlalchemy import Text, cast, func, select
 from sqlalchemy.orm import Session
 
 from osint.db import make_engine, make_session_factory
@@ -193,9 +193,13 @@ def create_app() -> FastAPI:
             select(
                 Evidence.event_group_id.label("gid"),
                 func.count().label("n_items"),
-                func.count(func.distinct(RawItem.source_id)).label("n_sources"),
+                # Feeds of one publisher are one outlet, so they never inflate the count.
+                func.count(
+                    func.distinct(func.coalesce(Source.publisher, cast(RawItem.source_id, Text)))
+                ).label("n_sources"),
             )
             .join(RawItem, RawItem.id == Evidence.raw_item_id)
+            .join(Source, Source.id == RawItem.source_id)
             .group_by(Evidence.event_group_id)
             .subquery()
         )

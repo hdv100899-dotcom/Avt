@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from osint.browser import BrowserFetcher, BrowserUnavailable
 from osint.collectors.rss import ParsedItem, fetch_feed, parse_feed
 from osint.collectors.web import collect_web
-from osint.config import user_agent
+from osint.config import robots_token, user_agent
 from osint.dedup import group_item, item_simhash
 from osint.embeddings import Embedder
 from osint.fulltext import RobotsCache, fetch_article
@@ -224,7 +224,7 @@ def run_once(
         ids = [s.id for s in due_sources(session, now, limit, kinds=SUPPORTED_KINDS)]
     if not ids:
         return []
-    robots = RobotsCache(user_agent())
+    robots = RobotsCache(robots_token())
 
     def work(source_id: int) -> PollOutcome:
         try:

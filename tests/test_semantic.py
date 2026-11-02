@@ -240,3 +240,26 @@ def test_reconsider_joins_lone_items_that_now_qualify(session: Session) -> None:
     assert group_of[a_item.id] == group_of[b_item.id]
     assert group_of[other.id] == g3 and g3 != group_of[a_item.id]
     assert reconsider_singletons(session) == 0  # nothing left to join
+
+
+def test_feeds_of_one_publisher_are_not_independent_reports(session: Session) -> None:
+    from osint.sources import add_source
+
+    feed_a = add_source(
+        session, kind="rss", locator="https://scmp.example/a", name="SCMP A", publisher="scmp"
+    )
+    feed_b = add_source(
+        session, kind="rss", locator="https://scmp.example/b", name="SCMP B", publisher="scmp"
+    )
+    other = add_source(session, kind="rss", locator="https://other.example/f", name="Other")
+    _, g1 = embedded(session, feed_a, "a", unit(1, 0), 1)
+    sibling, g_sibling = embedded(session, feed_b, "b", unit(1, 0), 2)
+
+    assert semantic_group_item(session, sibling.id) is None  # same outlet, different feed
+    assert g_sibling != g1
+
+    outsider, _ = embedded(session, other, "c", unit(1, 0), 3)
+    assert semantic_group_item(session, outsider.id) in {
+        g1,
+        g_sibling,
+    }  # a real second outlet joins

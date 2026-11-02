@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from osint.dedup import _group_size, _sort_key, refresh_group
 from osint.embeddings import Embedder, embedding_text
-from osint.models import EventGroup, Evidence, RawItem
+from osint.models import EventGroup, Evidence, RawItem, Source
 
 # The closest member of the group must be at least this similar ...
 MIN_BEST = 0.75
@@ -53,7 +53,7 @@ def semantic_group_item(session: Session, item_id: int) -> int | None:
 
     Returns the group joined, or None when the item stays where it is. Items already sharing a
     group are left alone, and an item never joins a group that already holds a report from its
-    own source (a source's loose series, such as weekly trackers, are not one event).
+    own outlet (a source's loose series, such as weekly trackers, are not one event).
     """
     item = session.get(RawItem, item_id)
     if item is None or item.embedding is None:
@@ -81,19 +81,25 @@ def semantic_group_item(session: Session, item_id: int) -> int | None:
         .limit(NEIGHBOURS)
     ).all()
 
+    publisher = session.scalar(select(Source.publisher).where(Source.id == item.source_id))
     best_by_group: dict[int, float] = {}
     for group_id, sim in neighbours:
         best_by_group.setdefault(group_id, float(sim))
 
     chosen: tuple[float, float, int] | None = None  # (mean, best, group)
     for group_id, best in best_by_group.items():
-        same_source = session.scalar(
+        same_outlet = session.scalar(
             select(func.count())
             .select_from(Evidence)
             .join(RawItem, RawItem.id == Evidence.raw_item_id)
-            .where(Evidence.event_group_id == group_id, RawItem.source_id == item.source_id)
+            .join(Source, Source.id == RawItem.source_id)
+            .where(
+                Evidence.event_group_id == group_id,
+                (RawItem.source_id == item.source_id)
+                | ((Source.publisher.is_not(None)) & (Source.publisher == publisher)),
+            )
         )
-        if same_source:
+        if same_outlet:
             continue
         mean = session.scalar(
             select(func.avg(1 - distance))

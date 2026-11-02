@@ -172,3 +172,45 @@ def test_group_filter_and_unknown_group(grouped_client) -> None:
     hits = grouped_client.get("/api/groups", params={"q": "another"}).json()
     assert [g["title"] for g in hits] == ["Another story"]
     assert grouped_client.get("/api/groups/999999").status_code == 404
+
+
+def test_feeds_of_one_publisher_count_as_one_source(factory, temp_database, monkeypatch) -> None:
+    from datetime import UTC, datetime
+
+    from osint.dedup import group_pending
+
+    monkeypatch.setenv("OSINT_DATABASE_URL", temp_database)
+    body = " ".join(f"w{i % 90}" for i in range(200))
+    with factory() as session, session.begin():
+        feeds = [
+            add_source(
+                session,
+                kind="rss",
+                locator=f"https://scmp.example/{n}",
+                name=f"SCMP {n}",
+                publisher="scmp",
+            )
+            for n in (1, 2)
+        ]
+        rival = add_source(session, kind="rss", locator="https://rival.example/f", name="Rival")
+        for source in (*feeds, rival):
+            session.add(
+                RawItem(
+                    source_id=source.id,
+                    external_id=f"x{source.id}",
+                    title="Same story",
+                    content=body,
+                    url=f"https://{source.name.split()[0].lower()}.example/{source.id}",
+                    published_at=datetime.now(UTC),
+                    analysis_status="pending",
+                    content_hash=__import__("osint.urls", fromlist=["x"]).content_hash(
+                        "Same story", body
+                    ),
+                )
+            )
+        session.flush()
+        group_pending(session)
+    with TestClient(create_app()) as c:
+        (group,) = c.get("/api/groups").json()
+    assert group["items"] == 3  # all three reports are kept
+    assert group["sources"] == 2  # but two feeds of one outlet are a single source

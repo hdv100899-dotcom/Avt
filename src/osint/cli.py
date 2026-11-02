@@ -41,6 +41,7 @@ def source_add(
     tier: str = typer.Option("B", help=f"One of: {', '.join(SOURCE_TIERS)}"),
     language: str | None = typer.Option(None, help="ISO 639-1 code, e.g. en"),
     interval: int = typer.Option(300, help="Poll interval in seconds"),
+    publisher: str | None = typer.Option(None, help="Outlet name shared by several feeds"),
     config: str = typer.Option(
         "{}", help='Per-source settings as JSON, e.g. \'{"link_selector": "a.story"}\''
     ),
@@ -63,6 +64,7 @@ def source_add(
                 language=language,
                 poll_interval_s=interval,
                 config=settings,
+                publisher=publisher,
             )
         except SourceError as exc:
             typer.echo(f"error: {exc}", err=True)

@@ -3,6 +3,8 @@ from pathlib import Path
 
 DEFAULT_DATABASE_URL = "postgresql+psycopg://osint:osint@localhost:5432/osint"
 DEFAULT_USER_AGENT = "Mozilla/5.0 (compatible; AvtOSINT/0.1)"
+# The product token sites address in robots.txt (not the full User-Agent string).
+DEFAULT_ROBOTS_TOKEN = "AvtOSINT"
 
 
 def database_url() -> str:
@@ -20,3 +22,7 @@ def user_agent() -> str:
 def browser_cdp_url() -> str | None:
     """Attach to an already-running Chromium (CDP) instead of launching one."""
     return os.environ.get("OSINT_BROWSER_CDP_URL") or None
+
+
+def robots_token() -> str:
+    return os.environ.get("OSINT_ROBOTS_TOKEN", DEFAULT_ROBOTS_TOKEN)

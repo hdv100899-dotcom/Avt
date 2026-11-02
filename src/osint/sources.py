@@ -39,6 +39,7 @@ def add_source(
     trust_score: float = 0.5,
     discovered_from_id: int | None = None,
     config: dict | None = None,
+    publisher: str | None = None,
 ) -> Source:
     if kind not in SOURCE_KINDS:
         raise SourceError(f"unknown kind {kind!r}; expected one of {SOURCE_KINDS}")
@@ -70,6 +71,7 @@ def add_source(
         trust_score=trust_score,
         discovered_from_id=discovered_from_id,
         config=config or {},
+        publisher=publisher,
     )
     session.add(source)
     session.flush()
