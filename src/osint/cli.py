@@ -9,9 +9,10 @@ from sqlalchemy import func, select
 from osint.browser import BrowserFetcher
 from osint.config import data_dir
 from osint.db import make_engine, make_session_factory
-from osint.dedup import backfill_simhash, group_pending
+from osint.dedup import backfill_simhash, group_pending, reconsider_exact
 from osint.embeddings import FastEmbedder
 from osint.models import SOURCE_KINDS, SOURCE_STATUSES, SOURCE_TIERS, Evidence, RawItem, Source
+from osint.relevance import score_pending
 from osint.runner import make_client, run_forever, run_once
 from osint.semantic import cluster_step, reconsider_singletons
 from osint.snapshots import SnapshotStore
@@ -191,7 +192,10 @@ def stats() -> None:
 
 
 @app.command("dedup")
-def dedup(batch: int = typer.Option(500, help="Items grouped per transaction")) -> None:
+def dedup(
+    batch: int = typer.Option(500, help="Items grouped per transaction"),
+    reconsider: bool = typer.Option(False, help="Also re-check items that are alone in a group"),
+) -> None:
     """Catch up: compute missing SimHashes and group every item that has no group yet."""
     factory = make_session_factory(make_engine())
     with factory() as session, session.begin():
@@ -203,6 +207,9 @@ def dedup(batch: int = typer.Option(500, help="Items grouped per transaction")) 
         grouped += done
         if done == 0:
             break
+    if reconsider:
+        with factory() as session, session.begin():
+            typer.echo(f"reconsidered lone items: {reconsider_exact(session)} joined another group")
     with factory() as session:
         per_group = (
             select(func.count().label("n")).select_from(Evidence).group_by(Evidence.event_group_id)
@@ -243,3 +250,13 @@ def cluster(
             again = reconsider_singletons(session)
         typer.echo(f"reconsidered lone items: {again} joined an existing event")
     typer.echo(f"done: {embedded} embedded, {joined} joined an existing event")
+
+
+@app.command("relevance")
+def relevance(
+    rescore: bool = typer.Option(False, help="Score every embedded item again (after retraining)"),
+) -> None:
+    """Score embedded items for military relevance with the local classifier."""
+    with _session() as session, session.begin():
+        done = score_pending(session, rescore=rescore)
+    typer.echo(f"scored {done} items")

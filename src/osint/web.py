@@ -32,7 +32,7 @@ li { padding:10px 0; border-top:1px solid var(--line); }
 a { color:var(--link); text-decoration:none; }
 a:hover { text-decoration:underline; }
 .row { display:flex; gap:8px; flex-wrap:wrap; color:var(--muted); font-size:13px; }
-input { width:100%; box-sizing:border-box; padding:8px; margin:8px 0; background:var(--bg);
+select, input { width:100%; box-sizing:border-box; padding:8px; margin:8px 0; background:var(--bg);
         color:var(--fg); border:1px solid var(--line); border-radius:6px; font:inherit; }
 .bad { color:var(--warn); }
 button { background:none; border:1px solid var(--line); color:var(--link); border-radius:10px;
@@ -45,12 +45,18 @@ button { background:none; border:1px solid var(--line); color:var(--link); borde
 <main>
 <h1>OSINT Dashboard</h1>
 <div class="meta" id="status">Đang tải…</div>
+<select id="scope">
+  <option value="military">Tin quân sự, quốc phòng</option>
+  <option value="all">Tất cả</option>
+  <option value="other">Không liên quan</option>
+</select>
 <input id="q" type="search" placeholder="Lọc theo tiêu đề">
 <ul id="items"></ul>
 </main>
 <script>
 const items = document.getElementById("items");
 const q = document.getElementById("q");
+const scope = document.getElementById("scope");
 function el(tag, text, cls) {
   const e = document.createElement(tag);
   if (text) e.textContent = text;
@@ -96,7 +102,8 @@ async function toggle(g, li, btn) {
   li.append(ul);
 }
 async function load() {
-  const res = await fetch("/api/groups?limit=100&q=" + encodeURIComponent(q.value));
+  const params = new URLSearchParams({ limit: 100, scope: scope.value, q: q.value });
+  const res = await fetch("/api/groups?" + params);
   const data = await res.json();
   items.replaceChildren();
   for (const g of data) {
@@ -117,6 +124,7 @@ async function load() {
     data.length + " sự kiện mới nhất · cập nhật " + new Date().toLocaleTimeString();
 }
 q.addEventListener("input", load);
+scope.addEventListener("change", load);
 load();
 setInterval(load, 30000);
 </script>
@@ -186,6 +194,7 @@ def create_app() -> FastAPI:
         limit: int = Query(50, ge=1, le=500),
         offset: int = Query(0, ge=0),
         q: str = "",
+        scope: str = Query("military", pattern="^(military|all|other)$"),
         session: Session = Depends(get_session),
     ) -> list[dict]:
         """Event groups, newest origin first. One row per story, however often it was reposted."""
@@ -197,6 +206,8 @@ def create_app() -> FastAPI:
                 func.count(
                     func.distinct(func.coalesce(Source.publisher, cast(RawItem.source_id, Text)))
                 ).label("n_sources"),
+                func.max(RawItem.relevance).label("rel"),
+                func.bool_or(RawItem.relevance.is_(None)).label("unscored"),
             )
             .join(RawItem, RawItem.id == Evidence.raw_item_id)
             .join(Source, Source.id == RawItem.source_id)
@@ -204,7 +215,9 @@ def create_app() -> FastAPI:
             .subquery()
         )
         stmt = (
-            select(EventGroup, RawItem, Source.name, totals.c.n_items, totals.c.n_sources)
+            select(
+                EventGroup, RawItem, Source.name, totals.c.n_items, totals.c.n_sources, totals.c.rel
+            )
             .join(Evidence, (Evidence.event_group_id == EventGroup.id) & Evidence.is_origin)
             .join(RawItem, RawItem.id == Evidence.raw_item_id)
             .join(Source, Source.id == RawItem.source_id)
@@ -213,6 +226,12 @@ def create_app() -> FastAPI:
             .limit(limit)
             .offset(offset)
         )
+        # A group counts as military if any report in it scored relevant. Groups with an unscored
+        # report are shown under "military" so new items are never hidden before they are scored.
+        if scope == "military":
+            stmt = stmt.where((totals.c.rel >= 0) | totals.c.unscored)
+        elif scope == "other":
+            stmt = stmt.where((totals.c.rel < 0) & ~totals.c.unscored)
         if q:
             escaped = q.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
             stmt = stmt.where(EventGroup.title.ilike(f"%{escaped}%", escape="\\"))
@@ -227,8 +246,9 @@ def create_app() -> FastAPI:
                 "first_seen_at": group.first_seen_at,
                 "items": items,
                 "sources": sources,
+                "relevance": rel,
             }
-            for group, origin, source_name, items, sources in session.execute(stmt)
+            for group, origin, source_name, items, sources, rel in session.execute(stmt)
         ]
 
     @app.get("/api/groups/{group_id}")

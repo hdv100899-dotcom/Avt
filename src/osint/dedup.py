@@ -7,7 +7,7 @@ the earliest publication, so reposts are never counted as independent confirmati
 
 from datetime import timedelta
 
-from sqlalchemy import cast, delete, func, select, update
+from sqlalchemy import cast, delete, func, select, text, update
 from sqlalchemy.dialects.postgresql import BIT
 from sqlalchemy.orm import Session
 
@@ -19,6 +19,17 @@ WINDOW = timedelta(days=7)
 # Shorter bodies (headline-only items) match by URL only; boilerplate would collide.
 MIN_CONTENT_CHARS = 80
 SIMHASH_TEXT_CHARS = 3000
+
+
+# Grouping reads other items' evidence and then writes; two transactions doing that at once cannot
+# see each other's uncommitted rows and would each start a group for the same story (this happened
+# when several feeds of one outlet were polled in parallel). One advisory lock, held to commit,
+# makes them take turns. Polling and extraction happen outside it, so it is held only briefly.
+GROUPING_LOCK_KEY = 7_302_619
+
+
+def lock_grouping(session: Session) -> None:
+    session.execute(text("SELECT pg_advisory_xact_lock(:key)"), {"key": GROUPING_LOCK_KEY})
 
 
 def item_simhash(title: str | None, content: str | None) -> int | None:
@@ -113,6 +124,7 @@ def group_item(session: Session, item_id: int) -> int:
     An item that already shares a group with others stays put. An item alone in its own group
     is re-examined, so a headline-only item can join a group once its full text arrives.
     """
+    lock_grouping(session)
     item = session.get(RawItem, item_id)
     existing = session.execute(
         select(Evidence.id, Evidence.event_group_id).where(Evidence.raw_item_id == item_id)
@@ -186,3 +198,29 @@ def backfill_simhash(session: Session) -> int:
             session.execute(update(RawItem).where(RawItem.id == item_id).values(simhash=value))
             updated += 1
     return updated
+
+
+def reconsider_exact(session: Session) -> int:
+    """Re-check every item alone in its group against URL, content hash and SimHash matches.
+
+    Repairs duplicates left by the grouping race fixed above. Returns how many items joined
+    another group.
+    """
+    lone_groups = (
+        select(Evidence.event_group_id).group_by(Evidence.event_group_id).having(func.count() == 1)
+    )
+    lone_items = list(
+        session.scalars(
+            select(Evidence.raw_item_id)
+            .where(Evidence.event_group_id.in_(lone_groups))
+            .order_by(Evidence.raw_item_id)
+        )
+    )
+    joined = 0
+    for item_id in lone_items:
+        before = session.scalar(
+            select(Evidence.event_group_id).where(Evidence.raw_item_id == item_id)
+        )
+        if group_item(session, item_id) != before:
+            joined += 1
+    return joined

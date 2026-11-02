@@ -111,6 +111,9 @@ class RawItem(Base):
     # share no wording. embedding_model records which model produced it.
     embedding: Mapped[list[float] | None] = mapped_column(Vector(EMBEDDING_DIM))
     embedding_model: Mapped[str | None] = mapped_column(Text)
+    # Margin of the military-relevance classifier (>= 0 means relevant); NULL until scored.
+    relevance: Mapped[float | None] = mapped_column(Float)
+    relevance_version: Mapped[str | None] = mapped_column(Text)
     # Pointers into the immutable evidence store: the feed entry as received, and the
     # article page when it was fetched for full text.
     snapshot_ref: Mapped[str | None] = mapped_column(Text)

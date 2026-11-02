@@ -11,9 +11,10 @@ from datetime import timedelta
 from sqlalchemy import delete, func, select, update
 from sqlalchemy.orm import Session, sessionmaker
 
-from osint.dedup import _group_size, _sort_key, refresh_group
+from osint.dedup import _group_size, _sort_key, lock_grouping, refresh_group
 from osint.embeddings import Embedder, embedding_text
 from osint.models import EventGroup, Evidence, RawItem, Source
+from osint.relevance import score_items
 
 # The closest member of the group must be at least this similar ...
 MIN_BEST = 0.75
@@ -55,6 +56,7 @@ def semantic_group_item(session: Session, item_id: int) -> int | None:
     group are left alone, and an item never joins a group that already holds a report from its
     own outlet (a source's loose series, such as weekly trackers, are not one event).
     """
+    lock_grouping(session)
     item = session.get(RawItem, item_id)
     if item is None or item.embedding is None:
         return None
@@ -144,6 +146,7 @@ def cluster_step(
     """Embed one batch of new items and group them. Returns (embedded, joined_a_group)."""
     with factory() as session, session.begin():
         ids = embed_pending(session, embedder, batch)
+        score_items(session, ids)
         joined = sum(semantic_group_item(session, i) is not None for i in ids)
     return len(ids), joined
 
