@@ -19,6 +19,8 @@ Thiết kế và lộ trình: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
   (tự phân loại: dùng được / bị chặn / không phải feed / đã chết / cũ, và tự tìm feed trong trang chủ).
 - robots.txt **không** chặn thu thập theo mặc định (`OSINT_RESPECT_ROBOTS=1` để bật, hoặc `respect_robots`
   cho từng nguồn). Vẫn giữ khoảng nghỉ 1 giây giữa các yêu cầu tới cùng một trang.
+- **Gắn địa bàn** (20 địa bàn, đa ngôn ngữ, không LLM) và `scripts/export_dashboard_snapshot.py` xuất ảnh chụp
+  dữ liệu cho giao diện (lọc theo khung giờ gần nhất và địa bàn).
 - Chưa có: Telegram, trích xuất thực thể, AI phân tích (LLM), bản tin.
 
 ## Chạy thử
