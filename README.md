@@ -12,6 +12,7 @@ Thiết kế và lộ trình: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
   và đánh dấu nguồn gốc; dashboard hiển thị theo nhóm.
 - Giai đoạn 3: embedding cục bộ (MiniLM đa ngữ) và gom nhóm các bản tin cùng sự kiện khác lời, có ghi
   lý do gộp. Ngưỡng mới được kiểm trên mẫu nhỏ (xem docs/ARCHITECTURE.md mục 5).
+- Bộ thu thập `web` (Crawl4AI) cho trang không có RSS hoặc cần JavaScript. Chưa có stealth/proxy.
 - Chưa có: Telegram, trích xuất thực thể, AI phân tích, bản tin.
 
 ## Chạy thử
@@ -33,6 +34,10 @@ osint cluster                              # nhúng tin mới và gom các bản
 osint cluster --reconsider                 # xét lại các tin lẻ sau khi đổi ngưỡng
 
 osint source add rss https://example.org/feed.xml --name "Example" --language en
+
+# Trang không có RSS (cần: pip install -e ".[crawl]")
+osint source add web https://example.org/news/ --name "Example" \
+  --config '{"link_selector": "a.story", "link_pattern": "/news/\\d{4}/", "wait_for": "css:a.story"}'
 osint source list
 ```
 
@@ -49,6 +54,9 @@ Dữ liệu snapshot nằm ở `data/` (đổi bằng `OSINT_DATA_DIR`). API: `/
 migration và kiểm thử đã chạy trên PostgreSQL 16 cài trực tiếp.
 
 ## Kiểm thử
+
+Test trình duyệt thật chỉ chạy khi `OSINT_TEST_BROWSER=1` (đặt thêm `OSINT_BROWSER_CDP_URL` nếu Playwright
+không có sẵn đúng bản Chromium).
 
 Cần một PostgreSQL có extension `vector`. Mặc định kiểm thử kết nối
 `postgresql+psycopg://postgres@localhost:5433/postgres` (đổi bằng `OSINT_TEST_ADMIN_URL`);

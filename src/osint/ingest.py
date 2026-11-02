@@ -41,6 +41,7 @@ def ingest_items(
                 "content_hash": content_hash(it.title, it.content),
                 "simhash": item_simhash(it.title, it.content),
                 "snapshot_ref": store.put(it.raw, "json"),
+                "page_snapshot_ref": store.put(it.page_html, "html") if it.page_html else None,
                 "analysis_status": "pending",
             }
         )

@@ -6,6 +6,7 @@ from pathlib import Path
 import typer
 from sqlalchemy import func, select
 
+from osint.browser import BrowserFetcher
 from osint.config import data_dir
 from osint.db import make_engine, make_session_factory
 from osint.dedup import backfill_simhash, group_pending
@@ -40,7 +41,17 @@ def source_add(
     tier: str = typer.Option("B", help=f"One of: {', '.join(SOURCE_TIERS)}"),
     language: str | None = typer.Option(None, help="ISO 639-1 code, e.g. en"),
     interval: int = typer.Option(300, help="Poll interval in seconds"),
+    config: str = typer.Option(
+        "{}", help='Per-source settings as JSON, e.g. \'{"link_selector": "a.story"}\''
+    ),
 ) -> None:
+    try:
+        settings = json.loads(config)
+        if not isinstance(settings, dict):
+            raise ValueError("must be a JSON object")
+    except ValueError as exc:
+        typer.echo(f"error: --config is not a JSON object: {exc}", err=True)
+        raise typer.Exit(1) from exc
     with _session() as session, session.begin():
         try:
             source = add_source(
@@ -51,6 +62,7 @@ def source_add(
                 tier=tier,
                 language=language,
                 poll_interval_s=interval,
+                config=settings,
             )
         except SourceError as exc:
             typer.echo(f"error: {exc}", err=True)
@@ -101,8 +113,14 @@ def collect_once(workers: int = typer.Option(8, help="Concurrent polls")) -> Non
     """Poll every source that is due, once, and print the outcome."""
     _setup_logging()
     factory = make_session_factory(make_engine())
-    with make_client() as client:
-        outcomes = run_once(factory, client, SnapshotStore(data_dir()), workers=workers)
+    browser = BrowserFetcher()  # starts only when a web source is polled
+    try:
+        with make_client() as client:
+            outcomes = run_once(
+                factory, client, SnapshotStore(data_dir()), workers=workers, browser=browser
+            )
+    finally:
+        browser.close()
     with factory() as session:
         names = dict(session.execute(select(Source.id, Source.name)).all())
     for o in outcomes:
@@ -120,6 +138,7 @@ def collect_run(
     """Run the collector continuously until interrupted."""
     _setup_logging()
     factory = make_session_factory(make_engine())
+    browser = BrowserFetcher()
     with make_client() as client:
         try:
             run_forever(
@@ -129,9 +148,12 @@ def collect_run(
                 workers=workers,
                 tick_s=tick,
                 embedder=FastEmbedder() if embed else None,
+                browser=browser,
             )
         except KeyboardInterrupt:
             typer.echo("stopped")
+        finally:
+            browser.close()
 
 
 @app.command("web")

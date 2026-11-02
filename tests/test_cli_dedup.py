@@ -33,3 +33,30 @@ def test_dedup_command_backfills_simhash_and_groups(factory, temp_database, monk
 
     second = CliRunner().invoke(app, ["dedup"])
     assert "simhash filled: 0; items grouped now: 0" in second.output
+
+
+def test_source_add_accepts_per_source_config(factory, temp_database, monkeypatch) -> None:
+    from osint.models import Source
+
+    monkeypatch.setenv("OSINT_DATABASE_URL", temp_database)
+    ok = CliRunner().invoke(
+        app,
+        [
+            "source",
+            "add",
+            "web",
+            "https://wire.example/news/",
+            "-n",
+            "Wire",
+            "--config",
+            '{"link_selector": "a.story", "max_new": 5}',
+        ],
+    )
+    assert ok.exit_code == 0, ok.output
+    with factory() as session:
+        assert session.query(Source).one().config == {"link_selector": "a.story", "max_new": 5}
+
+    bad = CliRunner().invoke(
+        app, ["source", "add", "web", "https://x.example/", "-n", "X", "--config", "[1]"]
+    )
+    assert bad.exit_code == 1 and "JSON object" in bad.output

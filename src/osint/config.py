@@ -15,3 +15,8 @@ def data_dir() -> Path:
 
 def user_agent() -> str:
     return os.environ.get("OSINT_USER_AGENT", DEFAULT_USER_AGENT)
+
+
+def browser_cdp_url() -> str | None:
+    """Attach to an already-running Chromium (CDP) instead of launching one."""
+    return os.environ.get("OSINT_BROWSER_CDP_URL") or None

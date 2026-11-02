@@ -83,14 +83,16 @@ Nguồn ─► Collector ─► raw_item (lưu ngay, hiển thị ngay)
 |---|---|---|---|
 | A — đẩy/thời gian thực | Telegram MTProto (kênh công khai), Bluesky Jetstream, Mastodon streaming, WebSub | Kênh Telegram quân sự | giây → < 1 phút |
 | B — thăm dò thích ứng | RSS/Atom, sitemap, trang tin có HTML ổn định; conditional GET (ETag/Last-Modified) | Bộ/ngành quốc phòng, báo quốc phòng, think tank | 1–5 phút theo tần suất đăng của từng nguồn |
-| C — thăm dò nặng | Trang cần JS (Playwright), PDF/thông cáo | Thông cáo, báo cáo | 5–30 phút |
+| C — thăm dò nặng | Trang cần JS hoặc không có RSS, render bằng Crawl4AI (đã triển khai, loại nguồn `web`); PDF/thông cáo (chưa) | Thông cáo, báo cáo | 5–30 phút |
 | D — API thương mại/khám phá | GDELT, API tin tức, API X nếu có ngân sách | Phát hiện nguồn mới, phủ rộng | tùy nhà cung cấp |
 
 - Chu kỳ thăm dò **thích ứng**: nguồn đăng dày thì hỏi dày, nguồn thưa thì thưa; có jitter, backoff, tuân thủ robots.txt và giới hạn tốc độ.
 - **Telegram**: khả thi nhất trong ba mạng xã hội trong sơ đồ (kênh công khai qua MTProto, nhận cập nhật đẩy). Thư viện hiện ở chế độ bảo trì nên phải cách ly sau một lớp giao diện, xem mục 7.
 - **X/Twitter**: không có đường vào ổn định, miễn phí và hợp điều khoản. Chỉ khả thi bền vững nếu mua API; còn lại dùng kênh phản chiếu (Telegram/Bluesky/trang tin).
 - **Facebook**: Graph API chỉ cho phép trang mình quản trị; trang/nhóm công khai của bên khác gần như không có API chính thức, scrape trái điều khoản và hay bị khóa. Đề xuất: **không đưa Facebook vào GĐ1**, xem là nguồn "best effort" có thể thêm sau (nhập thủ công/liên kết do người dùng gửi, hoặc nhà cung cấp dữ liệu thương mại nếu chấp nhận chi phí và rủi ro pháp lý).
-- Không dùng tài khoản giả/né cơ chế chống bot. Chỉ nội dung công khai.
+- Chỉ nội dung công khai, không dùng tài khoản giả.
+- **Crawl4AI (loại nguồn `web`)** đã triển khai: render trang chỉ mục bằng trình duyệt không giao diện, lấy liên kết bài theo CSS selector, tải từng bài mới và trích nội dung bằng trafilatura (quy tắc, không dùng LLM nên lặp lại được). Cấu hình theo từng nguồn trong `Source.config`: `link_selector`, `link_pattern`, `wait_for`, `max_new`, `same_domain`, `render_articles`, `min_chars`, `respect_robots` (mặc định bật; đặt `false` để nguồn đó bỏ qua robots.txt). Trang chỉ mục là trang đã biết thì không tải lại bài cũ.
+- **Chưa làm: chế độ stealth và proxy của Crawl4AI** để vào các trang đang chặn client tự động (ví dụ Army/Naval/Airforce Technology, trả 403). Hệ thống an toàn của môi trường phát triển đã từ chối bước thử việc này, và tôi không tìm cách lách. Nếu chủ dự án muốn, đây là quyết định cần chủ động cấp quyền và chịu trách nhiệm (rủi ro điều khoản dịch vụ, IP bị chặn).
 
 ## 5. Chống trùng và liên kết sự kiện
 
@@ -144,7 +146,7 @@ Mô hình dữ liệu: `event_group 1—N evidence 1—1 raw_item`. Hiển thị
 | CSDL | **PostgreSQL 16 + pgvector** | Một CSDL cho dữ liệu, tìm toàn văn, vector, hàng đợi; đủ cho giai đoạn đầu |
 | Hàng đợi | Postgres (`FOR UPDATE SKIP LOCKED`) → Redis Streams/NATS khi cần | Chưa cần Kafka; tránh vận hành thừa |
 | Tìm kiếm | Postgres FTS → Meilisearch/OpenSearch nếu vượt tải | Đa ngữ, có thể thêm sau |
-| Trích xuất nội dung | feedparser, trafilatura (Apache-2.0), Playwright (khi bắt buộc) | Không dùng news-please: repo đã bị archive 15/10/2026 |
+| Trích xuất nội dung | feedparser, trafilatura (Apache-2.0), Crawl4AI (Apache-2.0, tùy chọn `.[crawl]`) cho trang cần JS | Không dùng news-please: repo đã bị archive 15/10/2026 |
 | Trang không có RSS | RSSHub (AGPL-3.0) chạy như dịch vụ riêng | Không nhúng mã vào dự án để tránh ràng buộc AGPL |
 | Telegram | Telethon (MIT) lấy từ Codeberg/PyPI; dự phòng: fork Pyrogram (Kurigram/Pyrofork) | Repo GitHub của Telethon đã archive 21/02/2026 và chuyển sang Codeberg. Bọc sau một lớp giao diện riêng để thay thư viện khi cần |
 | Bluesky | Jetstream chính thức (WebSocket JSON) | Máy chủ mã nguồn mở bằng Go, có endpoint công cộng |

@@ -7,9 +7,12 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 
 import httpx
+from sqlalchemy import select
 from sqlalchemy.orm import Session, sessionmaker
 
-from osint.collectors.rss import fetch_feed, parse_feed
+from osint.browser import BrowserFetcher, BrowserUnavailable
+from osint.collectors.rss import ParsedItem, fetch_feed, parse_feed
+from osint.collectors.web import collect_web
 from osint.config import user_agent
 from osint.dedup import group_item, item_simhash
 from osint.embeddings import Embedder
@@ -23,7 +26,7 @@ from osint.urls import content_hash
 
 log = logging.getLogger(__name__)
 
-SUPPORTED_KINDS = ("rss",)
+SUPPORTED_KINDS = ("rss", "web")
 MIN_INTERVAL_S = 60
 MAX_INTERVAL_S = 1800
 # Feed bodies shorter than this are treated as teasers and the article page is fetched.
@@ -59,19 +62,17 @@ def make_client() -> httpx.Client:
     return httpx.Client(headers={"User-Agent": user_agent()}, timeout=20, follow_redirects=True)
 
 
-def poll_source(
-    factory: sessionmaker[Session],
-    client: httpx.Client,
-    robots: RobotsCache,
-    store: SnapshotStore,
-    source_id: int,
-    now: datetime | None = None,
-) -> PollOutcome:
-    now = now or datetime.now(UTC)
-    with factory() as session:
-        source = session.get(Source, source_id)
-        locator, config, interval = source.locator, dict(source.config), source.poll_interval_s
+@dataclass
+class Collected:
+    """What one collection attempt produced, whatever the source kind."""
 
+    kind: str  # "ok" | "not_modified" | "error"
+    items: list[ParsedItem]
+    error: str | None = None
+    http: dict | None = None  # validators to send next time (feeds only)
+
+
+def _collect_rss(client: httpx.Client, locator: str, config: dict) -> Collected:
     result = fetch_feed(client, locator, config.get("http"))
     items, error = [], result.error
     if result.kind == "ok":
@@ -79,6 +80,64 @@ def poll_source(
             items = parse_feed(result.body)
         except ValueError as exc:
             error = str(exc)
+    if error is not None:
+        return Collected("error", [], error)
+    http = {"etag": result.etag, "last_modified": result.last_modified}
+    return Collected(result.kind, items, http=http)
+
+
+def _collect_web(
+    factory: sessionmaker[Session],
+    client: httpx.Client,
+    robots: RobotsCache,
+    browser: BrowserFetcher | None,
+    source_id: int,
+    locator: str,
+    config: dict,
+) -> Collected:
+    if browser is None:
+        return Collected("error", [], "no browser fetcher configured for a web source")
+
+    def known(urls: list[str]) -> set[str]:
+        with factory() as session:
+            rows = session.scalars(
+                select(RawItem.external_id).where(
+                    RawItem.source_id == source_id, RawItem.external_id.in_(urls)
+                )
+            )
+            return set(rows)
+
+    try:
+        result = collect_web(browser, client, robots, locator, config, known)
+    except BrowserUnavailable as exc:
+        return Collected("error", [], f"browser unavailable: {exc}")
+    if result.error:
+        return Collected("error", [], result.error)
+    if result.skipped:
+        log.info("%s: %d new stories could not be fetched or read", locator, result.skipped)
+    return Collected("ok", result.items)
+
+
+def poll_source(
+    factory: sessionmaker[Session],
+    client: httpx.Client,
+    robots: RobotsCache,
+    store: SnapshotStore,
+    source_id: int,
+    now: datetime | None = None,
+    browser: BrowserFetcher | None = None,
+) -> PollOutcome:
+    now = now or datetime.now(UTC)
+    with factory() as session:
+        source = session.get(Source, source_id)
+        kind, locator = source.kind, source.locator
+        config, interval = dict(source.config), source.poll_interval_s
+
+    if kind == "web":
+        result = _collect_web(factory, client, robots, browser, source_id, locator, config)
+    else:
+        result = _collect_rss(client, locator, config)
+    items, error = result.items, result.error
     failed = error is not None
 
     new_items: list[NewItem] = []
@@ -87,7 +146,8 @@ def poll_source(
         if not failed and items:
             new_items = ingest_items(session, source, items, store)
         if not failed:
-            config["http"] = {"etag": result.etag, "last_modified": result.last_modified}
+            if result.http is not None:
+                config["http"] = result.http
             config.pop("last_error", None)
         else:
             config["last_error"] = error
@@ -102,7 +162,7 @@ def poll_source(
         newest = max((it.published_at for it in items if it.published_at), default=None)
         record_poll(session, source_id, now=now, success=not failed, newest_item_at=newest)
 
-    if new_items and config.get("fulltext", True):
+    if new_items and kind == "rss" and config.get("fulltext", True):
         enrich_fulltext(factory, client, robots, store, new_items)
 
     status = "error" if failed else result.kind
@@ -157,6 +217,7 @@ def run_once(
     workers: int = 8,
     limit: int | None = None,
     now: datetime | None = None,
+    browser: BrowserFetcher | None = None,
 ) -> list[PollOutcome]:
     now = now or datetime.now(UTC)
     with factory() as session:
@@ -167,7 +228,7 @@ def run_once(
 
     def work(source_id: int) -> PollOutcome:
         try:
-            return poll_source(factory, client, robots, store, source_id, now)
+            return poll_source(factory, client, robots, store, source_id, now, browser)
         except Exception as exc:
             log.exception("polling source %s failed", source_id)
             error = f"{type(exc).__name__}: {exc}"
@@ -190,9 +251,10 @@ def run_forever(
     workers: int = 8,
     tick_s: float = 10,
     embedder: Embedder | None = None,
+    browser: BrowserFetcher | None = None,
 ) -> None:
     while True:
-        outcomes = run_once(factory, client, store, workers=workers)
+        outcomes = run_once(factory, client, store, workers=workers, browser=browser)
         if outcomes:
             new = sum(o.new_items for o in outcomes)
             errors = sum(o.status == "error" for o in outcomes)

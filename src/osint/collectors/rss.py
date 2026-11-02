@@ -31,6 +31,8 @@ class ParsedItem:
     content: str | None
     published_at: datetime | None
     raw: bytes = field(repr=False, default=b"")
+    # The article page as fetched, for collectors that already have it (web collector).
+    page_html: bytes | None = field(repr=False, default=None)
 
 
 def fetch_feed(client: httpx.Client, url: str, cache: dict | None = None) -> FetchResult:

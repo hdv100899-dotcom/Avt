@@ -19,10 +19,13 @@ dependencies = [
     "uvicorn>=0.30",
     "pgvector>=0.3",
     "fastembed>=0.4",
+    "cssselect>=1.2",
 ]
 
 [project.optional-dependencies]
 dev = ["pytest>=8", "ruff>=0.6"]
+# Headless-browser collector for sites that need JavaScript or have no feed.
+crawl = ["crawl4ai>=0.9"]
 
 [project.scripts]
 osint = "osint.cli:app"
