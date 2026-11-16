@@ -1,17 +1,468 @@
 {
- "updatedAt": "2026-11-16T06:49:20Z",
- "count": 421,
+ "updatedAt": "2026-11-16T18:41:41Z",
+ "count": 458,
  "articles": [
+  {
+   "title": "'Not a failure': PH happy with progress on South China Sea Code of Conduct",
+   "link": "https://news.google.com/rss/articles/CBMiwgFBVV95cUxPV1RaM0trVGpFYjZaTnUtV0FibjB4Vm9mTXVxNldYSWZxYmxieXJWYzEzeTVJQ1htSDQxaml3NFpSSzJ0LTY0d3Y4ZVh2Q3JnMlpTeVFTd0MyN3kyS1cxeElZM3dadFNfRlNDWDlmMl9lckVqRjJMOG1SYl9RZkJtdkNoNm9HN0EtZkJiN3NDODhPVmpFQ0ZNQVcxa3N6b0hMZExCSVNFUEM0WWY0ek1vQVdwbFZEaGU5NTNYeGxmOTZIUQ?oc=5",
+   "source": "ABS-CBN",
+   "published": "2026-11-16T18:20:12Z",
+   "summary": "",
+   "lang": "en",
+   "origin": "google-en",
+   "id": "cb4536bc3b62cc2c",
+   "firstSeen": "2026-11-16T18:41:41Z"
+  },
+  {
+   "title": "Australia-Philippines Defence Pact: Is China Facing A New Military Front In The South China Sea?",
+   "link": "https://news.google.com/rss/articles/CBMihAJBVV95cUxNU1RSemVLNF9DMjhCZlN6d2V1UW54cGdCTWNhV3lJOTBiRnNpMEtxd0xsZ1NoWFhIeTNxUWZ3OTNMd0pJS2lyWWlrVmV5aktsVWVYbURjYmpacVRSWnNscVpPQS0tSThCSnUzNE9ubHpqUm5OTG9tam9oRDllVE1FcVZpbkhsX1ZTd0JtN1dIb2tybmdSM2ROUlpRakFoeUtCbmwzMENhQ21QSmJKc0JPMTZyRmd1ZGFSTTlnV1JTT2k4dllmYXV1SHI4YnZ2OU45Z0JhckZybEZoX0w1eUdWQ2hSRlpSaExPdjY1TjVHb2RoamMySjU2QV82b2l2OXZEaTFEUdIBigJBVV95cUxQdWxobmEtdTFBVmdqd1l4djN1ajE2Y0NuQ0xJTUJmZlAyRkJUeEN1el85d3lhRllLd2FyLUVCY0NWUzQxdFBiOXpMMmZzYld1b2NqUEtfSzFCaEZMeTJ2VGhKRkNBZkJwMlI1VHoxMVVnMVVtYS02RHpkaEdTUDVsWjBFQURjdzBHcDF3Zk5xMHFZVWF5R0wwUjgwXzFDWlNoZkRtdVlkZnJUTk9JaUVLeHFNb0d6bi1PN1NHTEhqUU50eWtURnlpbjdpV19VY0tZUGlBMjNYOFg1WTRRUURyeU9sVXozdGZmOGNjS0lmdm9waDRnN3BmWllyT2U5YlBnbkNoOFdnMzNCdw?oc=5",
+   "source": "The Times of India",
+   "published": "2026-11-16T18:12:26Z",
+   "summary": "",
+   "lang": "en",
+   "origin": "google-en",
+   "id": "6dcafd8e95364c08",
+   "firstSeen": "2026-11-16T18:41:41Z"
+  },
+  {
+   "title": "UNCLOS key to successful COC nego in South China Sea – UN chief",
+   "link": "https://news.google.com/rss/articles/CBMilwFBVV95cUxQaS1wOXF4dDdON0p0ajZnSE11dzNBX241NUhzcWJ5RUwtbW1DcUg5SGRZZkxXQlAweVIyQ1JnclFoRFBiLU9QcHRpZDI1Q0hKaEw1ajJuc1c5TjNwbXVIdWdDYm92d2pPSW1kMTI0czFKZkxJUXp1SGcyUUZBTFRQd3J6ZlVBcXZfM2pjTzlTWFgzaVkyZXVz?oc=5",
+   "source": "Philippine News Agency",
+   "published": "2026-11-16T16:52:16Z",
+   "summary": "",
+   "lang": "en",
+   "origin": "google-en",
+   "id": "1f2db5c183dd3006",
+   "firstSeen": "2026-11-16T18:41:41Z"
+  },
+  {
+   "title": "ASEAN, China miss 2026 deadline for South China Sea code | The wRap",
+   "link": "https://news.google.com/rss/articles/CBMiakFVX3lxTFBQUTR2Rm5jZVQ0eTY5MEM0d1I1Wi1MLVpqRlh1c3p1bjNERFdaRk9WMldzd2RDR0NqQjM0SVkweVpqR21kTWo5QWJsMk5TXzQwYm5GQ3NTTE9tVFcwbnFNLUQydHZ6Q2RoSUE?oc=5",
+   "source": "Rappler",
+   "published": "2026-11-16T16:41:30Z",
+   "summary": "",
+   "lang": "en",
+   "origin": "google-en",
+   "id": "04d69249d6e9505c",
+   "firstSeen": "2026-11-16T18:41:41Z"
+  },
+  {
+   "title": "ASEAN, China miss 2026 deadline to finish South China Sea talks The Philippines’ yearlong chairmanship of ASEAN will end without finishing the long-awaited Code of Conduct in the South China Sea. Full story: https://www.rappler.com/philippines/asean-chi",
+   "link": "https://news.google.com/rss/articles/CBMi3AFBVV95cUxOQXdjbjJ3MHhBanZqVzNtTE1idFhvaDF5d2ExN1NZZnB1blNiaHBQMVFUZERDOFNXRmpWR01pTFREdV85QWpfanh5VmM4ZUxPX3U5MjNTajBETXJBTy1ITklleTFsLWY3WUNKNGFTZVVNVmYyeDhOaXh0b3QwcHRzT2ZUMnNKbnlGb3ZSZ2lDeG43ZXZ2cVhsa0h0eXgydloyVHRXUHVYYkszNmJQbnJySjdETkVOcDdES2Y2dHo0VHN6SG1naG1FN3ZxX043TVZPWTZzbEYyUEpPWVVL?oc=5",
+   "source": "Facebook",
+   "published": "2026-11-16T16:20:37Z",
+   "summary": "",
+   "lang": "en",
+   "origin": "google-en",
+   "id": "4591f77e2427599a",
+   "firstSeen": "2026-11-16T18:41:41Z"
+  },
+  {
+   "title": "Rappler. . ASEAN, China miss 2026 deadline for South China Sea code | The wRap Here are today's headlines – the latest news in the Philippines and around the world: - ASEAN, China won't meet 2026 deadline to finish South China Sea talks - Nearly 300 p",
+   "link": "https://news.google.com/rss/articles/CBMi3AFBVV95cUxQYk9fVFJ5ZDdTV29sa2txUF9MdnF1VFBobFgwWXlJQWJwTTFpbDVIVUFiSWtiUGQtdFhRZm5IZjlrbjhrRHhCNzkxYlUtQU55WHZNRUt3anRHSk9XLWlNU3ZyTGF6ZVVUWXo4SC1QZnVkU2lrNkNBcWFYWlJZVVp4X2Y0SkNaLVdHcTA3WnJBdURqWTUwbUNRUHBjTDNROWtUNUpPcjF6NXA0SlFCNjdndm9sd1BXYzNqM2U4YUtHTXFSaVViZ0lIVkZkcE9acFBMdnIzcjR3ZWdTWTJG?oc=5",
+   "source": "Facebook",
+   "published": "2026-11-16T16:17:56Z",
+   "summary": "",
+   "lang": "en",
+   "origin": "google-en",
+   "id": "f5a631dbd07ad1fd",
+   "firstSeen": "2026-11-16T18:41:41Z"
+  },
+  {
+   "title": "ANC: Marcos notes progress in negotiations for South China Sea Code of Conduct",
+   "link": "https://news.google.com/rss/articles/CBMiwwFBVV95cUxPZ3lzM1NJZ0hmc29NTGxTYy1DcXVKdzNnczdicDFINFZiVW1nZ0hxVDd5NllmSUdPT091YWVHY3pUNWxYRTZnQkZ4ZldwODJ5aUlvejBhUjZzdFJoUVRDcXRscmI3TkdJbWRfcHZVcXFTX0FzekVVNzhlZDlLbXlGTmp1VWlXOTdVNVRLT2J6Z2FuaDlFMWkxRnBLZmFWRDRWc056b1JKZ0p6bnM4Xzl1UmtzRWxPaUJ5Y3NJN2UyaE5Mc2M?oc=5",
+   "source": "ABS-CBN",
+   "published": "2026-11-16T16:03:07Z",
+   "summary": "",
+   "lang": "en",
+   "origin": "google-en",
+   "id": "0aaa34edb3ca3896",
+   "firstSeen": "2026-11-16T18:41:41Z"
+  },
+  {
+   "title": "UN chief welcomes ASEAN progress on South China Sea Code of Conduct talks",
+   "link": "https://news.google.com/rss/articles/CBMitAFBVV95cUxNSUM0VFZrc2dlSWdTN2VHX1N2RlhnMHlGOGpuM0hUSUJZQWV1MkRXT3JQY0FtNFpkYWVWSEV2ZHc3S1BMVUJ4X0VzQzBQamk0SlZ1ZkdEcWVEYW00VXJuMER5OHdPNXdjMVpZRWFHZ0ljVkVvWHdFVHNTaGFINEFPRWkzVDZRYi1sSW1FZExJZHE2NlphTDVKeTJLMmlRVFYzS3pQenZBcEhIQTNNektVaWFnazM?oc=5",
+   "source": "Philippine Canadian Inquirer",
+   "published": "2026-11-16T15:57:57Z",
+   "summary": "",
+   "lang": "en",
+   "origin": "google-en",
+   "id": "d05693e35e3f8047",
+   "firstSeen": "2026-11-16T18:41:41Z"
+  },
+  {
+   "title": "Tarriela rebuffs Chinese scholar’s Ayungin shoal claim",
+   "link": "https://news.google.com/rss/articles/CBMimgFBVV95cUxOT0NwYVNnMXl6b2M2X3FvbnJSeDY4YWhlWFg0dkozd0oydFlnY1lWUDdiczJfSnJNZ0ZSOTRIdU5DaVBlMUlOQnlEbXl0S0plTnBKZkFvVG1vRHVqRTcxYUhpZUZ0MERWZDZPbkhhOUtmYUtFdnF5NjlKdVhuaDdnN1ZmY2UxdDduejdvSFU0SndkVGU2eUZnWmxn0gGfAUFVX3lxTE1HSEFVdW9ST0U5cGpzVzlxYk1jR0hfdlVaTTJtNUl5eWsxZmxNbEM3ZGRHVUpoaHcxRVdLaWU3NmhVNlZublExekp3czJPNnVqTk1CMi1fd2VKODkwemJ2SkMyVzdBb3dFV0x4cHQxNTRNX2tYeF9XdFFob3B5RzFmSG9hcGVtWlNDLWRxWmhnWDZwQ2ZHVjNEYXU2ak1URQ?oc=5",
+   "source": "Inquirer.net",
+   "published": "2026-11-16T15:34:00Z",
+   "summary": "",
+   "lang": "en",
+   "origin": "google-en",
+   "id": "b65101ac0fa69f1d",
+   "firstSeen": "2026-11-16T18:41:41Z"
+  },
+  {
+   "title": "‘Exercise self-restraint’ in South China Sea—Marcos",
+   "link": "https://news.google.com/rss/articles/CBMinAFBVV95cUxNWGlaTTN6YWtOT1pBMDBqSV9iWWRFWU0xcF8zR0R3OUs2ejdFQThRdXZDVTNSTHhGdDB4Y2Jsd1hienREWXYtdDlJZmxQMkRMaUhWSlRVTjhqWmtHUGhkUFZpOF9PRjNXQ3NSek54OFVkU1lFd2g4R2NtTjVYYjRHUUhsYXFISUZvU29EZDlkZEVvOEIyTVN6NGs5QmY?oc=5",
+   "source": "Manila Standard",
+   "published": "2026-11-16T15:11:04Z",
+   "summary": "",
+   "lang": "en",
+   "origin": "google-en",
+   "id": "22b93558723e44ca",
+   "firstSeen": "2026-11-16T18:41:41Z"
+  },
+  {
+   "title": "Workshop tackles West Philippine Sea disinformation",
+   "link": "https://news.google.com/rss/articles/CBMitgFBVV95cUxNRFJTRWpFYUxvMFF0dTRnRUdFeVo1WTlFS0tsLXh4aDNEazdLZ0x5YXNHNm5FRGxrSXhheVBVdDJvbjhjblJjYUFrMGhRY2hROHRvVi1qY3lRa0hKVzVvLVE1Y1c4a29KSHRiejIwT3FYdjdFQVZ6TVFoNXJTZ0ZrWTBHVjh0c1ppa09VVkp0SzhvYS05S3Qya1hiTEFJUWhicEFmRWxSYlZKYktDMk13blJzUjZCQdIBtgFBVV95cUxNRFJTRWpFYUxvMFF0dTRnRUdFeVo1WTlFS0tsLXh4aDNEazdLZ0x5YXNHNm5FRGxrSXhheVBVdDJvbjhjblJjYUFrMGhRY2hROHRvVi1qY3lRa0hKVzVvLVE1Y1c4a29KSHRiejIwT3FYdjdFQVZ6TVFoNXJTZ0ZrWTBHVjh0c1ppa09VVkp0SzhvYS05S3Qya1hiTEFJUWhicEFmRWxSYlZKYktDMk13blJzUjZCQQ?oc=5",
+   "source": "The Manila Times",
+   "published": "2026-11-16T14:44:00Z",
+   "summary": "",
+   "lang": "en",
+   "origin": "google-en",
+   "id": "a8607af88a04bb18",
+   "firstSeen": "2026-11-16T18:41:41Z"
+  },
+  {
+   "title": "Philippines expands security partnerships as South China Sea risks drive defense planning",
+   "link": "https://news.google.com/rss/articles/CBMiqgFBVV95cUxOV0dVNWlPMWEtakE0NjVMWTdIMmVrQkdQUm5URWxiN1pJb185OFBLWWJ0RzZ6cE9OWHFHSmVKVWNyWHRpX25qLWhrQXBHaXVmOVE0ak1fR2NxdmEzSHd2aGhnYXRjQlh6UGxJYlhDQTkzeWk5dG16VkVZWnhrY3F1eDViVnBranZzSXdoVmJOQ2N5ajN5VjRselAxdGtmX29WajZnUkRqUV9kdw?oc=5",
+   "source": "Traders Union",
+   "published": "2026-11-16T13:11:22Z",
+   "summary": "",
+   "lang": "en",
+   "origin": "google-en",
+   "id": "2b4812395a85ca3b",
+   "firstSeen": "2026-11-16T18:41:41Z"
+  },
+  {
+   "title": "Philippines pushes South China Sea code talks as ASEAN-China trade expands",
+   "link": "https://news.google.com/rss/articles/CBMiowFBVV95cUxOWERMbnh2dkQ2RlpvRXlDNFd0NEhQbkxjNm9LMGVpSlk3bkNzU013emlWR19BSjNIazh3OHdQeXRUZldfT19oMFIzdFpldnlERVNlS1plSFZHeVhucmFkaXQ0N0pwSXVhMkktWTBJUUVJZ2NEdXlEbUxyb1Qta2NNaWFpUU9Ua2Z2Si1KVkw1SWVaamhJTDBoeHB0czdDTWE4RDRZ?oc=5",
+   "source": "Traders Union",
+   "published": "2026-11-16T13:10:31Z",
+   "summary": "",
+   "lang": "en",
+   "origin": "google-en",
+   "id": "afb5ef8829dca10b",
+   "firstSeen": "2026-11-16T18:41:41Z"
+  },
+  {
+   "title": "Chinese premier departs Manila after backing UNCLOS-based South China Sea code",
+   "link": "https://news.google.com/rss/articles/CBMivAFBVV95cUxPYU1PTDJUQ1ZfWXkxMVBhaDhPazBvUl9KNHdyUHdGZ0szTmVLSlFaTUdrUzBpTm9oZjZIWURQUUVoZHZnS01vWmxmaEpaekkxQzN5TkRtSFRpem1ZVnNsUUhvNzhyNFVKN3lQcHI4bnM0MEt6SzJONE9WU3JmMEJCTVdyX05qZG9RQjJIX1ZhRFU3MVktcElDOWtrVE5sY3dXSWN4Um5YRHJlN2RvcHplVXdMcElaZDBxV3h4Sw?oc=5",
+   "source": "BusinessMirror",
+   "published": "2026-11-16T13:07:53Z",
+   "summary": "",
+   "lang": "en",
+   "origin": "google-en",
+   "id": "737b8888c23ee0e9",
+   "firstSeen": "2026-11-16T18:41:41Z"
+  },
+  {
+   "title": "Marcos urges ASEAN, China to uphold international law in South China Sea",
+   "link": "https://news.google.com/rss/articles/CBMixAFBVV95cUxOQXQ3R01CZ2doQ2dNN29oam9fcU1zUDZlcFcwN0FhRUlHN19LOTlCdVBGVUMxS0l1S2NTTFdoTktQdkhISkNiSHQ3WUhsNTUwbE9KbkVNdDUyNnBTY21tRlFicDBzT29kblBtU3ZoenpDU0xIcElqeWYxc0FDRjNtand1TzJ3cUYzNVNwdldiQUhpUm5yMkRkRG1oVHNLZU9iNW1hQzd3UDc2THBtUDh3U0FSQ1pwN1FuTTNKNVlXWk82ZktM?oc=5",
+   "source": "BusinessWorld Online",
+   "published": "2026-11-16T12:57:30Z",
+   "summary": "",
+   "lang": "en",
+   "origin": "google-en",
+   "id": "043587dcc99f3e33",
+   "firstSeen": "2026-11-16T18:41:41Z"
+  },
+  {
+   "title": "UN chief lauds ASEAN for ‘progress’ in South China Sea code talks",
+   "link": "https://news.google.com/rss/articles/CBMisAFBVV95cUxOREhaOXUwUnd6NzJKX2thcVRNWVI4NXBmTEVaeFg3dlgzeTBadkZvb2tkanJkZ1VVR2J1VW1rQWYwSkRIcUM3a1NHUTQxc01XcVpJUDVzRUtxejRybjNYZm1zbzFBS19ZRnFZcDZsN2RkMXpPSTUxdFRadXBBRnk2eHhfVnJ0eHE3djI4NXVncTlDWlprc1VYdFJEWGU2R2w2cFdTNVNOS3N3WTdmQ2xWLQ?oc=5",
+   "source": "ABS-CBN",
+   "published": "2026-11-16T12:52:21Z",
+   "summary": "",
+   "lang": "en",
+   "origin": "google-en",
+   "id": "4ea04a1641f19996",
+   "firstSeen": "2026-11-16T18:41:41Z"
+  },
+  {
+   "title": "Heated exchange erupts between Tarriela, Chinese professor over Ayungin",
+   "link": "https://news.google.com/rss/articles/CBMipgFBVV95cUxORVBCTEdwN1FsdzA4blNQalY4bVBrUmxpRWkxQWw2R1BZTDB3MTNMYmEzWXhOMVByVEhPNkhaQkljUU9FYVQ3Y3NMRkhPR0FMWnBFS05RamxWY0YwckdJUXlUcVlHLWVLdnduRVdyWGhsS0JIT2hIclBYSkVldnlRNW1PZER2STZBX2NZYnlUTHFVeTBNTlJZRkRTNEphNHl6VnZ5bUN3?oc=5",
+   "source": "Bilyonaryo",
+   "published": "2026-11-16T12:36:21Z",
+   "summary": "",
+   "lang": "en",
+   "origin": "google-en",
+   "id": "783f40dd36b95101",
+   "firstSeen": "2026-11-16T18:41:41Z"
+  },
+  {
+   "title": "China, Asean pledge restraint as talks on South China Sea pact face key hurdles",
+   "link": "https://news.google.com/rss/articles/CBMi5wFBVV95cUxQazhTbXVqLW9LSU5COFAwUnBlZUhKTlNoT0RLRUZLS21hY3IzUFBoRkszME1ZNkM3R3JVVmZLTUlkbk9OYjNhOFBfYkw2MjBkcF9sYXJ0Z2ctek5qUmpSRVJPdEJFVF9MLVg3YXl4ME5PTlZ2UUxzd1BSWnhvMlFadUp5TmYxaXliempMVklYbC01Yi1KQ0JhZ2xrTTVmeWdTTDZsVUFWWTBaM012MUx5ZWcxSHF3UkJ5TjlUUFNNSG5EYlllSkQtdlNDcG1VekxlYXdQX050MU8tZ0NGaTN6MXZsTVpxUDTSAewBQVVfeXFMTnVqTkE1MlZtWjNWRDl3YVlvTEdZS25JZ2ozYk1qQWZZLWpuV1lMT1RMWDk5cjlJNnlKM0Q1UE10VzRVUnZkenRhbFJPempGekV1MmgxYVFOcTNOUXJSRWY3cUxaZVEyRXZLaHZXSDh0WklIVWNGUjhlV216cGhzLVZtTGpnNkh5dzQ4WVdGdGpDV3dqMVBsbXBka3MyTjdiaGk2M3M1RzlNdlpxLTF5Snh0ajFFMm9pa1dSR2swOFVFUDNjMHZPV2h4c3NfelJpTmh3RHd6QU1NQWtHVXE3VU9SWUdtX0w4TlJrNVA?oc=5",
+   "source": "The Times of India",
+   "published": "2026-11-16T12:18:00Z",
+   "summary": "",
+   "lang": "en",
+   "origin": "google-en",
+   "id": "dc91d3d42d8e4623",
+   "firstSeen": "2026-11-16T18:41:41Z"
+  },
+  {
+   "title": "Indonesia pushes 'substantive' South China Sea code deal",
+   "link": "https://news.google.com/rss/articles/CBMipAFBVV95cUxPLS00ZldpUnhpc2lDd0prdmVOT3lvRmxTY01kQkhTT0FrOV9nSGMtR0FCQkRPQ18xMkRVN2NSa1Bva2trTEJqT1R5UnJ4UlZVb1VVdHo3MjJQVVZvTU1SOFZ2ZzNId08zLUE1X1owUUxnZGk5bGxMTkZJXzNmY2JPdnFoWWNSSDNUQm85QV9PZng0dnpwNG4yN2NnaUY3QTZvd281RA?oc=5",
+   "source": "The Jakarta Post",
+   "published": "2026-11-16T12:16:30Z",
+   "summary": "",
+   "lang": "en",
+   "origin": "google-en",
+   "id": "db53dd6d94998bfa",
+   "firstSeen": "2026-11-16T18:41:41Z"
+  },
+  {
+   "title": "China commits to early conclusion of South China Sea code, Philippines says - Asia & Pacific",
+   "link": "https://news.google.com/rss/articles/CBMivwFBVV95cUxNc1VOUGRkalB1cDVpMWwwZllSald1NGcyYm9hQXBoMnRlcnlOQ2ZsY0U3LVdmOXl0MWRsaWx6cTZRMm43Z2Zib3pzQkpxbUE2LVltVWtMV1JoZmF6WUg2bXdwd0J5UzRGTUV5X1g2cmMwOXRjV2lldE9TN1djNGlTLWFIak5tN3FpcWpocUxFNXRubkVhNnplWU5GUGdzWGlEYTd3WVVsRXhHdF9NWnZMeU5pVjJGZkNRUWFYTWhRMA?oc=5",
+   "source": "The Jakarta Post",
+   "published": "2026-11-16T12:02:52Z",
+   "summary": "",
+   "lang": "en",
+   "origin": "google-en",
+   "id": "4784618b6c70084c",
+   "firstSeen": "2026-11-16T18:41:41Z"
+  },
+  {
+   "title": "Li Qiang Pitches ASEAN on Free Trade as South China Sea Code Stalls",
+   "link": "https://news.google.com/rss/articles/CBMiiAFBVV95cUxQbURGRTlOSTJKcFRIbEZLV29QUVdNYUFVcG1KNVVlb21qUWhQZEFsR2NyVEMyQnR3WXZjTGVlTjJfdXZYOHdIR0JVZGtwWWN5VDl1LVM2UWFBQVR3VWozTE5HendxNmxVbWI1YjY5SmtNcHNJQ2R5dDRzeTVEZENXVEJkM21RbXBz?oc=5",
+   "source": "The China-Global South Project",
+   "published": "2026-11-16T11:43:49Z",
+   "summary": "",
+   "lang": "en",
+   "origin": "google-en",
+   "id": "02e2871f036aa3bb",
+   "firstSeen": "2026-11-16T18:41:41Z"
+  },
+  {
+   "title": "Batongbacal says delay in South China Sea COC talks 'not unexpected'; Teodoro wary of China's 'good faith'",
+   "link": "https://news.google.com/rss/articles/CBMiugFBVV95cUxOTG9CWG9Ia252SDFESmtfX1NfUnRqajhFcGNtSDkzT3FsUDAzcXBqUFNxZXFRU0xSdUIyYmNDR0ItcWRsa2o4aWVWcmRvYUtrVEFEek1uSTNWTlFRTmliemU5Yl9NdXFjNWI4V3FzXzJTdE1vTHdxQ2pTM3Fyb0VkUlZ3N2VEMUd4RkdmZS1XWXFwdi1KT2w5VXFIc2pJM1pIZF9Kb21qMU1CU0tqcTJQNzNhQmNhNGdNTWc?oc=5",
+   "source": "ABS-CBN",
+   "published": "2026-11-16T11:08:45Z",
+   "summary": "",
+   "lang": "en",
+   "origin": "google-en",
+   "id": "dbcf974c46a94074",
+   "firstSeen": "2026-11-16T18:41:41Z"
+  },
+  {
+   "title": "Not just about territory: Protecting West Philippine Sea means protecting Filipino fishermen - Khonghun",
+   "link": "https://news.google.com/rss/articles/CBMiwwFBVV95cUxPMUx3MXVvMlVxVEwzLUQ4RjVlcUloYUtQMnd3UF85Tmd6Tkt4OHdQNWgzdjZuMzRyN1VBZGMxRVJoRk9fdjQyTjJOMW85M3kyUWdTYmUzZ1d6RGhVMkc2dm1GUW9FUGpCUFV3ODVxbnpoTWxpcWYtM0M4V0taVFFjZ0NIUndER1ZvWURhSDlVV082ZGZTczIxck1nOHd3eXl2Y0VoalFjU0d6bjRiZ3ZXbW9lSWZtV3BZWlQxaTRqN3E2U1U?oc=5",
+   "source": "Politiko.com.ph",
+   "published": "2026-11-16T10:58:14Z",
+   "summary": "",
+   "lang": "en",
+   "origin": "google-en",
+   "id": "09bb03cc7cc16d53",
+   "firstSeen": "2026-11-16T18:41:41Z"
+  },
+  {
+   "title": "China, Southeast Asia pledge to avoid disputes during talks on South China Sea pact",
+   "link": "https://news.google.com/rss/articles/CBMi3wFBVV95cUxNTEdjNHctNU5iVWNra0VtbFJnMnUxeXFuclVNVkQ3Ymh1dmd4Yi1TOElhVkVoVE5zajFQaWpYbzc2RGZLNmpIZUE1WHFiUnFiMWNlYzNrdzBwMDE5emRITzhjMTB5bHBIQnBMM0x6cGUwajViN01LcU5MQkJLeFlwalFYMklZY0w5Tmt6dFQ0aFZYbGlUTm1IUnVBRDA2anRtVVJBMzlKaFNjSVBCc21EdmJld3N5Z2xTU1B3cGg4by01VURfbENFTGkyVnE0eHlpS3poYVpWNWl2Rkw2WUdz0gHmAUFVX3lxTE0tWS13SVVlNVVDNXhKQ2RGemxNY1VkNFZzbjNuM0xISGNrc1FwM1phODk4V3dIRXpoa0R2RW83alcwOTJXd0x2UWFQcVl2X1NMc3pyZFc5YkJnMm9UWVRlOWg4V1JiR1ZrRGZtdUxnRmRFcUsyOUVrZVc1ck02ZXNPUFJKVWtkUVRrSUMwUnBkNWVFZ01UVS1vOTN4UGFLUU1fYjNVVnRZVXhfUDd6SjRINFlqRG5ucFFwajVoZmtUUkNES21DNVc5WkI4djNUMS1NUlRuVzdkb0VCdWhSQldaaUJmMnN3?oc=5",
+   "source": "The Hindu",
+   "published": "2026-11-16T10:43:56Z",
+   "summary": "",
+   "lang": "en",
+   "origin": "google-en",
+   "id": "123bf8130942b657",
+   "firstSeen": "2026-11-16T18:41:41Z"
+  },
+  {
+   "title": "ASEAN - China: Efforts to finalize the Code of Conduct in the South China Sea as soon as possible.",
+   "link": "https://news.google.com/rss/articles/CBMilwFBVV95cUxOZlppODV4OV9ZWU5qUlltbVNYaVlOU0d4ekVmRmVVa19BUmJ1VnJlXzBESGhCMldIS2pKTHBVakRaVi0wREpzRTRzaTBHNlAxR0l4OW1icVRPRC1iQTdjcFdZUTZZaHJ6MzVPU3phVW1yYkpoN2UydWJodUJ4ZE4zbHpObmhFbGhmeDRqLVh4VFRNbjBUVFdz?oc=5",
+   "source": "Vietnam.vn",
+   "published": "2026-11-16T10:22:18Z",
+   "summary": "",
+   "lang": "en",
+   "origin": "google-en",
+   "id": "53dbdbf04bafe7d4",
+   "firstSeen": "2026-11-16T18:41:41Z"
+  },
+  {
+   "title": "ASEAN-China Reach Provisional Agreement on 80% of South China Sea Code of Conduct Draft",
+   "link": "https://news.google.com/rss/articles/CBMigwFBVV95cUxNVkh4dWNVb1VOd0tUZnpSUjFIZEQ1YVoybGNldzh4SHlidGRtOGpPNzFMaVVwTFNwbEw1VUlIeGIzRUR6cWhONE9yd08zb0NQMXR1M2dOSkdHbktLNnZZY1pQajFubF8ySzktejFQdHFsaEprVWdCN3QyOFBqN0pieTc2NA?oc=5",
+   "source": "The Diplomatic Insight",
+   "published": "2026-11-16T10:12:29Z",
+   "summary": "",
+   "lang": "en",
+   "origin": "google-en",
+   "id": "bf36051980d9c5d0",
+   "firstSeen": "2026-11-16T18:41:41Z"
+  },
+  {
+   "title": "Tarriela, Chinese academic clash over Ayungin Shoal during Manila Dialogue",
+   "link": "https://news.google.com/rss/articles/CBMixAFBVV95cUxQakJKeWtMTFdqTUkyNzVFNnB1TnMxaWtybVh3WnZBNmRrT1NoZk4wN3E3Z001RVBnSHFuTElYQURyb3ptV0pkQnZETkxsTGxiLVM2cGlaeC0tb3QwVWI3RVV2dThhaFJGajNzRkZsNE12OVlDTVUtaW1CRFBZXzdKeFM0VDlpa19qN1U4U3hxamxOZ1RwNjNwU1plMS1oRTFHSVBrTDN6Q2MzZ2NFaDZiTnFJazdYYTFMOGNqYlpvLXpxOHlY?oc=5",
+   "source": "ABS-CBN",
+   "published": "2026-11-16T10:11:00Z",
+   "summary": "",
+   "lang": "en",
+   "origin": "google-en",
+   "id": "77a7c63801fdc539",
+   "firstSeen": "2026-11-16T18:41:41Z"
+  },
+  {
+   "title": "Indonesia Demands Political Goodwill on South China Sea Code",
+   "link": "https://news.google.com/rss/articles/CBMikwFBVV95cUxQMFZGekRSa3lIRER1a1o2Rm5PSDljX0h6QzRsejl4ZE5JalY0QmZkTG8zajk4c0NqaVN0T2ozSkxlMWozbnhCUmtTTDhLM09TSGxESmZaODNITk56aUp4V1JLU1RFR2FRNDEzR0JQanNXcVZpc21tSloxWF9JVlA5b1E1ZGNFN2lZSE1hUHM1VGY0NkE?oc=5",
+   "source": "Jakarta Globe",
+   "published": "2026-11-16T10:03:00Z",
+   "summary": "",
+   "lang": "en",
+   "origin": "google-en",
+   "id": "9ffa5796b23888dd",
+   "firstSeen": "2026-11-16T18:41:41Z"
+  },
+  {
+   "title": "Teodoro confident US would help PH if South China Sea tension escalates",
+   "link": "https://news.google.com/rss/articles/CBMi0gFBVV95cUxOQUtPeGdiYW9FOFlJWktRUTlMbzF4Y1A4SDNlZnpnd1dYcWhvMEJFMVk1RlRBMUMwS0ZYelVFVzJOVzgxd2puVWFULTBPSGo4UjFydG5scFZYZkQ2Z0RWWFdZZUZaTkxETk85bDNFdEsxdEZKUlYzUG1vdksyT3hCRUV2bVdVbWxWTHhlMUlTN014VUZ0bWs5elVMYVhib2dGQ1ZpTU1RY2F2RG1CNjRORUJjS21rZ0lNRHp3aFlRVmluY3didXJDd2l1Snp3ZzQzYnc?oc=5",
+   "source": "GMA Network",
+   "published": "2026-11-16T09:51:40Z",
+   "summary": "",
+   "lang": "en",
+   "origin": "google-en",
+   "id": "e081181b99d306d6",
+   "firstSeen": "2026-11-16T18:41:41Z"
+  },
+  {
+   "title": "ABS-CBN News. . NO TIMELINE FOR COC YET. Asked if the South China Sea Code of Conduct will be finished by 2027 or 2028, Foreign Affairs Secretary Ma. Theresa Lazaro says it will be up to Singapore to shepherd discussions. Lazaro said President Fer",
+   "link": "https://news.google.com/rss/articles/CBMi2AFBVV95cUxQelR5MTJWWGVuMm5PbXgyQXkxYllMTmJtSnhiYnI0U2tybV96WUlVWkNQWEd4OFVhdEsyNWxmYkRCWkxlZWJvVEhzZUljREhMME9qbS1xX1M0UjViWmJ5YU9tdW02U2dpTDRNRnRfbmRFcU84UWtfRmlxWVZud3M4SzlSQzlmTTVmYzZEOUV4X0k5a1EzbVhhYWlSRkY1VS1QWlJMaHdFYlBJWW8wck1TV2U4bkhKN2hFM1RvTm9uRXQ5eWhCclFueWFhWnkxenhCbDBmX1R1VGo?oc=5",
+   "source": "Facebook",
+   "published": "2026-11-16T09:48:56Z",
+   "summary": "",
+   "lang": "en",
+   "origin": "google-en",
+   "id": "c642a80d5a00fa1e",
+   "firstSeen": "2026-11-16T18:41:41Z"
+  },
+  {
+   "title": "China commits to early conclusion of South China Sea code, Philippines says",
+   "link": "https://news.google.com/rss/articles/CBMi2gFBVV95cUxOTVdPRGxhVWhEVm5KZGFGaXJhbDk0Yjdod2ZxclEyRGUwdVliTEFRU1MtaXk0VDVXSi1WVEtqckpkc0Q4RTRUcGlVNVNDaWlFdDdiRUxTN0hqR3Jtcmp4cWdfNHR0SzZIWk1fclFEdVhzU3hjR3JHa2k3bzFmMVBheWJiNzBTcGs2WDJRODNLckw0Mm1xcUpHSFRObHhDb0EzVDBXMnNDV0VBTm1kXzFCOW9YMm9sXzUzUVo1cFNRUENQOTVMN1E3cUNqa0FJN0U0MWxYQWtreDF5Zw?oc=5",
+   "source": "Interaksyon",
+   "published": "2026-11-16T09:41:51Z",
+   "summary": "",
+   "lang": "en",
+   "origin": "google-en",
+   "id": "a1d472971d8ac16e",
+   "firstSeen": "2026-11-16T18:41:41Z"
+  },
+  {
+   "title": "China and Southeast Asia pledge to avoid disputes during talks on South China Sea pact",
+   "link": "https://news.google.com/rss/articles/CBMihwJBVV95cUxNWUlNZUJhY1Z6Z1Rka245WGhWeGptc0V1YWdmLUxKTDRLQjg4ZmJWaHpPOG5pbVJYWEVEbWwzVzk0X2xsWnZpUW9zMndaQUxBOUlsNFl4d2w0cUpxbGxoc3hYTTdmc0Y2a0RRZlBvQnlPTWtNQzRaam1Xdnh1Z1BjWktycUdBVTdZSG1pdl94bXRMSm9HNFpxcWFib2pYbEJMQjJKUUo5Q1NjX25XMndlZlViQnVUZ1ozTXRKNUhJRzhIUFVZS1N1TjlxMjlibHZWMkVraWp6S0ZuTkp1TzF3dG9vWkZXTGNLa0NSMmd3a3lZZ29XTXhCbjRXcGNWWS0weGlDeTAxTQ?oc=5",
+   "source": "The Spec",
+   "published": "2026-11-16T09:31:56Z",
+   "summary": "",
+   "lang": "en",
+   "origin": "google-en",
+   "id": "bb533ca268b5c49f",
+   "firstSeen": "2026-11-16T18:41:41Z"
+  },
+  {
+   "title": "Anwar Calls For Renewed Political Will To Finalise South China Sea Code Of Conduct",
+   "link": "https://news.google.com/rss/articles/CBMixgFBVV95cUxPaU00d18weGQ2UVlBazZ0Snl1OWV4SEg5eGZiWTdVNF9GbXEydDlidnIxRmQtMmFVejV4OFFQbnNGdktQRXhKQ2VzQUNJTWphTk9Fb3AzSlJIVnNueklvUW03d25jeElmY3FLZXppZWhQWUs4dTc1eHpnQlZObFlmOFNaSGlrSE5RQkZkdXpsaVlxdUdYM253N2FySjdFQWxhZ1NFblJuci1EbllxNzBWeVJWM0NrV19WdXkxeG1YT052WkNlVmc?oc=5",
+   "source": "BusinessToday Malaysia",
+   "published": "2026-11-16T08:48:38Z",
+   "summary": "",
+   "lang": "en",
+   "origin": "google-en",
+   "id": "d1eb965efac7dd85",
+   "firstSeen": "2026-11-16T18:41:41Z"
+  },
+  {
+   "title": "UN chief lauds Asean’s progress in South China Sea COC",
+   "link": "https://news.google.com/rss/articles/CBMimgFBVV95cUxQUGw4Ymk5cWpKeFN1WTI4US1rcVpIQTFoazBnTVJqc2ZBWGVJcUJvRldHSVhuemJQN3FQS2pPR0JBdjZHMC0wYjJScG9BTHRuWnE5LVE2M0ZtczdWLU92alN1d2ZQMHpWRjcxUGZEdF9CbnRJMmJSTmh1NnFVTGdpU2NZNW91UE54cXluNEgxMV93MkVTUHF2bjJR0gGfAUFVX3lxTE05bFVHSmsyUXJtcS12LVQtdzM1NlFuNGF5X3plekE3UmwwbUZzV0IyS1hEaWh2dk9PLW9OdHB4MHdmcmZmVEJ0aEdrMG5tT0NDMTlmbmo3OWd6ekhqUjJvbmo1TUFoa09QcHQ3bzRVdnBqWHoxZnlaNmNCVHZvX1RvdXJEUVJrUG1aQ2t5SzJpd3RQYVVGcVpySk9TWENmSQ?oc=5",
+   "source": "Inquirer.net",
+   "published": "2026-11-16T08:38:00Z",
+   "summary": "",
+   "lang": "en",
+   "origin": "google-en",
+   "id": "4b44d3557821ae40",
+   "firstSeen": "2026-11-16T18:41:41Z"
+  },
+  {
+   "title": "Philippines urges peaceful settlement of South China Sea disputes",
+   "link": "https://news.google.com/rss/articles/CBMirwFBVV95cUxNekZmOGVfUlBJMUgxMngxck9BWmN1amtXaklqb3M5RVhBSmZyai04bndXWEpreFFBVzY5YnVYcTUwdnJScGJRMWZONE1nRHNKS21qc2k0RFE3X0ZtUWVab3MtSXNxZ0J0TnhFaHNOQzBxa0stMVVfVjRTeXZ0UmJOb01kYXo2ZC1FM0VEWUhjTEtWZHRaR25XZ21nVVZ2bHpjX3NTLTdNdXlRSEhZR2Nn0gGzAUFVX3lxTE5jTllQZGpnOXNqWkRTNG9mV2p5RFVGVkVvOTRTZ3JTaWlQWHRJMUFMLVVpdUZRcmpBeWhiN2xIaXNLdzA0UjJ5dXpld2puSTd5ZUJsVWRTLXA5azAzR00xaDd3T1dMZi1TLXc0OGQ3WW52WTRlWVhIZWVQRDltc3g1T0NUYlJHUVNmSFdlcFRTOUI1TEQ3a09jMlBuZGlUQmY0dHl2MDNiVW5VcHZ4WW1wVjV3?oc=5",
+   "source": "Kuwait Times",
+   "published": "2026-11-16T08:12:43Z",
+   "summary": "",
+   "lang": "en",
+   "origin": "google-en",
+   "id": "62293303b1c4169b",
+   "firstSeen": "2026-11-16T18:41:41Z"
+  },
+  {
+   "title": "Prabowo urges ASEAN, China to conclude South China Sea CoC talks",
+   "link": "https://news.google.com/rss/articles/CBMiowFBVV95cUxPejRpS1V2YWJjbUtXRnhSQmNJNC1tTEpPeUhCSElESVBSOGYtaHR0WmcwMnhVRDNPc2RtS2tSQ3I2Mkg3YVIweDJrc0c5ZGZBdmZaUENtVkVqeHljX3NxcWVCcVRHc3p1RXY2T0tDVjN1OXl2Rm9jQjE2aVl1T1o4X3R5RGotdnJ1UERNQkZRSHRRSmZKbXhIdWFzLVpBZ05UUjNV0gGoAUFVX3lxTE1PcGdjRXpDVVdBbllXMWozNENtOFNpQnd2Wkx5eTB0YzdmVGdYMXJHZ0RoTXpCcmdyNEkwazJSbjRfMFZBb2J1VjB5RVFIUnhKU2NkM0pFblJzcWx5Tk81UzQ0X08yb190aElET1BLVmdTeVVRRGFiRHdobWRtN0dDT3pZUUhCQ2RNQ0JQVS1HTkVYOGZfV0FQVVRXQkI3VHNxYjA4ZHlVZA?oc=5",
+   "source": "ANTARA News",
+   "published": "2026-11-16T07:44:55Z",
+   "summary": "",
+   "lang": "en",
+   "origin": "google-en",
+   "id": "5166b577f487a276",
+   "firstSeen": "2026-11-16T18:41:41Z"
+  },
+  {
+   "title": "WATCH: Philippine Coast Guard (PCG) Spokesperson for the West Philippine Sea RAdm. Jay Tarriela and Shanghai Jiao Tong University’s Dr. Zheng Zhihua had a brief heated exchange during a plenary session at The Manila Dialogue on the South China S",
+   "link": "https://news.google.com/rss/articles/CBMi0gFBVV95cUxNbTdZWXFlQjNDNkpHOUVOb0lDUnBtWVN3WGVBR2RRMkp4UXB0OC00T2tLX1VVS0pIRGl3dWFXWGdRdmdNeWlOOFduYjBBeEVDa3I5U00zOUI0RjFqeURYV1dEeEVPQWppMzdKcW9wNlNFM3hoYktocjlHeVMtX0x4b3V2WUhPdnFXdFZBLUczX0JUTWFidnhxc3JqWEF2ejllT3VlRFl3aXAtaFdpSERCTkVNNnd5bXRjbHFycU45dGVCSXExMjgwcmlpN00xTHpIb2c?oc=5",
+   "source": "Facebook",
+   "published": "2026-11-16T07:43:55Z",
+   "summary": "",
+   "lang": "en",
+   "origin": "google-en",
+   "id": "d6de375f17b5972c",
+   "firstSeen": "2026-11-16T18:41:41Z"
+  },
+  {
+   "title": "South China Sea code 80% complete shows Marcos determination for diplomatic solution - House leader",
+   "link": "https://news.google.com/rss/articles/CBMivgFBVV95cUxObENJMV9MTUdhR0ZZdzMyUmZlNi1YVGZqZ05OMncyN1NaV0xJbmgxX2d0MVJLRFBtM0dfcEFDMmtnbTB2enotSXdKREhJaWk4TnNRNHRtYU1naXlWNG16amEtWkZHZDVWT3ZCMGlUQXY3cl9wN2h0TlBPYTViRTVzY1J4SHJPT0dvSEhCSU5pZ09QNXVNc2pLbUdIeGprU3A0MXJpVlJkR0loWGx3VGtuNmpPS216b3hnTUhoQzJn?oc=5",
+   "source": "Politiko.com.ph",
+   "published": "2026-11-16T07:37:43Z",
+   "summary": "",
+   "lang": "en",
+   "origin": "google-en",
+   "id": "6c3ff1ce12171bc3",
+   "firstSeen": "2026-11-16T18:41:41Z"
+  },
+  {
+   "title": "Teodoro on South China Sea code: I’m not paid to trust an adversary",
+   "link": "https://news.google.com/rss/articles/CBMinwFBVV95cUxNdEJDR0d0aHJ0dkh1U0FRMVA1a3FGaWZRTm5Ka3AxLUJsM0lWLWZ4c0JlbXA0Q1dTZlhfZXdydmRZdW5aOHBhQnBvVWxkdU9EUFBOLXNIZ0lLUXN6YmtYMnFMTUN0ZGV3SjFydXBvUlpaY2hUSnlmQVA1SUtKNHdfS3dnQmY0WkR6QkxfUi0yS1NmbEFGNzM1eF9hdHh3Ym8?oc=5",
+   "source": "Inquirer.net",
+   "published": "2026-11-16T07:24:21Z",
+   "summary": "",
+   "lang": "en",
+   "origin": "google-en",
+   "id": "96ef8014918917b8",
+   "firstSeen": "2026-11-16T18:41:41Z"
+  },
+  {
+   "title": "WATCH: A brief but heated exchange during the Manila Dialogue on the South China Sea in Parañaque City. Dr. Zheng Zhihua of Shanghai Jiao Tong University claimed that the Philippines has been illegally occupying Ayungin Shoal or Second Thomas Sho",
+   "link": "https://news.google.com/rss/articles/CBMi1wFBVV95cUxQMzlMTmFQaE90YkFFZER5dnY1Sll0dFZ3Y18zOFNqREpYOVVTb3pqaGRKY0tYbFVLNHZnandPd2dsNnZpY201REtoYWhqU3Vxa2hsSThQcFpMVE96cThPRVZwV0dieHotS2ZrdDV0UTg4SjlBam9yejcyNGVkX0d1NHdWeVg5Z29zd3BXTG5LZ0JhcnZkX3NLRDNJMDRDOTZkRlM5TGFXcXl6RHlwZEdTYk5RXzQ2aGlaS1NFbWppS2tmSGp3OGZLTkR4THp5VnZRLUU2cFhPQQ?oc=5",
+   "source": "Facebook",
+   "published": "2026-11-16T07:16:55Z",
+   "summary": "",
+   "lang": "en",
+   "origin": "google-en",
+   "id": "2511bb7b8cd01d86",
+   "firstSeen": "2026-11-16T18:41:41Z"
+  },
   {
    "title": "It means a lot to Zambales: Khonghun hails progress in South China Sea Code of Conduct",
    "link": "https://news.google.com/rss/articles/CBMitAFBVV95cUxQLTAxeTJfTTk5UTBCUkVUdTJQNVk0Y0ctR0piblotcWRieU5KNzBKUXpzbXc3QkZ1SDF2ZnlzT3gyV0JCek9GYzdDS2lhN2pIb1ZuemhpamFYdXFiOHNQLVRlMXBRSTExNmNkbXd2WXU0OGpmNXh1aktHblMyMFVBZDNySXFCbFJTUkpSR0JpVzhoVUxkVkFDdFZFTFpWaWJvZ2ZaLU9waTlOdWdOcWdMeVFrMU4?oc=5",
    "source": "Manila Bulletin",
-   "published": "2026-11-16T06:11:10Z",
+   "published": "2026-11-16T07:11:45Z",
    "summary": "",
    "lang": "en",
    "origin": "google-en",
    "id": "a257e4ebec7311cd",
    "firstSeen": "2026-11-16T06:49:20Z"
+  },
+  {
+   "title": "Asean Summit: PM Wong urges swift conclusion of substantive South China Sea code",
+   "link": "https://news.google.com/rss/articles/CBMiyAFBVV95cUxNMmJWdXZCQmlwRXNmRnhyS0ZtSlhVZWZlazlaN2F5Wl9lVmFVN01QdDlFVGkyeTIwMHQ3a3Z3QlRpT3NxNHNZZGx1R2N6Z1Bxb2FzQVlObDNvUGtBcHdqX01CTExUa1JRc3dRVU5vZFZTc0QzWnVadFk5UUFWOFp3aVdYUFAyRlB1NktXeUt6cjRtUk82djh5NGdrY0xtMjFuM00td0pCRndjaFRiRy1jY3lfUmVvVnp4aE5YeUUtZmhOcnJpVnlFVA?oc=5",
+   "source": "The Business Times",
+   "published": "2026-11-16T06:59:00Z",
+   "summary": "",
+   "lang": "en",
+   "origin": "google-en",
+   "id": "a7c552164bba32ac",
+   "firstSeen": "2026-11-16T18:41:41Z"
   },
   {
    "title": "In his opening remarks at the Manila Dialogue on the South China Sea, National Security Adviser Eduardo Oban Jr. warned that the absence of armed conflict does not necessarily mean lasting peace. Link to the full story in the comments section. | via ANC 24/",
@@ -25,17 +476,6 @@
    "firstSeen": "2026-11-16T06:49:20Z"
   },
   {
-   "title": "Southeast Asian leaders kick-start summit, with South China Sea and energy on agenda",
-   "link": "https://news.google.com/rss/articles/CBMiwwFBVV95cUxQb2NaMlQ5bGZaZlBnVnpWQWVxYjhXdjhZS0NBM054Zm5BbXRyX19DRDBrd2xXVEx0Z2VQX1h5YzNpMWRQM1BrWEJmeVBaRHNRTF9xRkNiYkZ5SVhRNkhkcmVSb1BnY3VZRVlTZHBlTGpvNXhMU2ZDdDBfdGdGQWswd2NXMjRPVEIxcnFlaUs2YUlUc0RJNU9YTjJFUWptemxxeElOc0xFQ3dubTcwYTBBbFBtaTZROS14MVhxWFMyWHV4cW8?oc=5",
-   "source": "The Washington Post",
-   "published": "2026-11-16T06:01:20Z",
-   "summary": "",
-   "lang": "en",
-   "origin": "google-en",
-   "id": "d265db367c5aa09c",
-   "firstSeen": "2026-11-15T22:59:16Z"
-  },
-  {
    "title": "PH facing unique challenges in South China Sea – security adviser",
    "link": "https://news.google.com/rss/articles/CBMingFBVV95cUxPc25sT3dVLWVBTmNrMHVBalgzckZnbnAzX2ZiS3k1b2NfYUdHZ19DV1RhdFlqb0ZFQWtka3UyeUNlRjl1UUJOcjYyVk1ab3ZmWk42V2xKNUJJR0o5Y0F2cFJWdlhZWG9kUVhCZ0ZDcFBqZVJCa0t2V0RrbVF1VWhhQnNKbjdTMFpqWHhtY0xYNFNUdW9fa3k0dmE5OGd6d9IBqwFBVV95cUxQcnR4R1VuSzVqWGt3UDlYNzBodEl5N041dllpU2tOM09mRGNYTk1kUlpfZ0xVV0VYenptWi0zOExyYjRvSFRFODhPT25VYVFRMG1CTDNNQU1MaUczWFZGZWpyRThLNXJBRFRfWkQzM0hXRXl5cFNfQ0prbV9TUm1VMWk4SkpnRTR0aEFOTzBxRDVnOE5XN29UTENGcU9PYzBfVTlFb2tVMHVfWUk?oc=5",
    "source": "SunStar Publishing Inc.",
@@ -45,6 +485,28 @@
    "origin": "google-en",
    "id": "322c11f80264b997",
    "firstSeen": "2026-11-16T06:49:20Z"
+  },
+  {
+   "title": "'We leave it up to Singapore': No final South China Sea COC under PH ASEAN chairship",
+   "link": "https://news.google.com/rss/articles/CBMizwFBVV95cUxOUWVmTVNDSXdJcXZBS1RyWE15VmxpVXF3OTZQTldmbGdqTUJ5aHBmT3dqZTJob3lGU2RSaDFvNHV5RkNlc2R2aDRHT2NsaHNsQ3QySUZ5bS02YmhneFgxeG0teEYzdkc5VmJQYVBoMDh5RGpIbThIYWloZ2tXT0NHdXp3VzJKRnlHUUU4NVAzM0ItSnFRLXJkTGloWi01NnYxYmNhd0tkV1VqXy1ERWQ3LXh5eEN5d2lMZk5OUXdUc3hBVnlFVFZxTDl0S0ZTMWM?oc=5",
+   "source": "ABS-CBN",
+   "published": "2026-11-16T05:46:30Z",
+   "summary": "",
+   "lang": "en",
+   "origin": "google-en",
+   "id": "b5a9c55d083e9f96",
+   "firstSeen": "2026-11-15T17:17:20Z"
+  },
+  {
+   "title": "House leader says South China Sea code’s progress still laudable",
+   "link": "https://news.google.com/rss/articles/CBMipwFBVV95cUxQUWk0Z3VVWVpJNEhaVUk2SU5mNV9zeXAyZ2REeGVUNm1WRldEWEpQMHdIeFJGUGl1eTMxSEpYM2FURnRWN0V1d3VMMUdIa2NnUmxTck13LW5JMU94ZjBKR01OeEJCeUo1Zk10VVdwSmRlUnBvQmZlUHFQYlZyVXEtMGk5NjNDQWRSeHZZeDBYX2tiTjVFM1dfZGdURlI4Y2txRDRVM3NfSdIBrAFBVV95cUxNUXdnT3BhdzBROXRFOHNsb19CMlIzVG54ZG5tZjlib2JzbDhZMlRtRVRLVHpfcHNSbF9Yc0xDeWIwMVF2Y2ZEZW1oYWlJVjJzQ0RkOVlNWlJORmxTR2pGU0djcVpWWktFS0ZFZ3UydlQ2ZXcwVVRNaEZlb1VUVXV3dzBpV3k4a3o0emw3VnhXX2p1TFVqWWRpWmlEclZsVXVuRE5ERmczc2wtU2pZ?oc=5",
+   "source": "Inquirer.net",
+   "published": "2026-11-16T05:38:00Z",
+   "summary": "",
+   "lang": "en",
+   "origin": "google-en",
+   "id": "a2b31857372044ea",
+   "firstSeen": "2026-11-16T18:41:41Z"
   },
   {
    "title": "Failure to finalize South China Sea code was expected – expert",
@@ -83,12 +545,45 @@
    "title": "Philippines falls short of South China Sea code deal as talks move to Singapore in 2027",
    "link": "https://news.google.com/rss/articles/CBMixwFBVV95cUxOeG1qUm91anRnUWEwX2hvTW1aY2V5TUxfN0RxWExQMi1YYU1IZzd1UzF2c0d3SGdRTmcwZ3I3MjdRWjduTUdpOEJPYXNnVXh2VEpteFh6anlSNWdOZUJtRzR5UkEtQnYwWGR2dUlHdnZ4ajVZTGNsY2xyNnJwQjF4YTROMVZ6VDl1TmpCQkRYdkNibXpxS0ZkbUNsQjJ5UGdUOHJyakNfa0tBZ2FmU0JqQU9fSWtrc1RSU0tTR2h5U1hLX3hkNG5j?oc=5",
    "source": "Philippine Canadian Inquirer",
-   "published": "2026-11-16T04:31:12Z",
+   "published": "2026-11-16T04:30:20Z",
    "summary": "",
    "lang": "en",
    "origin": "google-en",
    "id": "8f560b41e565a718",
    "firstSeen": "2026-11-16T06:49:20Z"
+  },
+  {
+   "title": "Southeast Asian leaders kick-start summit, with South China Sea and energy on agenda",
+   "link": "https://news.google.com/rss/articles/CBMiwwFBVV95cUxQb2NaMlQ5bGZaZlBnVnpWQWVxYjhXdjhZS0NBM054Zm5BbXRyX19DRDBrd2xXVEx0Z2VQX1h5YzNpMWRQM1BrWEJmeVBaRHNRTF9xRkNiYkZ5SVhRNkhkcmVSb1BnY3VZRVlTZHBlTGpvNXhMU2ZDdDBfdGdGQWswd2NXMjRPVEIxcnFlaUs2YUlUc0RJNU9YTjJFUWptemxxeElOc0xFQ3dubTcwYTBBbFBtaTZROS14MVhxWFMyWHV4cW8?oc=5",
+   "source": "The Washington Post",
+   "published": "2026-11-16T04:30:00Z",
+   "summary": "",
+   "lang": "en",
+   "origin": "google-en",
+   "id": "d265db367c5aa09c",
+   "firstSeen": "2026-11-15T22:59:16Z"
+  },
+  {
+   "title": "A conclusion to the Code of Conduct in the South China Sea has yet to be made, but parties remain committed to \"ensuring maritime safety, maintaining freedom of navigation and overflight, and preventing and managing incidents at sea.\" Link to the full story i",
+   "link": "https://news.google.com/rss/articles/CBMi1wFBVV95cUxNVXRIYUhQQ1N0WDFVS1gzamxqd2ZYanNzMlFZR3VJTmZwSXV1RzQwUEY5STlZN083eHdFeExoXzdMbVlGblFma3h6a0JjVHoxN294YVZ3NU9GazB2aGFLTDZhems0OWZ6WmN2dHZocW00V2NuYjlTeFlpc3hyRTNrdmU4SElfMjVTQUNGNU9oVk5pMnVodFo4TkFJYTZCQVFiTnhJakFWNi1GRjZFUHhYQUEwaTdZa3FMcHRyOEZHSkczdlM2OWVfOU9felJ0Q2tDdXZQc3U5RQ?oc=5",
+   "source": "Facebook",
+   "published": "2026-11-16T04:10:17Z",
+   "summary": "",
+   "lang": "en",
+   "origin": "google-en",
+   "id": "5f659b54e6bbffa9",
+   "firstSeen": "2026-11-16T18:41:41Z"
+  },
+  {
+   "title": "ASEAN, China fail to conclude South China Sea code of conduct",
+   "link": "https://news.google.com/rss/articles/CBMipgFBVV95cUxOckRWWXNzZzc5UW9xY3dFMzFXazFpTGlyZ293RkdESEFZbGRWMFlKMkZTa3RVSzRwMjBLNEVDeXBrWlIyZ29jXzYtSnA5aHZ5OUJaN2JsVklqekFmLXNqeEgzZUE3WWluWmJHRVltd1JzWVlyTjRCUGN1N3BqbDcwYVJwbGZZemtmSXBobksyblNoUDdXYzR6YnRHdzhab2VzSnZLakd3?oc=5",
+   "source": "Awani International",
+   "published": "2026-11-16T04:02:03Z",
+   "summary": "",
+   "lang": "en",
+   "origin": "google-en",
+   "id": "0768fcc8b35003a6",
+   "firstSeen": "2026-11-15T17:17:20Z"
   },
   {
    "title": "Scientists identified a new deepwater fish in the South China Sea after noticing unusual facial stripes;",
@@ -171,7 +666,7 @@
    "title": "ASEAN, China won’t meet 2026 deadline to finish South China Sea talks",
    "link": "https://news.google.com/rss/articles/CBMimwFBVV95cUxNaHhtT0xzeFdfLXk4VkJuUGhIRV9NUDFDUW9FMzR1bzBUQ3QyeG1TUXA4Z3BhQ19pa1VwUUJnd1hXYTdXV1cyNjlaSDY1bjVZam9fa3l6a3BjT0hKNWJxNC1XQnlvRFpsZjVhV001OWNWcUlHNDRPSWxKZ0dKTUx4RkVuV3E2ZEN3OFh5VzFsS3RvTzZwbHh1SXFXOA?oc=5",
    "source": "Rappler",
-   "published": "2026-11-16T01:15:00Z",
+   "published": "2026-11-16T01:57:06Z",
    "summary": "",
    "lang": "en",
    "origin": "google-en",
@@ -210,28 +705,6 @@
    "origin": "google-en",
    "id": "14e66acbf7792ab5",
    "firstSeen": "2026-11-16T06:49:20Z"
-  },
-  {
-   "title": "ASEAN, China fail to conclude South China Sea code of conduct",
-   "link": "https://news.google.com/rss/articles/CBMikwFBVV95cUxOSG14VU9idDZadVZ1dmFacUxVakxkaXloMFROdkFYSDZSQVJxSjUwU0xMSV9EdzJSNnQ3Ty1mc1paOUFNTFJrQzYtc2RqV1hLVXNfREtlSHM1QnU2OVcwQjNsdE5udG5wNkJXbHlHLThuV2xfbk03Z1drNk1Ga1JOcDdMN2Y1emdFNjEyU2JWdmlobjg?oc=5",
-   "source": "DZRH",
-   "published": "2026-11-15T23:58:04Z",
-   "summary": "",
-   "lang": "en",
-   "origin": "google-en",
-   "id": "0768fcc8b35003a6",
-   "firstSeen": "2026-11-15T17:17:20Z"
-  },
-  {
-   "title": "'We leave it up to Singapore': No final South China Sea COC under PH ASEAN chairship",
-   "link": "https://news.google.com/rss/articles/CBMizwFBVV95cUxOUWVmTVNDSXdJcXZBS1RyWE15VmxpVXF3OTZQTldmbGdqTUJ5aHBmT3dqZTJob3lGU2RSaDFvNHV5RkNlc2R2aDRHT2NsaHNsQ3QySUZ5bS02YmhneFgxeG0teEYzdkc5VmJQYVBoMDh5RGpIbThIYWloZ2tXT0NHdXp3VzJKRnlHUUU4NVAzM0ItSnFRLXJkTGloWi01NnYxYmNhd0tkV1VqXy1ERWQ3LXh5eEN5d2lMZk5OUXdUc3hBVnlFVFZxTDl0S0ZTMWM?oc=5",
-   "source": "ABS-CBN",
-   "published": "2026-11-15T23:05:27Z",
-   "summary": "",
-   "lang": "en",
-   "origin": "google-en",
-   "id": "b5a9c55d083e9f96",
-   "firstSeen": "2026-11-15T17:17:20Z"
   },
   {
    "title": "TODAY’S HEADLINES (Monday, November 16, 2026) Subscribe to the paper: https://philstarsubscribe.com/ No final code of conduct on South China Sea – DFA https://tinyurl.com/jnbuyaau 12 Cabinet secretaries await CA confirmation https://tinyurl.com/muyp",
@@ -441,6 +914,17 @@
    "origin": "google-en",
    "id": "692472f93b5f612c",
    "firstSeen": "2026-11-15T17:17:20Z"
+  },
+  {
+   "title": "Lazaro trusts Singapore to finish South China Sea code talks",
+   "link": "https://news.google.com/rss/articles/CBMimAFBVV95cUxQcjR6blhYQllqb25nTFJiRFdVOV9tek5oUnlfenV1b3BTSW4tZU1zdm1TZkRzNmx0Nkpla3ZLV0tVSjVuc0VCQnk4dkxhSV83Um1Vd0FUX3VHYVBSY0s5VlpDRkVMV19CbVYyUzYwQVJjLWFReXRkZkprSmo4SGtYLVR3U1VMXy1mRTFqQ1A2TGUzOENNZHFJUA?oc=5",
+   "source": "Bilyonaryo",
+   "published": "2026-11-15T11:42:03Z",
+   "summary": "",
+   "lang": "en",
+   "origin": "google-en",
+   "id": "f51f517fb11e7467",
+   "firstSeen": "2026-11-16T18:41:41Z"
   },
   {
    "title": "Finishing South China Sea COC now in Singapore’s hands – Lazaro",
@@ -1280,9 +1764,9 @@
   },
   {
    "title": "Teodoro Pledges Nationwide Expansion of West Philippine Sea Mural Festival to Inspire Patriotism",
-   "link": "https://news.google.com/rss/articles/CBMirwFBVV95cUxPVVNucVdFYzNQUjFvLWZCQzBlaTc2TDVTV2d3MHNOZEVuczU5TzV6WFZpVWRmNWV5dUVnUXk2emJWVXV5LWUwcFhFaFRxNGlTZWtjbWQ4c2ltWU9Vc2gyb2FWdC1nT1h3U2NJa05TcmNvdkEwOThzcDJsMjlGZ2JlWE5xTEM2dDQzSVFHM090Z3Roc1VuM2g4YzhRQ3VUQ21UYlZ3eW12MkNSeGJjVmtZ?oc=5",
+   "link": "https://news.google.com/rss/articles/CBMiogFBVV95cUxQZ2c1cEFQVmdOc2FaeTBaVDVwV0FKc0k2N0d6dnd4dWhpbWRleWxXbFNrTlVScnVLU2d0VC12YnVLdG5wclJhaXYwZ2ctdEoxWHRqS25jQXZqZmgzcUhwRmtrWk03djcxS2RqdGpOT0xsR0tFdjhXNml1SEJvX3pMRlRMbTZ3b2RWYnpIdTZUd0VuNG8wajRvSklkdF9VcFpKTWc?oc=5",
    "source": "Daily Tribune",
-   "published": "2026-11-13T01:41:34Z",
+   "published": "2026-11-13T01:35:18Z",
    "summary": "",
    "lang": "en",
    "origin": "google-en",
@@ -3820,6 +4304,17 @@
    "firstSeen": "2026-11-15T22:59:16Z"
   },
   {
+   "title": "Chinese navy says US ship near Sabina Shoal jeopardised maritime security",
+   "link": "https://news.google.com/rss/articles/CBMisAFBVV95cUxQOE9SR2hSRkllNThEZ3otcTVJT2JpdGxOaDVqQkNyUlh1NUp3ejA1Q2dnU2NVVm5pQzExWC13a2FlM0pnVDVLeTFLdlNNZW9mamFIZXVsclk2WDRyNzJLd25KVTlueF9IeHg3bjFjMTBKUzRELUZoTzlrRjlNWG9YdTlxQ1lTLXlBX2gxNEh6ZGRpa1BLTDhGOV9pUGUzSGZhRmhkakFENExsYzlHYlZQaw?oc=5",
+   "source": "TV5 Kapatid Network",
+   "published": "2026-10-20T07:00:00Z",
+   "summary": "",
+   "lang": "en",
+   "origin": "google-en",
+   "id": "997b5d26a5a6a014",
+   "firstSeen": "2026-10-31T14:13:37Z"
+  },
+  {
    "title": "China monitors US Charleston, calls passage illegal near Sabina Shoal",
    "link": "https://news.google.com/rss/articles/CBMiswFBVV95cUxNeVJMZXNZMmpIckZidmpkOXBRZWY1ZnZiVlJWc3lONWlVeExEclpMcFRWYkVhU1ZNRzFpR1o4Q3VXdlZ6RE9DMlNkeWR1eGFrLWxzSTVVa2czVkEzRkxvbko2MWdZajk4TVpEUDBPQm04MUdRekFkbkxmVnZEZ1VIcURfakhlN3k4YXJNTVExcWJOYmVZZHMwWjduSWstMThHU2ttaGliV0pFNmpVZDJ1SE53QQ?oc=5",
    "source": "NewsBytes",
@@ -3828,17 +4323,6 @@
    "lang": "en",
    "origin": "google-en",
    "id": "256da27e1691fc85",
-   "firstSeen": "2026-10-31T14:13:37Z"
-  },
-  {
-   "title": "Chinese navy says US ship near Sabina Shoal jeopardised maritime security",
-   "link": "https://news.google.com/rss/articles/CBMirAFBVV95cUxONnkxd0syd2U0bzhLLTJBcml6NmtLRTN0SXg1b2U2R3FBcmJMYXJMaGc4T2R0bUNEeURFUFpEUWFHeDVWS3ppZjFaNzdQOUo2UWd3TEFNZ2l4LWo2d0FXV1ZRbEF1ZGJIV21rY1pyb3o3WEFKTXdEeWdWcS1kSHlUY0stRVhaMUM0ZXFkcVVHNjdjek1pd0w2Z3ljSjlqbC1QN0xvYi1CRW45YXVI0gGyAUFVX3lxTE53R2kxdFJjbko4Y1ROdWFOMVUxbElkSE1tRmwzbmVHNzFDUFRwYU1IT0Nab3p1bzQ3aUxuRU05RkZEZnk1ZjFaX1ItSmdhSUI1WTNSX3JxLTR0RjluLXFVNnhHZDlmSTZyZDZMV1VpajVhOVF2Z3FZZFdQT3RJdWNYay1EZkhzRGJnaE0yTFNpV1V1X09hRm5Sc0hqMDZRMDBXcHVVeXVjZ0MzcDNQNEducnc?oc=5",
-   "source": "ThePrint",
-   "published": "2026-10-20T05:00:32Z",
-   "summary": "",
-   "lang": "en",
-   "origin": "google-en",
-   "id": "997b5d26a5a6a014",
    "firstSeen": "2026-10-31T14:13:37Z"
   },
   {
@@ -4554,83 +5038,6 @@
    "lang": "en",
    "origin": "google-en",
    "id": "eac12d327f0f6069",
-   "firstSeen": "2026-10-31T14:13:37Z"
-  },
-  {
-   "title": "China accelerates runway construction on disputed Antelope Reef: Report",
-   "link": "https://news.google.com/rss/articles/CBMiswFBVV95cUxOS1FZX1FXc1pBRm9FbXEzYVB3ZnNfVWV3U0R5RTZNMDRWT3lTbF9jYThrVGFETHRWUEx1ZWxxU2hZeVN1Z3JHMEZFcmpMSGxEejVIWVhRWHFuN1VERU1neTRmX2Qycng1R3pPS3VkNW5vR0FLUG51TFFuRWtCc0JKbnNCcUplUUc4R3NKczgtUGVjeG5LcG81VGk0a2NXNEhBQkF1SHpfUGs1anJqM0M1dU1vSQ?oc=5",
-   "source": "Türkiye Today",
-   "published": "2026-10-02T07:00:00Z",
-   "summary": "",
-   "lang": "en",
-   "origin": "google-en",
-   "id": "3ac5247c4f610f54",
-   "firstSeen": "2026-10-31T14:13:37Z"
-  },
-  {
-   "title": "What does Philippines seek with new Thitu map in South China Sea?",
-   "link": "https://news.google.com/rss/articles/CBMisgFBVV95cUxONVFtVTlNR2FlMmtlb1h1MjQ2dDlFbGlYZmx1TTk4YjJjM0VyUHBfSmt5djcwQkpKOUVPNlB2MHp1VUFzRmJ1S0pHdFZtRWNpSnNrZW5lMkhMUW5wM3ZLU0ZZN3ltSmFVODktXzZSMU42VndDQlM4LUc3eTBjM0l6S2pVUXlkVEtoSFZ4SHMxUWpPdVhrYlhPWVhIeExVcmRjRVNOYkdwQW1vS1U0Y1VWRXpR0gGyAUFVX3lxTFBpR0d3R1YyMW5YdFdReGVxek05WmM0RmY0bzJleml0Nm41MUwtNTlRTWJ5M0FGcXpGOC13YUNfMmJPUDlmYUxIWnY1Q3FPOXpzUUttUFl5ZVdOWGZzM2pqa1hLaEl3SWlQOUI1WUt1ekJwV1o5TkIxMlBqRTRrdkxCSVE1Z3l6NlhObEJrU29qNksxTG16SUJTaFkxbUxXb2FWUjdLWmRtcGtyS3l3YVJ0UkE?oc=5",
-   "source": "South China Morning Post",
-   "published": "2026-10-02T07:00:00Z",
-   "summary": "",
-   "lang": "en",
-   "origin": "google-en",
-   "id": "2a6d2ac1962ad061",
-   "firstSeen": "2026-10-31T14:13:37Z"
-  },
-  {
-   "title": "Chinese Work Gathering Pace on Antelope Reef in South China Sea, Latest Satellite Images Show",
-   "link": "https://news.google.com/rss/articles/CBMiggFBVV95cUxPbVpiSHZXV1RWbGE1YXVhUXE4WGtSaVFSR3pkT01ybmgtdmtLdndRTWstNkxOWWpKTmhKMnFidGZHck9pUkRmRENlOXl5aGJDVUNOeXdzbVBQd1lNX05aOGo0UWpDNXR2ZWtzVlN2aGx2T21nMFoxU2xNNGQ5aUw0RDVB?oc=5",
-   "source": "The China-Global South Project",
-   "published": "2026-10-02T07:00:00Z",
-   "summary": "",
-   "lang": "en",
-   "origin": "google-en",
-   "id": "a2b678cd234dc7b5",
-   "firstSeen": "2026-10-31T14:13:37Z"
-  },
-  {
-   "title": "A satellite view of a gravel-loaded barge at Antelope Reef in the South China Sea",
-   "link": "https://news.google.com/rss/articles/CBMihgJBVV95cUxQWlFzVWpXVjl2QkN0Y3FSMHhVd0h4dXZFTlF0RUU2SEtEMEtqTnZMNE9aR1B4NDVBRWJGTGlKOGlkSHcwNWNTMnVrN3NDd1pkQjl6TUZPZEo0UVZjbjZfYURYeUk5RUZjbnZEckZ4Q3dFWmRJWXZnbWFWWVJ2VC1Ta2JwNFdtQU5FdUVCQ1h5d0NnUVNJdkNmbmZ3WEZjS3Itck5Gc1lFVmM2NXB1TEZDRmowdGJZZXRPdnlWS212cjB6eFhmcUpVMUktSzBULVpqQ0JlaDVncHJBYThXZUZfQkZtdnU2aDF0RGUzQ0MzbEl5VkRVem5qd2lwRU5qTUtKNVFoR21n?oc=5",
-   "source": "The Lufkin Daily News",
-   "published": "2026-10-02T07:00:00Z",
-   "summary": "",
-   "lang": "en",
-   "origin": "google-en",
-   "id": "d36f9480a81d4286",
-   "firstSeen": "2026-10-31T14:13:37Z"
-  },
-  {
-   "title": "Photos show Chinese construction of a runway on Antelope Reef in the Paracels archipelago which is ​well underway with analysts estimating it could be completed by mid-2027, strengthening Beijing's military control over the disputed ‌South China Sea. Sate",
-   "link": "https://news.google.com/rss/articles/CBMi3AFBVV95cUxPOU1qRWdsdE45QVIybEczUlF0Z3FqTkJfOVJrRU1kUTQ3dHVSQVg4b3Y3bUt5ZEtFSm5nc190UUVRSjBnN2pyMENDQURrN2pfMzJCWXVpVFJKX3F5SHVrVDJqUGQ0VXhKNXJhZ2xZS3AtZDNYUG9lZkFtSDgtOEhueUFCSkctS0h3bzdWX0FDY3pfaHdoZktzOWJrN2t1dldHak9obUE1Rk1NQi1YQ1AtV1pHcXF5ZGNZaHZxLUF0VnVWbFRkMlVxRWh0Q3JUVTN3SDQ5bnBTbmlWQUdm?oc=5",
-   "source": "Facebook",
-   "published": "2026-10-02T07:00:00Z",
-   "summary": "",
-   "lang": "en",
-   "origin": "google-en",
-   "id": "e820d2907fba90f5",
-   "firstSeen": "2026-10-31T14:13:37Z"
-  },
-  {
-   "title": "RUNWAY CONSTRUCTION ON ANTELOPE REEF Chinese construction of a runway on Antelope Reef in the Paracels archipelago is well underway with analysts estimating it could be completed by mid-2027. | via Reuters",
-   "link": "https://news.google.com/rss/articles/CBMi3gFBVV95cUxQbWlNYzN6NGhPY0FhcXFiOWZlTlY2MVVKRUlQWkNyRGE1TlhpZVVnSGFnY0taRGZjZmIxVHhhQmNPdXM4MDAxUXN3UTdLVFE5WjRJU2JpNTY2THYxcER6elRKOFVWX1NBWmdRVjZ1akdjS2gwclliaW9mc3RfOUNfWTlEUC11bHNNdThlNno0NVlJZE1ucmxkc0RNYUg4VHJCMHZrY2ZJRjFNT2tNc1dEbTd5QzNnTVZfc3hrM1hxZlF6dlk1dTRrcGgxanFxMUZsYnRteXdPdUk0MTdENGc?oc=5",
-   "source": "Facebook",
-   "published": "2026-10-02T07:00:00Z",
-   "summary": "",
-   "lang": "en",
-   "origin": "google-en",
-   "id": "612216f2be640b63",
-   "firstSeen": "2026-10-31T14:13:37Z"
-  },
-  {
-   "title": "South China Sea: Beijing accelerates construction of runway on Antelope Reef",
-   "link": "https://news.google.com/rss/articles/CBMiowFBVV95cUxPRVRWeFRwUUNsZ2ZFZGJRVzVtUGk0R1MwZ0Q5aExTcjk4MmNzaVl3OTdWVlJnQlM3ZlJtbGlJOGxEVWUydVVOdThlZzUwdHBJcVF3NkwtTVFjelFHS0dyd20wUlBCYUlad1dpQ0RuU3picVEtQU9ZMnJQLU9TQ3ZzdENKVWhYSVJEZVJCUHN1MkVkMkdPd0ZGR3ZrR2xFZXUxaS00?oc=5",
-   "source": "Bénin Web TV",
-   "published": "2026-10-02T07:00:00Z",
-   "summary": "",
-   "lang": "en",
-   "origin": "google-en",
-   "id": "4334a682c7a7b5c4",
    "firstSeen": "2026-10-31T14:13:37Z"
   }
  ]
